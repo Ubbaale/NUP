@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen } from "lucide-react";
 import { useState } from "react";
-import nupLogo from "@/assets/images/nup-logo.png";
+import nupLogo from "@/assets/images/nup-official-logo.png";
 
 const navItems = [
   { href: "/", label: "Home", icon: Globe2 },

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import nupLogo from "@/assets/images/nup-logo.png";
+import nupLogo from "@/assets/images/nup-official-logo.png";
 
 export function Footer() {
   const [email, setEmail] = useState("");
