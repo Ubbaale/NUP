@@ -1,38 +1,306 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { 
+  type User, type InsertUser,
+  type Member, type InsertMember, members,
+  type Region, type InsertRegion, regions,
+  type Chapter, type InsertChapter, chapters,
+  type Activity, type InsertActivity, activities,
+  type Conference, type InsertConference, conferences,
+  type Product, type InsertProduct, products,
+  type Order, type InsertOrder, orders,
+  type Donation, type InsertDonation, donations,
+  type BlogPost, type InsertBlogPost, blogPosts,
+  type NewsItem, type InsertNewsItem, newsItems,
+  type Subscription, type InsertSubscription, subscriptions,
+  type CouncilMember, type InsertCouncilMember, councilMembers,
+  users
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
+function generateMembershipId(): string {
+  const prefix = "NUP";
+  const year = new Date().getFullYear().toString().slice(-2);
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `${prefix}${year}-${random}`;
+}
 
 export interface IStorage {
+  // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Members
+  getMember(id: string): Promise<Member | undefined>;
+  getMemberByEmail(email: string): Promise<Member | undefined>;
+  getMemberByMembershipId(membershipId: string): Promise<Member | undefined>;
+  createMember(member: InsertMember): Promise<Member>;
+  getAllMembers(): Promise<Member[]>;
+  
+  // Regions
+  getRegion(id: string): Promise<Region | undefined>;
+  getRegionBySlug(slug: string): Promise<Region | undefined>;
+  getAllRegions(): Promise<Region[]>;
+  createRegion(region: InsertRegion): Promise<Region>;
+  
+  // Chapters
+  getChapter(id: string): Promise<Chapter | undefined>;
+  getChapterBySlug(slug: string): Promise<Chapter | undefined>;
+  getChaptersByRegion(regionId: string): Promise<Chapter[]>;
+  getAllChapters(): Promise<Chapter[]>;
+  createChapter(chapter: InsertChapter): Promise<Chapter>;
+  
+  // Activities
+  getActivitiesByChapter(chapterId: string): Promise<Activity[]>;
+  createActivity(activity: InsertActivity): Promise<Activity>;
+  
+  // Conferences
+  getConference(id: string): Promise<Conference | undefined>;
+  getConferenceBySlug(slug: string): Promise<Conference | undefined>;
+  getAllConferences(): Promise<Conference[]>;
+  createConference(conference: InsertConference): Promise<Conference>;
+  
+  // Products
+  getProduct(id: string): Promise<Product | undefined>;
+  getProductBySlug(slug: string): Promise<Product | undefined>;
+  getAllProducts(): Promise<Product[]>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  
+  // Orders
+  createOrder(order: InsertOrder): Promise<Order>;
+  getOrdersByEmail(email: string): Promise<Order[]>;
+  
+  // Donations
+  createDonation(donation: InsertDonation): Promise<Donation>;
+  getAllDonations(): Promise<Donation[]>;
+  
+  // Blog Posts
+  getBlogPost(id: string): Promise<BlogPost | undefined>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  getAllBlogPosts(): Promise<BlogPost[]>;
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  
+  // News Items
+  getAllNewsItems(): Promise<NewsItem[]>;
+  createNewsItem(item: InsertNewsItem): Promise<NewsItem>;
+  
+  // Subscriptions
+  createSubscription(sub: InsertSubscription): Promise<Subscription>;
+  getSubscriptionByEmail(email: string): Promise<Subscription | undefined>;
+  
+  // Council Members
+  getCouncilMembersByRegion(regionId: string): Promise<CouncilMember[]>;
+  createCouncilMember(member: InsertCouncilMember): Promise<CouncilMember>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
+  // Users
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  // Members
+  async getMember(id: string): Promise<Member | undefined> {
+    const [member] = await db.select().from(members).where(eq(members.id, id));
+    return member;
+  }
+
+  async getMemberByEmail(email: string): Promise<Member | undefined> {
+    const [member] = await db.select().from(members).where(eq(members.email, email));
+    return member;
+  }
+
+  async getMemberByMembershipId(membershipId: string): Promise<Member | undefined> {
+    const [member] = await db.select().from(members).where(eq(members.membershipId, membershipId));
+    return member;
+  }
+
+  async createMember(insertMember: InsertMember): Promise<Member> {
+    const membershipId = generateMembershipId();
+    const [member] = await db.insert(members).values({ ...insertMember, membershipId }).returning();
+    return member;
+  }
+
+  async getAllMembers(): Promise<Member[]> {
+    return db.select().from(members);
+  }
+
+  // Regions
+  async getRegion(id: string): Promise<Region | undefined> {
+    const [region] = await db.select().from(regions).where(eq(regions.id, id));
+    return region;
+  }
+
+  async getRegionBySlug(slug: string): Promise<Region | undefined> {
+    const [region] = await db.select().from(regions).where(eq(regions.slug, slug));
+    return region;
+  }
+
+  async getAllRegions(): Promise<Region[]> {
+    return db.select().from(regions);
+  }
+
+  async createRegion(insertRegion: InsertRegion): Promise<Region> {
+    const [region] = await db.insert(regions).values(insertRegion).returning();
+    return region;
+  }
+
+  // Chapters
+  async getChapter(id: string): Promise<Chapter | undefined> {
+    const [chapter] = await db.select().from(chapters).where(eq(chapters.id, id));
+    return chapter;
+  }
+
+  async getChapterBySlug(slug: string): Promise<Chapter | undefined> {
+    const [chapter] = await db.select().from(chapters).where(eq(chapters.slug, slug));
+    return chapter;
+  }
+
+  async getChaptersByRegion(regionId: string): Promise<Chapter[]> {
+    return db.select().from(chapters).where(eq(chapters.regionId, regionId));
+  }
+
+  async getAllChapters(): Promise<Chapter[]> {
+    return db.select().from(chapters);
+  }
+
+  async createChapter(insertChapter: InsertChapter): Promise<Chapter> {
+    const [chapter] = await db.insert(chapters).values(insertChapter).returning();
+    return chapter;
+  }
+
+  // Activities
+  async getActivitiesByChapter(chapterId: string): Promise<Activity[]> {
+    return db.select().from(activities).where(eq(activities.chapterId, chapterId)).orderBy(desc(activities.date));
+  }
+
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const [activity] = await db.insert(activities).values(insertActivity).returning();
+    return activity;
+  }
+
+  // Conferences
+  async getConference(id: string): Promise<Conference | undefined> {
+    const [conference] = await db.select().from(conferences).where(eq(conferences.id, id));
+    return conference;
+  }
+
+  async getConferenceBySlug(slug: string): Promise<Conference | undefined> {
+    const [conference] = await db.select().from(conferences).where(eq(conferences.slug, slug));
+    return conference;
+  }
+
+  async getAllConferences(): Promise<Conference[]> {
+    return db.select().from(conferences).orderBy(desc(conferences.year));
+  }
+
+  async createConference(insertConference: InsertConference): Promise<Conference> {
+    const [conference] = await db.insert(conferences).values(insertConference).returning();
+    return conference;
+  }
+
+  // Products
+  async getProduct(id: string): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product;
+  }
+
+  async getProductBySlug(slug: string): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(eq(products.slug, slug));
+    return product;
+  }
+
+  async getAllProducts(): Promise<Product[]> {
+    return db.select().from(products);
+  }
+
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const [product] = await db.insert(products).values(insertProduct).returning();
+    return product;
+  }
+
+  // Orders
+  async createOrder(insertOrder: InsertOrder): Promise<Order> {
+    const [order] = await db.insert(orders).values(insertOrder).returning();
+    return order;
+  }
+
+  async getOrdersByEmail(email: string): Promise<Order[]> {
+    return db.select().from(orders).where(eq(orders.email, email));
+  }
+
+  // Donations
+  async createDonation(insertDonation: InsertDonation): Promise<Donation> {
+    const [donation] = await db.insert(donations).values(insertDonation).returning();
+    return donation;
+  }
+
+  async getAllDonations(): Promise<Donation[]> {
+    return db.select().from(donations).orderBy(desc(donations.createdAt));
+  }
+
+  // Blog Posts
+  async getBlogPost(id: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return post;
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return post;
+  }
+
+  async getAllBlogPosts(): Promise<BlogPost[]> {
+    return db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt));
+  }
+
+  async createBlogPost(insertPost: InsertBlogPost): Promise<BlogPost> {
+    const [post] = await db.insert(blogPosts).values(insertPost).returning();
+    return post;
+  }
+
+  // News Items
+  async getAllNewsItems(): Promise<NewsItem[]> {
+    return db.select().from(newsItems).orderBy(desc(newsItems.publishedAt));
+  }
+
+  async createNewsItem(insertItem: InsertNewsItem): Promise<NewsItem> {
+    const [item] = await db.insert(newsItems).values(insertItem).returning();
+    return item;
+  }
+
+  // Subscriptions
+  async createSubscription(insertSub: InsertSubscription): Promise<Subscription> {
+    const [sub] = await db.insert(subscriptions).values(insertSub).returning();
+    return sub;
+  }
+
+  async getSubscriptionByEmail(email: string): Promise<Subscription | undefined> {
+    const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.email, email));
+    return sub;
+  }
+
+  // Council Members
+  async getCouncilMembersByRegion(regionId: string): Promise<CouncilMember[]> {
+    return db.select().from(councilMembers).where(eq(councilMembers.regionId, regionId));
+  }
+
+  async createCouncilMember(insertMember: InsertCouncilMember): Promise<CouncilMember> {
+    const [member] = await db.insert(councilMembers).values(insertMember).returning();
+    return member;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

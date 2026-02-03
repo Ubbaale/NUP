@@ -1,8 +1,232 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Users/Members
+export const members = pgTable("members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  membershipId: varchar("membership_id").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  country: text("country").notNull(),
+  city: text("city"),
+  regionId: varchar("region_id"),
+  chapterId: varchar("chapter_id"),
+  membershipType: text("membership_type").notNull().default("regular"),
+  isActive: boolean("is_active").notNull().default(true),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const insertMemberSchema = createInsertSchema(members).omit({ id: true, membershipId: true, joinedAt: true });
+export type InsertMember = z.infer<typeof insertMemberSchema>;
+export type Member = typeof members.$inferSelect;
+
+// Regions (North America, Europe, UK, Canada, Asia, Australia)
+export const regions = pgTable("regions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  leaderName: text("leader_name"),
+  leaderTitle: text("leader_title"),
+  leaderImage: text("leader_image"),
+  leaderBio: text("leader_bio"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  coordinates: text("coordinates"), // JSON string for map positioning
+});
+
+export const insertRegionSchema = createInsertSchema(regions).omit({ id: true });
+export type InsertRegion = z.infer<typeof insertRegionSchema>;
+export type Region = typeof regions.$inferSelect;
+
+// Chapters within regions
+export const chapters = pgTable("chapters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  regionId: varchar("region_id").notNull(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  description: text("description"),
+  leaderName: text("leader_name"),
+  leaderTitle: text("leader_title"),
+  leaderImage: text("leader_image"),
+  leaderBio: text("leader_bio"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  meetingSchedule: text("meeting_schedule"),
+  address: text("address"),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
+export const insertChapterSchema = createInsertSchema(chapters).omit({ id: true });
+export type InsertChapter = z.infer<typeof insertChapterSchema>;
+export type Chapter = typeof chapters.$inferSelect;
+
+// Chapter Activities
+export const activities = pgTable("activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chapterId: varchar("chapter_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  date: timestamp("date"),
+  location: text("location"),
+  imageUrl: text("image_url"),
+});
+
+export const insertActivitySchema = createInsertSchema(activities).omit({ id: true });
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type Activity = typeof activities.$inferSelect;
+
+// Conferences
+export const conferences = pgTable("conferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  year: integer("year").notNull(),
+  location: text("location").notNull(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  description: text("description"),
+  theme: text("theme"),
+  registrationUrl: text("registration_url"),
+  imageUrl: text("image_url"),
+  isUpcoming: boolean("is_upcoming").notNull().default(true),
+  speakers: text("speakers"), // JSON array of speaker names/details
+});
+
+export const insertConferenceSchema = createInsertSchema(conferences).omit({ id: true });
+export type InsertConference = z.infer<typeof insertConferenceSchema>;
+export type Conference = typeof conferences.$inferSelect;
+
+// Store Products
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  category: text("category").notNull(),
+  imageUrl: text("image_url"),
+  sizes: text("sizes"), // JSON array of available sizes
+  colors: text("colors"), // JSON array of available colors
+  inStock: boolean("in_stock").notNull().default(true),
+  featured: boolean("featured").notNull().default(false),
+});
+
+export const insertProductSchema = createInsertSchema(products).omit({ id: true });
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Product = typeof products.$inferSelect;
+
+// Orders
+export const orders = pgTable("orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  memberId: varchar("member_id"),
+  email: text("email").notNull(),
+  fullName: text("full_name").notNull(),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  postalCode: text("postal_code"),
+  items: text("items").notNull(), // JSON array of order items
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, createdAt: true });
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type Order = typeof orders.$inferSelect;
+
+// Donations
+export const donations = pgTable("donations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  donorName: text("donor_name").notNull(),
+  email: text("email").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("USD"),
+  message: text("message"),
+  isRecurring: boolean("is_recurring").notNull().default(false),
+  isAnonymous: boolean("is_anonymous").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDonationSchema = createInsertSchema(donations).omit({ id: true, createdAt: true });
+export type InsertDonation = z.infer<typeof insertDonationSchema>;
+export type Donation = typeof donations.$inferSelect;
+
+// Blog Posts
+export const blogPosts = pgTable("blog_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  authorId: varchar("author_id").notNull(),
+  authorName: text("author_name").notNull(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  imageUrl: text("image_url"),
+  isPublished: boolean("is_published").notNull().default(false),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true });
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPosts.$inferSelect;
+
+// News Feed (from Uganda)
+export const newsItems = pgTable("news_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  source: text("source").notNull(),
+  url: text("url"),
+  excerpt: text("excerpt"),
+  imageUrl: text("image_url"),
+  category: text("category"),
+  publishedAt: timestamp("published_at").defaultNow(),
+});
+
+export const insertNewsItemSchema = createInsertSchema(newsItems).omit({ id: true });
+export type InsertNewsItem = z.infer<typeof insertNewsItemSchema>;
+export type NewsItem = typeof newsItems.$inferSelect;
+
+// Subscriptions
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  isActive: boolean("is_active").notNull().default(true),
+  subscribedAt: timestamp("subscribed_at").defaultNow(),
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, subscribedAt: true });
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+
+// Diaspora Council Members
+export const councilMembers = pgTable("council_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  regionId: varchar("region_id").notNull(),
+  name: text("name").notNull(),
+  title: text("title").notNull(),
+  role: text("role").notNull(),
+  imageUrl: text("image_url"),
+  bio: text("bio"),
+  email: text("email"),
+  order: integer("order").notNull().default(0),
+});
+
+export const insertCouncilMemberSchema = createInsertSchema(councilMembers).omit({ id: true });
+export type InsertCouncilMember = z.infer<typeof insertCouncilMemberSchema>;
+export type CouncilMember = typeof councilMembers.$inferSelect;
+
+// Legacy Users table for compatibility
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
