@@ -38,12 +38,8 @@ export function Footer() {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <img src={nupLogo} alt="NUP Logo" className="w-14 h-14 object-contain" />
-              <div>
-                <span className="font-bold text-lg block text-primary">People Power Uganda</span>
-                <span className="text-muted-foreground text-sm">NUP Diaspora</span>
-              </div>
+            <div className="mb-4">
+              <img src={nupLogo} alt="National Unity Platform" className="h-14 object-contain" />
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Shaping our future together. We invite all Ugandans who share our vision to join us in building a better Uganda.
