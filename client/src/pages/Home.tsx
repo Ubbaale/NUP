@@ -10,7 +10,8 @@ import { ConferenceCard } from "@/components/ConferenceCard";
 import { motion } from "framer-motion";
 import { 
   Globe2, Users, Heart, Calendar, ArrowRight, 
-  Newspaper, ShoppingBag, MapPin, ChevronRight
+  Newspaper, ShoppingBag, MapPin, ChevronRight,
+  Shield, Handshake, Award, UsersRound, Flag
 } from "lucide-react";
 import type { Region, NewsItem, Conference } from "@shared/schema";
 
@@ -97,6 +98,43 @@ export default function Home() {
       </section>
 
       <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Badge variant="outline" className="mb-4">What We Stand For</Badge>
+            <h2 className="text-3xl font-bold mb-4">Our Core Values</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              The pillars that guide the National Unity Platform in our pursuit of a democratic and prosperous Uganda
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            {[
+              { icon: Shield, value: "Discipline", description: "Commitment to order and self-control in our actions" },
+              { icon: Handshake, value: "Reliability", description: "Being dependable and trustworthy in all we do" },
+              { icon: Award, value: "Integrity", description: "Upholding honesty and strong moral principles" },
+              { icon: UsersRound, value: "Inclusiveness", description: "Embracing all Ugandans regardless of background" },
+              { icon: Flag, value: "Patriotism", description: "Deep love and devotion to our motherland Uganda" },
+            ].map((item, i) => (
+              <motion.div
+                key={item.value}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Card className="text-center p-6 h-full hover-elevate">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                    <item.icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">{item.value}</h3>
+                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
             <div>
