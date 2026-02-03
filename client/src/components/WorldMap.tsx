@@ -23,7 +23,10 @@ const regionMarkers: Record<string, { coordinates: [number, number]; label: stri
   "canada": { coordinates: [-106.3468, 56.1304], label: "Canada" },
   "asia": { coordinates: [100.6197, 34.0479], label: "Asia" },
   "australia": { coordinates: [133.7751, -25.2744], label: "Australia" },
+  "africa": { coordinates: [17.8, 0], label: "Africa" },
 };
+
+const ugandaCoordinates: [number, number] = [32.2903, 1.3733];
 
 export function WorldMap({ regions }: WorldMapProps) {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
@@ -107,6 +110,37 @@ export function WorldMap({ regions }: WorldMapProps) {
               </Marker>
             );
           })}
+
+          <Marker
+            coordinates={ugandaCoordinates}
+            onMouseEnter={() => setHoveredRegion("uganda")}
+            onMouseLeave={() => setHoveredRegion(null)}
+          >
+            <g data-testid="map-uganda-homeland">
+              <circle
+                r={12}
+                fill="#fbbf24"
+                stroke="#fff"
+                strokeWidth={3}
+                className="drop-shadow-xl"
+              />
+              <circle
+                r={18}
+                fill="transparent"
+                stroke="#fbbf24"
+                strokeWidth={3}
+                opacity={0.6}
+                className="animate-ping"
+              />
+              <text
+                textAnchor="middle"
+                y={4}
+                style={{ fontFamily: "system-ui", fontWeight: "bold", fontSize: "10px", fill: "#000" }}
+              >
+                🇺🇬
+              </text>
+            </g>
+          </Marker>
         </ZoomableGroup>
       </ComposableMap>
 
@@ -133,6 +167,26 @@ export function WorldMap({ regions }: WorldMapProps) {
           </motion.div>
         );
       })}
+
+      {hoveredRegion === "uganda" && (
+        <motion.div
+          className="absolute pointer-events-none z-20"
+          style={{
+            left: "50%",
+            top: "10%",
+            transform: "translateX(-50%)",
+          }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-400 rounded-lg shadow-xl">
+            <p className="font-bold text-foreground flex items-center gap-2">
+              <span>🇺🇬</span> Uganda - Our Homeland
+            </p>
+            <p className="text-xs text-muted-foreground">The heart of the People Power movement</p>
+          </div>
+        </motion.div>
+      )}
 
       <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur px-4 py-2 rounded-lg border shadow-lg">
         <p className="text-sm font-medium">Click a region to explore chapters</p>
