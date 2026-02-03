@@ -116,30 +116,37 @@ export function WorldMap({ regions }: WorldMapProps) {
             onMouseEnter={() => setHoveredRegion("uganda")}
             onMouseLeave={() => setHoveredRegion(null)}
           >
-            <g data-testid="map-uganda-homeland">
-              <circle
-                r={12}
-                fill="#fbbf24"
-                stroke="#fff"
-                strokeWidth={3}
-                className="drop-shadow-xl"
-              />
-              <circle
-                r={18}
-                fill="transparent"
-                stroke="#fbbf24"
-                strokeWidth={3}
-                opacity={0.6}
-                className="animate-ping"
-              />
-              <text
-                textAnchor="middle"
-                y={4}
-                style={{ fontFamily: "system-ui", fontWeight: "bold", fontSize: "10px", fill: "#000" }}
-              >
-                🇺🇬
-              </text>
-            </g>
+            <a
+              href="https://nupuganda.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="map-uganda-homeland"
+            >
+              <g className="cursor-pointer">
+                <circle
+                  r={12}
+                  fill="#1e3a8a"
+                  stroke="#fff"
+                  strokeWidth={3}
+                  className="drop-shadow-xl"
+                />
+                <circle
+                  r={18}
+                  fill="transparent"
+                  stroke="#1e3a8a"
+                  strokeWidth={3}
+                  opacity={0.6}
+                  className="animate-ping"
+                />
+                <text
+                  textAnchor="middle"
+                  y={4}
+                  style={{ fontFamily: "system-ui", fontWeight: "bold", fontSize: "10px", fill: "#fff" }}
+                >
+                  🇺🇬
+                </text>
+              </g>
+            </a>
           </Marker>
         </ZoomableGroup>
       </ComposableMap>
@@ -179,11 +186,11 @@ export function WorldMap({ regions }: WorldMapProps) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-400 rounded-lg shadow-xl">
+          <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-800 rounded-lg shadow-xl">
             <p className="font-bold text-foreground flex items-center gap-2">
               <span>🇺🇬</span> Uganda - Our Homeland
             </p>
-            <p className="text-xs text-muted-foreground">The heart of the People Power movement</p>
+            <p className="text-xs text-muted-foreground">Click to visit NUP Uganda</p>
           </div>
         </motion.div>
       )}
