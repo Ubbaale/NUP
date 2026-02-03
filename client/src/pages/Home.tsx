@@ -16,11 +16,21 @@ import {
 } from "lucide-react";
 import type { Region, NewsItem, Conference } from "@shared/schema";
 
-import campaignImg1 from "@/assets/images/campaign-1_1.jpg";
-import campaignImg2 from "@/assets/images/campaign-1_2.jpg";
-import campaignImg3 from "@/assets/images/campaign-1_3.jpg";
+import rallyLeader1 from "@/assets/images/rally-leader_1.jpg";
+import rallyLeader2 from "@/assets/images/rally-leader_2.jpg";
+import diasporaProtest1 from "@/assets/images/diaspora-protest_1.jpg";
+import diasporaProtest2 from "@/assets/images/diaspora-protest_2.jpg";
+import crowdCelebration1 from "@/assets/images/crowd-celebration_1.jpg";
+import crowdCelebration2 from "@/assets/images/crowd-celebration_2.jpg";
 
-const campaignImages = [campaignImg1, campaignImg2, campaignImg3];
+const campaignImages = [
+  rallyLeader1,
+  diasporaProtest1,
+  crowdCelebration1,
+  rallyLeader2,
+  diasporaProtest2,
+  crowdCelebration2,
+];
 
 export default function Home() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
