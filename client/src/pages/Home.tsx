@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WorldMap } from "@/components/WorldMap";
 import { NewsCard } from "@/components/NewsCard";
 import { ConferenceCard } from "@/components/ConferenceCard";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import { 
   Globe2, Users, Heart, Calendar, ArrowRight, 
   Newspaper, ShoppingBag, MapPin, ChevronRight,
@@ -15,7 +16,22 @@ import {
 } from "lucide-react";
 import type { Region, NewsItem, Conference } from "@shared/schema";
 
+import campaignImg1 from "@/assets/images/campaign-1_1.jpg";
+import campaignImg2 from "@/assets/images/campaign-1_2.jpg";
+import campaignImg3 from "@/assets/images/campaign-1_3.jpg";
+
+const campaignImages = [campaignImg1, campaignImg2, campaignImg3];
+
 export default function Home() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % campaignImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const { data: regions, isLoading: regionsLoading } = useQuery<Region[]>({
     queryKey: ["/api/regions"],
   });
@@ -32,8 +48,24 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-primary/5 py-20 lg:py-32">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dc2626' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
+      <section className="relative overflow-hidden py-20 lg:py-32">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentImageIndex}
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5 }}
+          >
+            <img
+              src={campaignImages[currentImageIndex]}
+              alt="NUP Campaign"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+          </motion.div>
+        </AnimatePresence>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
@@ -42,14 +74,14 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Badge variant="secondary" className="mb-4">
+              <Badge className="mb-4 bg-primary/90 text-white border-primary">
                 People Power Movement
               </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white drop-shadow-lg">
                 National Unity Platform
-                <span className="block text-primary">Diaspora</span>
+                <span className="block text-primary drop-shadow-lg">Diaspora</span>
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl mx-auto drop-shadow">
                 Shaping our future together. Join Ugandans worldwide in building a better Uganda founded on justice, equality, and opportunity for all.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4">
@@ -60,13 +92,28 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="/donate">
-                  <Button size="lg" variant="outline" data-testid="button-donate-hero">
+                  <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20" data-testid="button-donate-hero">
                     <Heart className="w-5 h-5 mr-2" />
                     Support the Cause
                   </Button>
                 </Link>
               </div>
             </motion.div>
+          </div>
+
+          <div className="flex justify-center mt-8 gap-2">
+            {campaignImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImageIndex(index)}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  index === currentImageIndex 
+                    ? "bg-primary w-8" 
+                    : "bg-white/50 hover:bg-white/70"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
         </div>
       </section>
