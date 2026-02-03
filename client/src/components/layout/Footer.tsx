@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import nupLogo from "@/assets/images/nup-official-logo.png";
+import peoplePowerBadge from "@/assets/images/people-power-badge.jpg";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -117,8 +118,9 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center text-muted-foreground text-sm">
-          <p>&copy; {new Date().getFullYear()} National Unity Platform Diaspora Inc. All rights reserved.</p>
+        <div className="border-t mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} National Unity Platform Diaspora Inc. All rights reserved.</p>
+          <img src={peoplePowerBadge} alt="People Power Our Power" className="w-16 h-16 rounded-full object-cover" />
         </div>
       </div>
     </footer>
