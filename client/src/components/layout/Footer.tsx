@@ -121,6 +121,12 @@ export function Footer() {
           <p>&copy; {new Date().getFullYear()} National Unity Platform Diaspora Inc. All rights reserved.</p>
         </div>
       </div>
+      <div className="flex h-2">
+        <div className="flex-1 bg-black"></div>
+        <div className="flex-1 bg-yellow-500"></div>
+        <div className="flex-1 bg-red-600"></div>
+        <div className="flex-1 bg-blue-900"></div>
+      </div>
     </footer>
   );
 }
