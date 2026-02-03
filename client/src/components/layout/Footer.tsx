@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import nupLogo from "@/assets/images/nup-logo.png";
 
 export function Footer() {
   const [email, setEmail] = useState("");
@@ -38,12 +39,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">NUP</span>
-              </div>
+              <img src={nupLogo} alt="NUP Logo" className="w-14 h-14 object-contain" />
               <div>
-                <span className="font-bold text-lg block">NUP Diaspora</span>
-                <span className="text-muted-foreground text-sm">People Power Movement</span>
+                <span className="font-bold text-lg block text-primary">People Power Uganda</span>
+                <span className="text-muted-foreground text-sm">NUP Diaspora</span>
               </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
