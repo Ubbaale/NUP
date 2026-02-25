@@ -19,6 +19,7 @@ import Blog from "@/pages/Blog";
 import BlogPostDetail from "@/pages/BlogPostDetail";
 import Checkout from "@/pages/Checkout";
 import OrderTracking from "@/pages/OrderTracking";
+import PrintfulAdmin from "@/pages/PrintfulAdmin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPostDetail} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/order-tracking" component={OrderTracking} />
+      <Route path="/admin/printful" component={PrintfulAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

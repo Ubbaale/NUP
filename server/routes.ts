@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductRatingSchema } from "@shared/schema";
+import * as printful from "./printful";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -234,10 +235,59 @@ export async function registerRoutes(
     try {
       const validatedData = insertOrderSchema.parse(req.body);
       const order = await storage.createOrder(validatedData);
-      // Auto-advance to processing after creation
-      setTimeout(async () => {
-        await storage.updateOrderStatus(order.id, "processing");
-      }, 2000);
+
+      // Attempt Printful fulfillment asynchronously
+      (async () => {
+        try {
+          const items: Array<{ productName: string; quantity: number; printfulSyncVariantId?: string | null }> = [];
+          const parsedItems = JSON.parse(order.items) as any[];
+          for (const item of parsedItems) {
+            // Look up the product to get its Printful variant ID
+            const product = await storage.getProduct(item.productId).catch(() => null);
+            items.push({
+              productName: item.productName,
+              quantity: item.quantity,
+              printfulSyncVariantId: product?.printfulSyncVariantId || null,
+            });
+          }
+
+          const fulfillResult = await printful.submitOrderToFulfillment({
+            id: order.id,
+            fullName: order.fullName,
+            email: order.email,
+            phone: order.phone,
+            address: order.address,
+            city: order.city,
+            state: order.state,
+            country: order.country,
+            postalCode: order.postalCode,
+            items,
+          });
+
+          if (fulfillResult.success && fulfillResult.printfulOrderId) {
+            await storage.updateOrderFulfillment(
+              order.id,
+              String(fulfillResult.printfulOrderId),
+              "submitted",
+              fulfillResult.trackingInfo?.number,
+              fulfillResult.trackingInfo?.carrier,
+              fulfillResult.trackingInfo?.estimatedDelivery,
+            );
+            await storage.updateOrderStatus(order.id, "processing");
+          } else if (fulfillResult.skipped) {
+            // No Printful variants linked yet — mark for later
+            await storage.updateOrderFulfillment(order.id, "", "not_configured");
+            await storage.updateOrderStatus(order.id, "processing");
+          } else {
+            await storage.updateOrderFulfillment(order.id, "", "failed");
+            await storage.updateOrderStatus(order.id, "processing");
+          }
+        } catch (err) {
+          console.error("[Printful] Background fulfillment error:", err);
+          await storage.updateOrderStatus(order.id, "processing").catch(() => {});
+        }
+      })();
+
       res.status(201).json(order);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to create order" });
@@ -310,6 +360,85 @@ export async function registerRoutes(
       res.json(ratings);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch ratings" });
+    }
+  });
+
+  // ===== PRINTFUL INTEGRATION =====
+  app.get("/api/printful/status", async (req, res) => {
+    try {
+      const status = await printful.getConnectionStatus();
+      res.json(status);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check Printful status" });
+    }
+  });
+
+  app.get("/api/printful/products", async (req, res) => {
+    try {
+      const result = await printful.getSyncedProducts();
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch Printful products" });
+    }
+  });
+
+  app.post("/api/printful/link-product", async (req, res) => {
+    try {
+      const { productId, printfulSyncVariantId, printfulProductId, baseCost } = req.body;
+      if (!productId || !printfulSyncVariantId) {
+        return res.status(400).json({ error: "productId and printfulSyncVariantId required" });
+      }
+      const product = await storage.updateProductPrintful(productId, printfulSyncVariantId, printfulProductId || "", baseCost);
+      if (!product) return res.status(404).json({ error: "Product not found" });
+      res.json(product);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to link product" });
+    }
+  });
+
+  app.post("/api/printful/resubmit/:orderId", async (req, res) => {
+    try {
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) return res.status(404).json({ error: "Order not found" });
+
+      const parsedItems = JSON.parse(order.items) as any[];
+      const items: Array<{ productName: string; quantity: number; printfulSyncVariantId?: string | null }> = [];
+      for (const item of parsedItems) {
+        const product = await storage.getProduct(item.productId).catch(() => null);
+        items.push({
+          productName: item.productName,
+          quantity: item.quantity,
+          printfulSyncVariantId: product?.printfulSyncVariantId || null,
+        });
+      }
+
+      const fulfillResult = await printful.submitOrderToFulfillment({
+        id: order.id,
+        fullName: order.fullName,
+        email: order.email,
+        phone: order.phone,
+        address: order.address,
+        city: order.city,
+        state: order.state,
+        country: order.country,
+        postalCode: order.postalCode,
+        items,
+      });
+
+      if (fulfillResult.success && fulfillResult.printfulOrderId) {
+        await storage.updateOrderFulfillment(
+          order.id,
+          String(fulfillResult.printfulOrderId),
+          "submitted",
+          fulfillResult.trackingInfo?.number,
+          fulfillResult.trackingInfo?.carrier,
+          fulfillResult.trackingInfo?.estimatedDelivery,
+        );
+        return res.json({ success: true, message: "Order submitted to Printful" });
+      }
+      res.json({ success: false, error: fulfillResult.error });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to resubmit order" });
     }
   });
 

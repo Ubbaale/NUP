@@ -115,3 +115,11 @@ npm run db:push      # Push schema to database
 ## Environment Variables
 - DATABASE_URL - PostgreSQL connection string
 - SESSION_SECRET - Session encryption key
+- PRINTFUL_API_KEY - Printful API key for automatic order fulfillment (optional — orders queue locally when not set)
+
+## Printful Integration
+- Admin page: `/admin/printful` — manage connection, link products, view profit margins
+- Service file: `server/printful.ts` — handles all Printful API communication
+- How to activate: Add PRINTFUL_API_KEY to Replit Secrets, then link each product to its Printful variant via the admin page
+- Orders automatically forwarded to Printful on creation (items with linked variants only)
+- Fulfillment status tracked separately from order status: not_submitted → submitted → fulfilled

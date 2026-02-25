@@ -73,6 +73,8 @@ export interface IStorage {
   getOrder(id: string): Promise<Order | undefined>;
   getOrdersByEmail(email: string): Promise<Order[]>;
   updateOrderStatus(id: string, status: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined>;
+  updateOrderFulfillment(id: string, printfulOrderId: string, fulfillmentStatus: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined>;
+  updateProductPrintful(id: string, printfulSyncVariantId: string, printfulProductId: string, baseCost?: string): Promise<Product | undefined>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -262,6 +264,22 @@ export class DatabaseStorage implements IStorage {
     if (status === "delivered") updateData.deliveredAt = new Date();
     const [order] = await db.update(orders).set(updateData).where(eq(orders.id, id)).returning();
     return order;
+  }
+
+  async updateOrderFulfillment(id: string, printfulOrderId: string, fulfillmentStatus: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined> {
+    const updateData: Partial<Order> = { printfulOrderId, fulfillmentStatus };
+    if (trackingNumber) updateData.trackingNumber = trackingNumber;
+    if (shippingCarrier) updateData.shippingCarrier = shippingCarrier;
+    if (estimatedDelivery) updateData.estimatedDelivery = estimatedDelivery;
+    const [order] = await db.update(orders).set(updateData).where(eq(orders.id, id)).returning();
+    return order;
+  }
+
+  async updateProductPrintful(id: string, printfulSyncVariantId: string, printfulProductId: string, baseCost?: string): Promise<Product | undefined> {
+    const updateData: Partial<Product> = { printfulSyncVariantId, printfulProductId };
+    if (baseCost) updateData.baseCost = baseCost;
+    const [product] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
+    return product;
   }
 
   // Product Ratings

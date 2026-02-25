@@ -118,6 +118,9 @@ export const products = pgTable("products", {
   colors: text("colors"), // JSON array of available colors
   inStock: boolean("in_stock").notNull().default(true),
   featured: boolean("featured").notNull().default(false),
+  printfulSyncVariantId: text("printful_sync_variant_id"), // Printful sync variant ID for fulfillment
+  printfulProductId: text("printful_product_id"),           // Printful product ID
+  baseCost: decimal("base_cost", { precision: 10, scale: 2 }), // Supplier base cost (profit = price - baseCost)
 });
 
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
@@ -144,6 +147,8 @@ export const orders = pgTable("orders", {
   estimatedDelivery: text("estimated_delivery"),
   deliveredAt: timestamp("delivered_at"),
   shippingNotes: text("shipping_notes"),
+  printfulOrderId: text("printful_order_id"),       // Printful order ID once submitted
+  fulfillmentStatus: text("fulfillment_status").default("not_submitted"), // not_submitted, submitted, fulfilled, failed, not_configured
   createdAt: timestamp("created_at").defaultNow(),
 });
 
