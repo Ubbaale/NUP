@@ -80,12 +80,26 @@ shared/
 - `GET /api/chapters/:slug` - Single chapter
 - `GET /api/conferences` - All conferences
 - `GET /api/products` - All products
+- `GET /api/products/:slug/ratings` - Product ratings
 - `GET /api/news` - News feed
 - `GET /api/blog` - Blog posts
 - `POST /api/members` - Register member
 - `GET /api/members/search?q=` - Find member
 - `POST /api/donations` - Process donation
 - `POST /api/subscriptions` - Newsletter signup
+- `POST /api/orders` - Place order
+- `GET /api/orders/:id` - Get order by ID
+- `GET /api/orders/track?orderId=` - Track by order ID
+- `GET /api/orders/track?email=` - Track by email
+- `PATCH /api/orders/:id/status` - Update order status
+- `POST /api/ratings` - Submit product rating
+
+## E-Commerce Flow
+- **Shopping Cart**: Persistent localStorage cart with quantity controls
+- **Checkout**: Multi-step form (Cart Review → Shipping → Payment → Confirmation)
+- **Order Tracking**: `/order-tracking` page - search by order ID or email
+- **Order Lifecycle**: pending → processing → shipped → out_for_delivery → delivered
+- **Product Ratings**: Star ratings + reviews after delivery, per product per order
 
 ## Theme
 - Primary color: Red (NUP party color) - HSL 0 84% 45%

@@ -7,6 +7,7 @@ import {
   type Conference, type InsertConference, conferences,
   type Product, type InsertProduct, products,
   type Order, type InsertOrder, orders,
+  type ProductRating, type InsertProductRating, productRatings,
   type Donation, type InsertDonation, donations,
   type BlogPost, type InsertBlogPost, blogPosts,
   type NewsItem, type InsertNewsItem, newsItems,
@@ -15,7 +16,7 @@ import {
   users
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 function generateMembershipId(): string {
@@ -69,7 +70,14 @@ export interface IStorage {
   
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
+  getOrder(id: string): Promise<Order | undefined>;
   getOrdersByEmail(email: string): Promise<Order[]>;
+  updateOrderStatus(id: string, status: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined>;
+
+  // Product Ratings
+  createProductRating(rating: InsertProductRating): Promise<ProductRating>;
+  getProductRatings(productId: string): Promise<ProductRating[]>;
+  getRatingByOrderAndProduct(orderId: string, productId: string): Promise<ProductRating | undefined>;
   
   // Donations
   createDonation(donation: InsertDonation): Promise<Donation>;
@@ -237,8 +245,40 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
 
+  async getOrder(id: string): Promise<Order | undefined> {
+    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+    return order;
+  }
+
   async getOrdersByEmail(email: string): Promise<Order[]> {
-    return db.select().from(orders).where(eq(orders.email, email));
+    return db.select().from(orders).where(eq(orders.email, email)).orderBy(desc(orders.createdAt));
+  }
+
+  async updateOrderStatus(id: string, status: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined> {
+    const updateData: Partial<Order> = { status };
+    if (trackingNumber) updateData.trackingNumber = trackingNumber;
+    if (shippingCarrier) updateData.shippingCarrier = shippingCarrier;
+    if (estimatedDelivery) updateData.estimatedDelivery = estimatedDelivery;
+    if (status === "delivered") updateData.deliveredAt = new Date();
+    const [order] = await db.update(orders).set(updateData).where(eq(orders.id, id)).returning();
+    return order;
+  }
+
+  // Product Ratings
+  async createProductRating(insertRating: InsertProductRating): Promise<ProductRating> {
+    const [rating] = await db.insert(productRatings).values(insertRating).returning();
+    return rating;
+  }
+
+  async getProductRatings(productId: string): Promise<ProductRating[]> {
+    return db.select().from(productRatings).where(eq(productRatings.productId, productId)).orderBy(desc(productRatings.createdAt));
+  }
+
+  async getRatingByOrderAndProduct(orderId: string, productId: string): Promise<ProductRating | undefined> {
+    const [rating] = await db.select().from(productRatings).where(
+      and(eq(productRatings.orderId, orderId), eq(productRatings.productId, productId))
+    );
+    return rating;
   }
 
   // Donations

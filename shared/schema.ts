@@ -130,19 +130,42 @@ export const orders = pgTable("orders", {
   memberId: varchar("member_id"),
   email: text("email").notNull(),
   fullName: text("full_name").notNull(),
+  phone: text("phone"),
   address: text("address").notNull(),
   city: text("city").notNull(),
+  state: text("state"),
   country: text("country").notNull(),
   postalCode: text("postal_code"),
   items: text("items").notNull(), // JSON array of order items
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").notNull().default("pending"),
+  status: text("status").notNull().default("pending"), // pending, processing, shipped, out_for_delivery, delivered, cancelled
+  trackingNumber: text("tracking_number"),
+  shippingCarrier: text("shipping_carrier"),
+  estimatedDelivery: text("estimated_delivery"),
+  deliveredAt: timestamp("delivered_at"),
+  shippingNotes: text("shipping_notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, createdAt: true });
+export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, createdAt: true, deliveredAt: true });
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
+
+// Product Ratings
+export const productRatings = pgTable("product_ratings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull(),
+  orderId: varchar("order_id").notNull(),
+  rating: integer("rating").notNull(), // 1-5
+  review: text("review"),
+  reviewerName: text("reviewer_name").notNull(),
+  reviewerEmail: text("reviewer_email").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertProductRatingSchema = createInsertSchema(productRatings).omit({ id: true, createdAt: true });
+export type InsertProductRating = z.infer<typeof insertProductRatingSchema>;
+export type ProductRating = typeof productRatings.$inferSelect;
 
 // Donations
 export const donations = pgTable("donations", {

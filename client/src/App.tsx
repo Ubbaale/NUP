@@ -17,6 +17,8 @@ import Membership from "@/pages/Membership";
 import Donate from "@/pages/Donate";
 import Blog from "@/pages/Blog";
 import BlogPostDetail from "@/pages/BlogPostDetail";
+import Checkout from "@/pages/Checkout";
+import OrderTracking from "@/pages/OrderTracking";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +36,8 @@ function Router() {
       <Route path="/donate" component={Donate} />
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPostDetail} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/order-tracking" component={OrderTracking} />
       <Route component={NotFound} />
     </Switch>
   );

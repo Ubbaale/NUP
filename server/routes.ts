@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema } from "@shared/schema";
+import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductRatingSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -226,6 +226,90 @@ export async function registerRoutes(
       res.json(news);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch news" });
+    }
+  });
+
+  // ===== ORDERS =====
+  app.post("/api/orders", async (req, res) => {
+    try {
+      const validatedData = insertOrderSchema.parse(req.body);
+      const order = await storage.createOrder(validatedData);
+      // Auto-advance to processing after creation
+      setTimeout(async () => {
+        await storage.updateOrderStatus(order.id, "processing");
+      }, 2000);
+      res.status(201).json(order);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create order" });
+    }
+  });
+
+  app.get("/api/orders/track", async (req, res) => {
+    try {
+      const { orderId, email } = req.query as { orderId?: string; email?: string };
+      if (!orderId && !email) {
+        return res.status(400).json({ error: "Order ID or email required" });
+      }
+      if (orderId) {
+        const order = await storage.getOrder(orderId);
+        if (!order) return res.status(404).json({ error: "Order not found" });
+        return res.json([order]);
+      }
+      if (email) {
+        const orderList = await storage.getOrdersByEmail(email);
+        return res.json(orderList);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to track order" });
+    }
+  });
+
+  app.get("/api/orders/:id", async (req, res) => {
+    try {
+      const order = await storage.getOrder(req.params.id);
+      if (!order) return res.status(404).json({ error: "Order not found" });
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch order" });
+    }
+  });
+
+  app.patch("/api/orders/:id/status", async (req, res) => {
+    try {
+      const { status, trackingNumber, shippingCarrier, estimatedDelivery } = req.body;
+      if (!status) return res.status(400).json({ error: "Status required" });
+      const order = await storage.updateOrderStatus(req.params.id, status, trackingNumber, shippingCarrier, estimatedDelivery);
+      if (!order) return res.status(404).json({ error: "Order not found" });
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update order status" });
+    }
+  });
+
+  // ===== PRODUCT RATINGS =====
+  app.post("/api/ratings", async (req, res) => {
+    try {
+      const validatedData = insertProductRatingSchema.parse(req.body);
+      // Check if already rated
+      const existing = await storage.getRatingByOrderAndProduct(validatedData.orderId, validatedData.productId);
+      if (existing) {
+        return res.status(400).json({ error: "You have already rated this product for this order" });
+      }
+      const rating = await storage.createProductRating(validatedData);
+      res.status(201).json(rating);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to submit rating" });
+    }
+  });
+
+  app.get("/api/products/:slug/ratings", async (req, res) => {
+    try {
+      const product = await storage.getProductBySlug(req.params.slug);
+      if (!product) return res.status(404).json({ error: "Product not found" });
+      const ratings = await storage.getProductRatings(product.id);
+      res.json(ratings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch ratings" });
     }
   });
 
