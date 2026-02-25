@@ -16,20 +16,20 @@ import {
 } from "lucide-react";
 import type { Region, NewsItem, Conference } from "@shared/schema";
 
-import rallyLeader1 from "@/assets/images/rally-leader_1.jpg";
-import rallyLeader2 from "@/assets/images/rally-leader_2.jpg";
-import diasporaProtest1 from "@/assets/images/diaspora-protest_1.jpg";
-import diasporaProtest2 from "@/assets/images/diaspora-protest_2.jpg";
-import crowdCelebration1 from "@/assets/images/crowd-celebration_1.jpg";
-import crowdCelebration2 from "@/assets/images/crowd-celebration_2.jpg";
+import bobiCrowd1 from "@assets/481158321_1250421886443613_5486285688228274535_n_1771985183074.jpg";
+import bobiSpeech from "@assets/481960678_1247756343376834_40067085171628253_n_1771985183075.jpg";
+import bobiCrowd2 from "@assets/482020332_1247763793376089_5532648801704771009_n_1771985183075.jpg";
+import bobiRally from "@assets/482270132_1250411063111362_8964145687773853448_n_1771985183076.jpg";
+import bobiKabale from "@assets/Bobi-Wine-in-Kabale_1771985183076.jpeg";
+import bobiProtest from "@assets/bobi-wine-leads-protest-_1771985183077.jpg";
 
 const campaignImages = [
-  rallyLeader1,
-  diasporaProtest1,
-  crowdCelebration1,
-  rallyLeader2,
-  diasporaProtest2,
-  crowdCelebration2,
+  bobiCrowd1,
+  bobiSpeech,
+  bobiCrowd2,
+  bobiRally,
+  bobiKabale,
+  bobiProtest,
 ];
 
 export default function Home() {
