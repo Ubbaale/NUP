@@ -396,6 +396,8 @@ export const membershipTiers = pgTable("membership_tiers", {
   description: text("description"),
   benefits: text("benefits"),
   badgeColor: text("badge_color"),
+  awardType: text("award_type"),
+  awardDescription: text("award_description"),
   isPopular: boolean("is_popular").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   displayOrder: integer("display_order").notNull().default(0),
@@ -414,6 +416,13 @@ export const memberSubscriptions = pgTable("member_subscriptions", {
   startDate: timestamp("start_date").defaultNow(),
   renewalDate: timestamp("renewal_date"),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  shippingAddress: text("shipping_address"),
+  shippingCity: text("shipping_city"),
+  shippingState: text("shipping_state"),
+  shippingZip: text("shipping_zip"),
+  shippingCountry: text("shipping_country"),
+  engravingName: text("engraving_name"),
+  awardStatus: text("award_status").default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

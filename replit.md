@@ -15,7 +15,7 @@ A comprehensive political website for the National Unity Platform (NUP) / People
 - **Newsletter Subscription** - Email signup in footer
 - **Virtual Events & Ticketing** - Upcoming virtual events (townhalls, concerts, workshops, webinars) with ticket purchase
 - **Crowdfunding Campaigns** - Goal-based fundraising with progress bars, donor walls, and campaign donations
-- **Membership Tiers** - Tiered subscription plans (Supporter, Advocate, Champion, Ambassador) with benefits
+- **Membership Tiers** - Tiered subscription plans (Supporter, Advocate, Champion, Ambassador) with benefits and engraved awards (medal, crystal, trophy, plaque) shipped to subscribers
 - **Auctions & Raffles** - Auction items with bidding and raffle items with ticket purchases
 
 ## Tech Stack
@@ -95,7 +95,7 @@ shared/
 - **campaigns** - Crowdfunding campaigns with goals and deadlines
 - **campaignDonations** - Donations to specific campaigns
 - **membershipTiers** - Subscription tier definitions (Supporter, Advocate, Champion, Ambassador)
-- **memberSubscriptions** - Active member subscriptions to tiers
+- **memberSubscriptions** - Active member subscriptions to tiers with shipping address and award tracking
 - **auctionItems** - Auction and raffle items
 - **bids** - Bids on auction items
 - **raffleTickets** - Raffle ticket purchases
@@ -155,7 +155,7 @@ shared/
 ## Fundraising Modules
 - **Virtual Events**: `/events` listing, `/events/:slug` detail with ticket purchase, ticket codes, meeting links revealed post-purchase
 - **Crowdfunding Campaigns**: `/campaigns` with progress bars, `/campaigns/:slug` with donation form, donor wall, countdown timers
-- **Membership Tiers**: `/membership-tiers` pricing table with 4 tiers, subscribe modal, status check by email
+- **Membership Tiers**: `/membership-tiers` pricing table with 4 tiers (each with an engraved award: medal, crystal, trophy, plaque), 2-step subscribe modal (info → shipping for award), status check by email with award tracking
 - **Auctions & Raffles**: `/auctions` listing, `/auctions/:slug` detail with bid forms (auctions) or ticket purchase (raffles), bid history
 
 ## Stripe Payment Framework

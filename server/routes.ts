@@ -1008,12 +1008,20 @@ export async function registerRoutes(
 
   app.post("/api/membership/subscribe", async (req, res) => {
     try {
-      const { tierId, email: memberEmail, fullName } = req.body;
+      const { tierId, email: memberEmail, fullName, shippingAddress, shippingCity, shippingState, shippingZip, shippingCountry, engravingName } = req.body;
       if (!tierId || !memberEmail || !fullName) return res.status(400).json({ error: "Tier, email, and name required" });
       const tier = await storage.getTier(tierId);
       if (!tier) return res.status(404).json({ error: "Tier not found" });
       const existing = await storage.getMemberSubscriptionByEmail(memberEmail);
       if (existing) return res.status(400).json({ error: "Already have an active subscription. Contact us to change tiers." });
+      if (tier.awardType) {
+        if (!shippingAddress || !shippingCity || !shippingCountry) {
+          return res.status(400).json({ error: "Shipping address is required for award delivery" });
+        }
+        if (!engravingName && !fullName) {
+          return res.status(400).json({ error: "Name for engraving is required" });
+        }
+      }
       const renewalDate = new Date();
       if (tier.interval === "yearly") {
         renewalDate.setFullYear(renewalDate.getFullYear() + 1);
@@ -1028,6 +1036,13 @@ export async function registerRoutes(
         amount: tier.price,
         startDate: new Date(),
         renewalDate,
+        shippingAddress: shippingAddress || null,
+        shippingCity: shippingCity || null,
+        shippingState: shippingState || null,
+        shippingZip: shippingZip || null,
+        shippingCountry: shippingCountry || null,
+        engravingName: engravingName || fullName,
+        awardStatus: tier.awardType ? "pending" : null,
       });
 
       let benefits: string[] = [];

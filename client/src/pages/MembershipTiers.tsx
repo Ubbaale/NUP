@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Crown, Star, Shield, Heart, Mail, ArrowRight } from "lucide-react";
+import { Check, Crown, Star, Shield, Heart, Mail, ArrowRight, Award, Trophy, Medal, Package } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -19,9 +19,34 @@ import type { MembershipTier, MemberSubscription } from "@shared/schema";
 const subscribeSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
+  engravingName: z.string().optional(),
+  shippingAddress: z.string().optional(),
+  shippingCity: z.string().optional(),
+  shippingState: z.string().optional(),
+  shippingZip: z.string().optional(),
+  shippingCountry: z.string().optional(),
 });
 
 type SubscribeFormData = z.infer<typeof subscribeSchema>;
+
+const awardIcons: Record<string, typeof Trophy> = {
+  medal: Medal,
+  crystal: Award,
+  trophy: Trophy,
+  plaque: Award,
+};
+
+function getAwardIcon(awardType: string | null) {
+  if (!awardType) return Package;
+  return awardIcons[awardType] || Award;
+}
+
+const awardLabels: Record<string, string> = {
+  medal: "Engraved Medal",
+  crystal: "Crystal Award",
+  trophy: "Engraved Trophy",
+  plaque: "Engraved Plaque",
+};
 
 const statusCheckSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -53,11 +78,19 @@ export default function MembershipTiers() {
     queryKey: ["/api/membership-tiers"],
   });
 
+  const [subscribeStep, setSubscribeStep] = useState<"info" | "shipping">("info");
+
   const subscribeForm = useForm<SubscribeFormData>({
     resolver: zodResolver(subscribeSchema),
     defaultValues: {
       fullName: "",
       email: "",
+      engravingName: "",
+      shippingAddress: "",
+      shippingCity: "",
+      shippingState: "",
+      shippingZip: "",
+      shippingCountry: "",
     },
   });
 
@@ -80,13 +113,17 @@ export default function MembershipTiers() {
       });
     },
     onSuccess: async () => {
+      const hasAward = selectedTier?.awardType;
       toast({
         title: "Subscription Successful!",
-        description: `You are now subscribed to the ${selectedTier?.name} tier. Welcome to the movement!`,
+        description: hasAward
+          ? `You are now subscribed to the ${selectedTier?.name} tier. Your ${awardLabels[selectedTier?.awardType || ""] || "award"} will be engraved and shipped to you!`
+          : `You are now subscribed to the ${selectedTier?.name} tier. Welcome to the movement!`,
       });
       subscribeForm.reset();
       setSubscribeDialogOpen(false);
       setSelectedTier(null);
+      setSubscribeStep("info");
       queryClient.invalidateQueries({ queryKey: ["/api/membership-tiers"] });
     },
     onError: (error: any) => {
@@ -100,11 +137,43 @@ export default function MembershipTiers() {
 
   const handleSelectTier = (tier: MembershipTier) => {
     setSelectedTier(tier);
+    setSubscribeStep("info");
+    subscribeForm.reset();
     setSubscribeDialogOpen(true);
+  };
+
+  const onContinueToShipping = () => {
+    const { fullName, email } = subscribeForm.getValues();
+    if (!fullName || fullName.length < 2 || !email || !email.includes("@")) {
+      subscribeForm.trigger(["fullName", "email"]);
+      return;
+    }
+    if (selectedTier?.awardType) {
+      if (!subscribeForm.getValues("engravingName")) {
+        subscribeForm.setValue("engravingName", fullName);
+      }
+      setSubscribeStep("shipping");
+    } else {
+      subscribeForm.handleSubmit(onSubscribe)();
+    }
+  };
+
+  const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
+
+  const validateShipping = (): boolean => {
+    const values = subscribeForm.getValues();
+    const errors: Record<string, string> = {};
+    if (!values.engravingName?.trim()) errors.engravingName = "Name for engraving is required";
+    if (!values.shippingAddress?.trim()) errors.shippingAddress = "Street address is required";
+    if (!values.shippingCity?.trim()) errors.shippingCity = "City is required";
+    if (!values.shippingCountry?.trim()) errors.shippingCountry = "Country is required";
+    setShippingErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const onSubscribe = (data: SubscribeFormData) => {
     if (!selectedTier) return;
+    if (selectedTier.awardType && !validateShipping()) return;
     subscribeMutation.mutate({
       ...data,
       tierId: selectedTier.id,
@@ -229,6 +298,21 @@ export default function MembershipTiers() {
                   )}
                 </CardHeader>
                 <CardContent className="flex-1 flex flex-col">
+                  {tier.awardType && (
+                    <div
+                      className="mb-4 p-3 rounded-lg border border-dashed flex items-start gap-3"
+                      style={{ borderColor: tier.badgeColor || undefined, backgroundColor: tier.badgeColor ? `${tier.badgeColor}08` : undefined }}
+                      data-testid={`award-info-${tier.id}`}
+                    >
+                      {(() => { const AwardIcon = getAwardIcon(tier.awardType); return <AwardIcon className="w-5 h-5 mt-0.5 shrink-0" style={{ color: tier.badgeColor || undefined }} />; })()}
+                      <div>
+                        <p className="text-xs font-semibold" style={{ color: tier.badgeColor || undefined }}>
+                          {awardLabels[tier.awardType] || "Award"}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{tier.awardDescription}</p>
+                      </div>
+                    </div>
+                  )}
                   {benefits.length > 0 && (
                     <ul className="space-y-2 mb-6 flex-1">
                       {benefits.map((benefit, idx) => (
@@ -344,6 +428,25 @@ export default function MembershipTiers() {
                       </p>
                     </div>
                   </div>
+                  {statusResult.awardStatus && (
+                    <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-md" data-testid="text-award-status">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium">Award Status</span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {statusResult.engravingName && `Engraved for: ${statusResult.engravingName}`}
+                        </span>
+                        <Badge variant={statusResult.awardStatus === "shipped" ? "default" : "secondary"} data-testid="badge-award-status">
+                          {statusResult.awardStatus === "pending" ? "Being Prepared" :
+                           statusResult.awardStatus === "shipped" ? "Shipped" :
+                           statusResult.awardStatus === "delivered" ? "Delivered" :
+                           statusResult.awardStatus}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -351,74 +454,209 @@ export default function MembershipTiers() {
         </div>
       </div>
 
-      <Dialog open={subscribeDialogOpen} onOpenChange={setSubscribeDialogOpen}>
-        <DialogContent>
+      <Dialog open={subscribeDialogOpen} onOpenChange={(open) => { setSubscribeDialogOpen(open); if (!open) setSubscribeStep("info"); }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle data-testid="text-dialog-title">
-              Subscribe to {selectedTier?.name}
+              {subscribeStep === "shipping" ? "Shipping Details for Your Award" : `Subscribe to ${selectedTier?.name}`}
             </DialogTitle>
             <DialogDescription>
-              {selectedTier && (
+              {subscribeStep === "shipping" ? (
+                <span>
+                  Your {awardLabels[selectedTier?.awardType || ""] || "award"} will be engraved with your name and shipped to you.
+                </span>
+              ) : selectedTier ? (
                 <span>
                   ${selectedTier.price}/{selectedTier.interval === "yearly" ? "year" : "month"} —{" "}
                   {selectedTier.description}
                 </span>
-              )}
+              ) : null}
             </DialogDescription>
           </DialogHeader>
           <Form {...subscribeForm}>
             <form onSubmit={subscribeForm.handleSubmit(onSubscribe)} className="space-y-4">
-              <FormField
-                control={subscribeForm.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} data-testid="input-subscribe-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={subscribeForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="john@example.com"
-                        {...field}
-                        data-testid="input-subscribe-email"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="p-3 bg-muted/50 rounded-md text-sm">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="text-muted-foreground">Selected Tier</span>
-                  <span className="font-medium" data-testid="text-confirm-tier">{selectedTier?.name}</span>
-                </div>
-                <div className="flex items-center justify-between flex-wrap gap-2 mt-1">
-                  <span className="text-muted-foreground">Amount</span>
-                  <span className="font-bold" data-testid="text-confirm-amount">
-                    ${selectedTier?.price}/{selectedTier?.interval === "yearly" ? "yr" : "mo"}
-                  </span>
-                </div>
-              </div>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={subscribeMutation.isPending}
-                data-testid="button-confirm-subscribe"
-              >
-                {subscribeMutation.isPending ? "Processing..." : "Confirm Subscription"}
-              </Button>
+              {subscribeStep === "info" && (
+                <>
+                  <FormField
+                    control={subscribeForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John Doe" {...field} data-testid="input-subscribe-name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={subscribeForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="john@example.com"
+                            {...field}
+                            data-testid="input-subscribe-email"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="p-3 bg-muted/50 rounded-md text-sm">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-muted-foreground">Selected Tier</span>
+                      <span className="font-medium" data-testid="text-confirm-tier">{selectedTier?.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between flex-wrap gap-2 mt-1">
+                      <span className="text-muted-foreground">Amount</span>
+                      <span className="font-bold" data-testid="text-confirm-amount">
+                        ${selectedTier?.price}/{selectedTier?.interval === "yearly" ? "yr" : "mo"}
+                      </span>
+                    </div>
+                    {selectedTier?.awardType && (
+                      <div className="flex items-center justify-between flex-wrap gap-2 mt-1">
+                        <span className="text-muted-foreground">Award</span>
+                        <span className="font-medium text-primary">
+                          {awardLabels[selectedTier.awardType] || "Award"} included
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    className="w-full"
+                    onClick={onContinueToShipping}
+                    data-testid="button-continue-subscribe"
+                  >
+                    {selectedTier?.awardType ? "Continue to Shipping Details" : "Confirm Subscription"}
+                  </Button>
+                </>
+              )}
+
+              {subscribeStep === "shipping" && (
+                <>
+                  {selectedTier?.awardType && (
+                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-md flex items-start gap-3">
+                      {(() => { const AIcon = getAwardIcon(selectedTier.awardType); return <AIcon className="w-5 h-5 mt-0.5 shrink-0 text-primary" />; })()}
+                      <div>
+                        <p className="text-sm font-semibold text-primary">{awardLabels[selectedTier.awardType] || "Award"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{selectedTier.awardDescription}</p>
+                      </div>
+                    </div>
+                  )}
+                  <FormField
+                    control={subscribeForm.control}
+                    name="engravingName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name for Engraving *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Name as it should appear on your award" {...field} data-testid="input-engraving-name" />
+                        </FormControl>
+                        {shippingErrors.engravingName && <p className="text-sm text-destructive">{shippingErrors.engravingName}</p>}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={subscribeForm.control}
+                    name="shippingAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Street Address *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="123 Main St, Apt 4" {...field} data-testid="input-shipping-address" />
+                        </FormControl>
+                        {shippingErrors.shippingAddress && <p className="text-sm text-destructive">{shippingErrors.shippingAddress}</p>}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={subscribeForm.control}
+                      name="shippingCity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="City" {...field} data-testid="input-shipping-city" />
+                          </FormControl>
+                          {shippingErrors.shippingCity && <p className="text-sm text-destructive">{shippingErrors.shippingCity}</p>}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={subscribeForm.control}
+                      name="shippingState"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State / Province</FormLabel>
+                          <FormControl>
+                            <Input placeholder="State" {...field} data-testid="input-shipping-state" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={subscribeForm.control}
+                      name="shippingZip"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ZIP / Postal Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="12345" {...field} data-testid="input-shipping-zip" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={subscribeForm.control}
+                      name="shippingCountry"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="United States" {...field} data-testid="input-shipping-country" />
+                          </FormControl>
+                          {shippingErrors.shippingCountry && <p className="text-sm text-destructive">{shippingErrors.shippingCountry}</p>}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setSubscribeStep("info")}
+                      data-testid="button-back-to-info"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={subscribeMutation.isPending}
+                      data-testid="button-confirm-subscribe"
+                    >
+                      {subscribeMutation.isPending ? "Processing..." : "Complete Subscription"}
+                    </Button>
+                  </div>
+                </>
+              )}
             </form>
           </Form>
         </DialogContent>
