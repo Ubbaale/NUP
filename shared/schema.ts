@@ -265,6 +265,8 @@ export const revolutionarySongs = pgTable("revolutionary_songs", {
   coverImageUrl: text("cover_image_url"),
   description: text("description"),
   minimumDonation: decimal("minimum_donation", { precision: 10, scale: 2 }).notNull().default("20.00"),
+  price: decimal("price", { precision: 10, scale: 2 }).default("5.00"),
+  isFree: boolean("is_free").notNull().default(false),
   downloadCount: integer("download_count").notNull().default(0),
   playCount: integer("play_count").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
@@ -275,7 +277,7 @@ export const insertRevolutionarySongSchema = createInsertSchema(revolutionarySon
 export type InsertRevolutionarySong = z.infer<typeof insertRevolutionarySongSchema>;
 export type RevolutionarySong = typeof revolutionarySongs.$inferSelect;
 
-// Song Access Tokens (granted after donation)
+// Song Access Tokens (granted after all-access donation)
 export const songAccessTokens = pgTable("song_access_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   donationId: varchar("donation_id").notNull(),
@@ -289,6 +291,22 @@ export const songAccessTokens = pgTable("song_access_tokens", {
 export const insertSongAccessTokenSchema = createInsertSchema(songAccessTokens).omit({ id: true, createdAt: true });
 export type InsertSongAccessToken = z.infer<typeof insertSongAccessTokenSchema>;
 export type SongAccessToken = typeof songAccessTokens.$inferSelect;
+
+// Per-Song Purchases
+export const songPurchases = pgTable("song_purchases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  songId: varchar("song_id").notNull(),
+  buyerName: text("buyer_name").notNull(),
+  buyerEmail: text("buyer_email").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const insertSongPurchaseSchema = createInsertSchema(songPurchases).omit({ id: true, createdAt: true });
+export type InsertSongPurchase = z.infer<typeof insertSongPurchaseSchema>;
+export type SongPurchase = typeof songPurchases.$inferSelect;
 
 // ===== FUNDRAISING FEATURES =====
 

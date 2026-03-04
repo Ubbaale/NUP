@@ -12,11 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Music, Play, Pause, Download, Lock, Heart, DollarSign,
-  Volume2, Smartphone, Loader2, CheckCircle
+  Volume2, Smartphone, Loader2, CheckCircle, ShoppingCart, Unlock
 } from "lucide-react";
 import type { RevolutionarySong } from "@shared/schema";
 
-const DONATION_AMOUNTS = [20, 30, 50, 100];
+const ALL_ACCESS_AMOUNTS = [20, 30, 50, 100];
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return "";
@@ -27,15 +27,23 @@ function formatDuration(seconds: number | null): string {
 
 export default function RevolutionarySongs() {
   const { toast } = useToast();
-  const [accessToken, setAccessToken] = useState<string | null>(() => {
+  const [allAccessToken, setAllAccessToken] = useState<string | null>(() => {
     return localStorage.getItem("nup_song_access_token");
   });
-  const [hasAccess, setHasAccess] = useState(false);
-  const [showDonateModal, setShowDonateModal] = useState(false);
+  const [hasAllAccess, setHasAllAccess] = useState(false);
+  const [purchasedSongs, setPurchasedSongs] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("nup_song_purchases") || "{}");
+    } catch { return {}; }
+  });
+
+  const [showAllAccessModal, setShowAllAccessModal] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState<string | null>(null);
   const [donationAmount, setDonationAmount] = useState("20");
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [donating, setDonating] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const [playProgress, setPlayProgress] = useState<Record<string, number>>({});
   const [durations, setDurations] = useState<Record<string, number>>({});
@@ -48,23 +56,36 @@ export default function RevolutionarySongs() {
   });
 
   useEffect(() => {
-    if (accessToken) {
-      fetch(`/api/songs/verify-access?token=${accessToken}`)
+    if (allAccessToken) {
+      fetch(`/api/songs/verify-access?token=${allAccessToken}`)
         .then(r => r.json())
         .then(data => {
           if (data.hasAccess) {
-            setHasAccess(true);
+            setHasAllAccess(true);
           } else {
             localStorage.removeItem("nup_song_access_token");
-            setAccessToken(null);
-            setHasAccess(false);
+            setAllAccessToken(null);
+            setHasAllAccess(false);
           }
         })
         .catch(() => {});
     }
-  }, [accessToken]);
+  }, [allAccessToken]);
 
-  const handleDonate = async () => {
+  const canAccessSong = (song: RevolutionarySong) => {
+    if (song.isFree) return true;
+    if (hasAllAccess) return true;
+    if (purchasedSongs[song.id]) return true;
+    return false;
+  };
+
+  const getTokenForSong = (song: RevolutionarySong) => {
+    if (hasAllAccess && allAccessToken) return allAccessToken;
+    if (purchasedSongs[song.id]) return purchasedSongs[song.id];
+    return null;
+  };
+
+  const handleAllAccessDonate = async () => {
     if (!donorName || !donorEmail || !donationAmount) {
       toast({ title: "Please fill all fields", variant: "destructive" });
       return;
@@ -83,10 +104,10 @@ export default function RevolutionarySongs() {
       const data = await res.json();
       if (data.token) {
         localStorage.setItem("nup_song_access_token", data.token);
-        setAccessToken(data.token);
-        setHasAccess(true);
-        setShowDonateModal(false);
-        toast({ title: "Thank you for your donation!", description: "You now have full access to all revolutionary songs." });
+        setAllAccessToken(data.token);
+        setHasAllAccess(true);
+        setShowAllAccessModal(false);
+        toast({ title: "Thank you!", description: "You now have full access to all songs for 1 month." });
       }
     } catch (err: any) {
       toast({ title: "Donation failed", description: err.message, variant: "destructive" });
@@ -95,14 +116,40 @@ export default function RevolutionarySongs() {
     }
   };
 
-  const togglePlay = (songId: string) => {
-    if (!hasAccess) {
-      setShowDonateModal(true);
+  const handlePurchaseSong = async (songId: string) => {
+    if (!donorName || !donorEmail) {
+      toast({ title: "Please fill name and email", variant: "destructive" });
+      return;
+    }
+    setPurchasing(true);
+    try {
+      const res = await apiRequest("POST", `/api/songs/${songId}/purchase`, {
+        buyerName: donorName,
+        buyerEmail: donorEmail,
+      });
+      const data = await res.json();
+      if (data.token) {
+        const updated = { ...purchasedSongs, [songId]: data.token };
+        setPurchasedSongs(updated);
+        localStorage.setItem("nup_song_purchases", JSON.stringify(updated));
+        setShowPurchaseModal(null);
+        toast({ title: "Song purchased!", description: "You now have access to this song for 1 month." });
+      }
+    } catch (err: any) {
+      toast({ title: "Purchase failed", description: err.message, variant: "destructive" });
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  const togglePlay = (song: RevolutionarySong) => {
+    if (!canAccessSong(song)) {
+      setShowPurchaseModal(song.id);
       return;
     }
 
-    if (currentlyPlaying === songId) {
-      audioRefs.current[songId]?.pause();
+    if (currentlyPlaying === song.id) {
+      audioRefs.current[song.id]?.pause();
       setCurrentlyPlaying(null);
       return;
     }
@@ -111,39 +158,48 @@ export default function RevolutionarySongs() {
       audioRefs.current[currentlyPlaying].pause();
     }
 
-    if (!audioRefs.current[songId]) {
-      const streamUrl = `/api/songs/${songId}/stream?token=${accessToken}`;
+    const token = getTokenForSong(song);
+    if (!audioRefs.current[song.id]) {
+      const streamUrl = song.isFree
+        ? `/api/songs/${song.id}/stream`
+        : `/api/songs/${song.id}/stream?token=${token}`;
       const audio = new Audio(streamUrl);
       audio.addEventListener("timeupdate", () => {
-        setPlayProgress(prev => ({ ...prev, [songId]: audio.currentTime }));
+        setPlayProgress(prev => ({ ...prev, [song.id]: audio.currentTime }));
       });
       audio.addEventListener("loadedmetadata", () => {
-        setDurations(prev => ({ ...prev, [songId]: audio.duration }));
+        setDurations(prev => ({ ...prev, [song.id]: audio.duration }));
       });
       audio.addEventListener("ended", () => {
         setCurrentlyPlaying(null);
-        setPlayProgress(prev => ({ ...prev, [songId]: 0 }));
+        setPlayProgress(prev => ({ ...prev, [song.id]: 0 }));
       });
-      audioRefs.current[songId] = audio;
+      audioRefs.current[song.id] = audio;
     }
 
-    audioRefs.current[songId].play();
-    setCurrentlyPlaying(songId);
-
-    fetch(`/api/songs/${songId}/play`, { method: "POST" }).catch(() => {});
+    audioRefs.current[song.id].play();
+    setCurrentlyPlaying(song.id);
+    fetch(`/api/songs/${song.id}/play`, { method: "POST" }).catch(() => {});
   };
 
-  const handleDownload = (songId: string) => {
-    if (!hasAccess) {
-      setShowDonateModal(true);
+  const handleDownload = (song: RevolutionarySong) => {
+    if (!canAccessSong(song)) {
+      setShowPurchaseModal(song.id);
       return;
     }
-    setDownloadSongId(songId);
+    setDownloadSongId(song.id);
   };
 
   const executeDownload = () => {
-    if (!downloadSongId || !accessToken) return;
-    window.open(`/api/songs/${downloadSongId}/download?token=${accessToken}&format=${downloadFormat}`, "_blank");
+    if (!downloadSongId) return;
+    const song = songs?.find(s => s.id === downloadSongId);
+    if (!song) return;
+    const token = getTokenForSong(song);
+    const tokenParam = song.isFree ? "" : `?token=${token}&format=${downloadFormat}`;
+    const url = song.isFree
+      ? `/api/songs/${downloadSongId}/download?format=${downloadFormat}`
+      : `/api/songs/${downloadSongId}/download${tokenParam}`;
+    window.open(url, "_blank");
     setDownloadSongId(null);
     toast({ title: "Download started!" });
   };
@@ -160,6 +216,7 @@ export default function RevolutionarySongs() {
   }
 
   const hasSongs = songs && songs.length > 0;
+  const purchaseSong = songs?.find(s => s.id === showPurchaseModal);
 
   return (
     <>
@@ -170,8 +227,8 @@ export default function RevolutionarySongs() {
           </Badge>
           <h2 className="text-3xl font-bold mb-3">Songs of the Revolution</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Listen to and download powerful revolutionary songs. Support the movement with a donation 
-            of $20 or more to unlock full access to play and download all songs.
+            Listen to and download powerful revolutionary songs. Some songs are free — others can be
+            purchased individually or unlocked all at once with a donation of $20 or more.
           </p>
         </div>
 
@@ -183,29 +240,29 @@ export default function RevolutionarySongs() {
               </div>
               <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Revolutionary songs are being prepared. Check back soon to listen to and download 
+                Revolutionary songs are being prepared. Check back soon to listen to and download
                 powerful music from the People Power movement.
               </p>
             </CardContent>
           </Card>
         )}
 
-        {hasSongs && !hasAccess && (
+        {hasSongs && !hasAllAccess && (
           <Card className="mb-8 border-primary/30 bg-primary/5">
             <CardContent className="py-6">
               <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
                 <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                  <Lock className="w-7 h-7 text-primary" />
+                  <Unlock className="w-7 h-7 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-lg">Donate to Unlock Songs</h3>
+                  <h3 className="font-bold text-lg">Unlock All Songs</h3>
                   <p className="text-sm text-muted-foreground">
-                    Make a minimum donation of $20 to get full access to play and download all revolutionary songs 
-                    as ringtones for both iOS and Android devices.
+                    Donate $20 or more to get full access to all songs for 1 month.
+                    Or purchase individual songs below.
                   </p>
                 </div>
-                <Button size="lg" onClick={() => setShowDonateModal(true)} data-testid="button-unlock-songs">
-                  <Heart className="w-5 h-5 mr-2" /> Donate & Unlock
+                <Button size="lg" onClick={() => setShowAllAccessModal(true)} data-testid="button-unlock-songs">
+                  <Heart className="w-5 h-5 mr-2" /> Donate & Unlock All
                 </Button>
               </div>
             </CardContent>
@@ -218,15 +275,16 @@ export default function RevolutionarySongs() {
             const progress = playProgress[song.id] || 0;
             const duration = durations[song.id] || (song.duration || 0);
             const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
+            const accessible = canAccessSong(song);
 
             return (
               <Card key={song.id} className={`transition-all ${isPlaying ? "border-primary shadow-md" : ""}`} data-testid={`song-card-${song.id}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
                     <button
-                      onClick={() => togglePlay(song.id)}
+                      onClick={() => togglePlay(song)}
                       className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                        hasAccess
+                        accessible
                           ? isPlaying
                             ? "bg-primary text-primary-foreground shadow-lg"
                             : "bg-primary/10 text-primary hover:bg-primary/20"
@@ -234,7 +292,7 @@ export default function RevolutionarySongs() {
                       }`}
                       data-testid={`button-play-${song.id}`}
                     >
-                      {!hasAccess ? (
+                      {!accessible ? (
                         <Lock className="w-5 h-5" />
                       ) : isPlaying ? (
                         <Pause className="w-5 h-5" />
@@ -254,7 +312,15 @@ export default function RevolutionarySongs() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate" data-testid={`text-song-title-${song.id}`}>{song.title}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold truncate" data-testid={`text-song-title-${song.id}`}>{song.title}</p>
+                        {song.isFree && (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">FREE</Badge>
+                        )}
+                        {!song.isFree && accessible && !hasAllAccess && purchasedSongs[song.id] && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-green-600 border-green-300 shrink-0">PURCHASED</Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground" data-testid={`text-song-artist-${song.id}`}>{song.artist}</p>
                       {song.description && (
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">{song.description}</p>
@@ -262,8 +328,20 @@ export default function RevolutionarySongs() {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                      {!song.isFree && !accessible && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => setShowPurchaseModal(song.id)}
+                          className="gap-1"
+                          data-testid={`button-buy-${song.id}`}
+                        >
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">${Number(song.price || 5).toFixed(0)}</span>
+                        </Button>
+                      )}
                       {duration > 0 && (
-                        <span className="text-xs text-muted-foreground font-mono">
+                        <span className="text-xs text-muted-foreground font-mono hidden sm:inline">
                           {isPlaying ? `${formatDuration(Math.floor(progress))} / ` : ""}
                           {formatDuration(Math.floor(duration))}
                         </span>
@@ -271,11 +349,11 @@ export default function RevolutionarySongs() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDownload(song.id)}
+                        onClick={() => handleDownload(song)}
                         className="gap-1"
                         data-testid={`button-download-${song.id}`}
                       >
-                        {hasAccess ? <Download className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                        {accessible ? <Download className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                         <span className="hidden sm:inline">Download</span>
                       </Button>
                     </div>
@@ -295,31 +373,31 @@ export default function RevolutionarySongs() {
           })}
         </div>}
 
-        {hasSongs && hasAccess && (
+        {hasSongs && hasAllAccess && (
           <div className="mt-6 text-center">
             <Badge variant="outline" className="text-green-600 border-green-300">
-              <CheckCircle className="w-3 h-3 mr-1" /> Full access unlocked — Thank you for your donation!
+              <CheckCircle className="w-3 h-3 mr-1" /> All-access unlocked — Thank you for your donation!
             </Badge>
           </div>
         )}
       </div>
 
-      <Dialog open={showDonateModal} onOpenChange={setShowDonateModal}>
+      <Dialog open={showAllAccessModal} onOpenChange={setShowAllAccessModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-primary" /> Donate to Unlock Songs
+              <Heart className="w-5 h-5 text-primary" /> Unlock All Songs
             </DialogTitle>
             <DialogDescription>
-              Make a donation of $20 or more to unlock full access to all revolutionary songs. 
-              You'll be able to play and download them as ringtones for iOS and Android.
+              Donate $20 or more to unlock full access to all songs for 1 month.
+              Play and download every song, including new ones added during your access period.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div>
               <Label className="mb-2 block">Select Donation Amount</Label>
               <div className="grid grid-cols-4 gap-2 mb-3">
-                {DONATION_AMOUNTS.map(amt => (
+                {ALL_ACCESS_AMOUNTS.map(amt => (
                   <Button
                     key={amt}
                     type="button"
@@ -375,13 +453,86 @@ export default function RevolutionarySongs() {
               className="w-full"
               size="lg"
               disabled={donating || Number(donationAmount) < 20}
-              onClick={handleDonate}
+              onClick={handleAllAccessDonate}
               data-testid="button-confirm-song-donation"
             >
               {donating ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
               ) : (
-                <><Heart className="w-4 h-4 mr-2" /> Donate ${donationAmount} & Unlock Songs</>
+                <><Heart className="w-4 h-4 mr-2" /> Donate ${donationAmount} & Unlock All Songs</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!showPurchaseModal} onOpenChange={() => setShowPurchaseModal(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-primary" /> Purchase Song
+            </DialogTitle>
+            <DialogDescription>
+              {purchaseSong ? (
+                <>Buy "{purchaseSong.title}" by {purchaseSong.artist} for ${Number(purchaseSong.price || 5).toFixed(2)}. Access lasts 1 month.</>
+              ) : "Purchase this song"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            {purchaseSong && (
+              <Card className="bg-muted/50">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                    {purchaseSong.coverImageUrl ? (
+                      <img src={purchaseSong.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Music className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{purchaseSong.title}</p>
+                    <p className="text-sm text-muted-foreground">{purchaseSong.artist}</p>
+                  </div>
+                  <p className="text-xl font-bold text-primary">${Number(purchaseSong.price || 5).toFixed(2)}</p>
+                </CardContent>
+              </Card>
+            )}
+            <div>
+              <Label htmlFor="purchase-name">Your Name</Label>
+              <Input
+                id="purchase-name"
+                placeholder="Full name"
+                value={donorName}
+                onChange={e => setDonorName(e.target.value)}
+                data-testid="input-purchase-name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="purchase-email">Email Address</Label>
+              <Input
+                id="purchase-email"
+                type="email"
+                placeholder="your@email.com"
+                value={donorEmail}
+                onChange={e => setDonorEmail(e.target.value)}
+                data-testid="input-purchase-email"
+              />
+            </div>
+            <Separator />
+            <div className="text-xs text-muted-foreground text-center">
+              Or <button className="text-primary underline" onClick={() => { setShowPurchaseModal(null); setShowAllAccessModal(true); }} data-testid="link-unlock-all">donate $20+ to unlock ALL songs</button>
+            </div>
+            <Button
+              className="w-full"
+              size="lg"
+              disabled={purchasing || !donorName || !donorEmail}
+              onClick={() => showPurchaseModal && handlePurchaseSong(showPurchaseModal)}
+              data-testid="button-confirm-purchase"
+            >
+              {purchasing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+              ) : (
+                <><ShoppingCart className="w-4 h-4 mr-2" /> Buy for ${purchaseSong ? Number(purchaseSong.price || 5).toFixed(2) : "5.00"}</>
               )}
             </Button>
           </div>

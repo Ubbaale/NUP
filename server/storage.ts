@@ -15,6 +15,7 @@ import {
   type CouncilMember, type InsertCouncilMember, councilMembers,
   type RevolutionarySong, type InsertRevolutionarySong, revolutionarySongs,
   type SongAccessToken, type InsertSongAccessToken, songAccessTokens,
+  type SongPurchase, type InsertSongPurchase, songPurchases,
   type VirtualEvent, type InsertVirtualEvent, virtualEvents,
   type EventTicket, type InsertEventTicket, eventTickets,
   type Campaign, type InsertCampaign, campaigns,
@@ -128,6 +129,12 @@ export interface IStorage {
   createSongAccessToken(token: InsertSongAccessToken): Promise<SongAccessToken>;
   getSongAccessToken(token: string): Promise<SongAccessToken | undefined>;
   getSongAccessByEmail(email: string): Promise<SongAccessToken[]>;
+
+  // Per-Song Purchases
+  createSongPurchase(purchase: InsertSongPurchase): Promise<SongPurchase>;
+  getSongPurchaseByToken(token: string): Promise<SongPurchase | undefined>;
+  getSongPurchasesByEmail(email: string): Promise<SongPurchase[]>;
+  getSongPurchasesBySongAndEmail(songId: string, email: string): Promise<SongPurchase[]>;
 
   // Virtual Events
   getAllEvents(): Promise<VirtualEvent[]>;
@@ -484,6 +491,27 @@ export class DatabaseStorage implements IStorage {
 
   async getSongAccessByEmail(email: string): Promise<SongAccessToken[]> {
     return db.select().from(songAccessTokens).where(eq(songAccessTokens.email, email)).orderBy(desc(songAccessTokens.createdAt));
+  }
+
+  // Per-Song Purchases
+  async createSongPurchase(purchase: InsertSongPurchase): Promise<SongPurchase> {
+    const [result] = await db.insert(songPurchases).values(purchase).returning();
+    return result;
+  }
+
+  async getSongPurchaseByToken(token: string): Promise<SongPurchase | undefined> {
+    const [purchase] = await db.select().from(songPurchases).where(eq(songPurchases.token, token));
+    return purchase;
+  }
+
+  async getSongPurchasesByEmail(email: string): Promise<SongPurchase[]> {
+    return db.select().from(songPurchases).where(eq(songPurchases.buyerEmail, email)).orderBy(desc(songPurchases.createdAt));
+  }
+
+  async getSongPurchasesBySongAndEmail(songId: string, email: string): Promise<SongPurchase[]> {
+    return db.select().from(songPurchases)
+      .where(and(eq(songPurchases.songId, songId), eq(songPurchases.buyerEmail, email)))
+      .orderBy(desc(songPurchases.createdAt));
   }
 
   // Virtual Events

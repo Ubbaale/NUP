@@ -116,8 +116,14 @@ export default function SongsAdmin() {
                   <Input id="songFile" name="songFile" type="file" accept=".mp4,.mp3,.m4a,.wav,.ogg,.aac" required data-testid="input-song-file" />
                 </div>
                 <div>
-                  <Label htmlFor="minimumDonation">Minimum Donation ($)</Label>
-                  <Input id="minimumDonation" name="minimumDonation" type="number" step="0.01" defaultValue="20.00" min="1" data-testid="input-min-donation" />
+                  <Label htmlFor="price">Per-Song Price ($)</Label>
+                  <Input id="price" name="price" type="number" step="0.01" defaultValue="5.00" min="0" data-testid="input-song-price" />
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="isFree" name="isFree" className="w-4 h-4" data-testid="checkbox-is-free" />
+                  <Label htmlFor="isFree" className="text-sm cursor-pointer">Make this song free (no payment needed)</Label>
                 </div>
               </div>
               <Button type="submit" disabled={uploading} data-testid="button-upload-song">
@@ -156,10 +162,14 @@ export default function SongsAdmin() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold truncate">{song.title}</p>
                       <p className="text-sm text-muted-foreground">{song.artist}</p>
-                      <div className="flex gap-3 text-xs text-muted-foreground mt-1">
+                      <div className="flex gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
                         <span className="flex items-center gap-1"><Play className="w-3 h-3" /> {song.playCount || 0} plays</span>
                         <span className="flex items-center gap-1"><Download className="w-3 h-3" /> {song.downloadCount || 0} downloads</span>
-                        <span>Min: ${Number(song.minimumDonation).toFixed(2)}</span>
+                        {song.isFree ? (
+                          <span className="text-green-600 font-medium">FREE</span>
+                        ) : (
+                          <span>Price: ${Number(song.price || 5).toFixed(2)}</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">

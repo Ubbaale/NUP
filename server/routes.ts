@@ -513,7 +513,7 @@ export async function registerRoutes(
       if (!req.file) {
         return res.status(400).json({ error: "Song file is required" });
       }
-      const { title, artist, description, minimumDonation } = req.body;
+      const { title, artist, description, minimumDonation, price, isFree } = req.body;
       if (!title || !artist) {
         return res.status(400).json({ error: "Title and artist are required" });
       }
@@ -524,6 +524,8 @@ export async function registerRoutes(
         fileUrl: `/uploads/songs/${req.file.filename}`,
         description: description || null,
         minimumDonation: minimumDonation || "20.00",
+        price: price || "5.00",
+        isFree: isFree === "on" || isFree === "true" || isFree === true,
         duration: null,
         coverImageUrl: null,
         isActive: true,
@@ -632,6 +634,71 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/songs/:id/purchase", async (req, res) => {
+    try {
+      const { buyerName, buyerEmail } = req.body;
+      if (!buyerName || !buyerEmail) {
+        return res.status(400).json({ error: "Name and email are required" });
+      }
+      const song = await storage.getSong(req.params.id);
+      if (!song) return res.status(404).json({ error: "Song not found" });
+      if (song.isFree) {
+        return res.status(400).json({ error: "This song is free, no purchase needed" });
+      }
+      const songPrice = song.price || "5.00";
+      const donation = await storage.createDonation({
+        donorName: buyerName,
+        email: buyerEmail,
+        amount: songPrice,
+        currency: "USD",
+        message: `Song Purchase: ${song.title}`,
+        isRecurring: false,
+        isAnonymous: false,
+      });
+      const purchaseToken = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
+      const purchase = await storage.createSongPurchase({
+        songId: song.id,
+        buyerName,
+        buyerEmail,
+        amount: songPrice,
+        token: purchaseToken,
+        expiresAt,
+      });
+      res.status(201).json({ success: true, token: purchase.token, expiresAt, songId: song.id });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to purchase song" });
+    }
+  });
+
+  app.get("/api/songs/:id/check-access", async (req, res) => {
+    try {
+      const { token, email } = req.query as { token?: string; email?: string };
+      const song = await storage.getSong(req.params.id);
+      if (!song) return res.status(404).json({ error: "Song not found" });
+      if (song.isFree) return res.json({ hasAccess: true, reason: "free" });
+      if (token) {
+        const allAccess = await storage.getSongAccessToken(token);
+        if (allAccess && (!allAccess.expiresAt || new Date(allAccess.expiresAt) > new Date())) {
+          return res.json({ hasAccess: true, reason: "all-access" });
+        }
+        const purchase = await storage.getSongPurchaseByToken(token);
+        if (purchase && purchase.songId === song.id && (!purchase.expiresAt || new Date(purchase.expiresAt) > new Date())) {
+          return res.json({ hasAccess: true, reason: "purchased" });
+        }
+      }
+      if (email) {
+        const purchases = await storage.getSongPurchasesBySongAndEmail(song.id, email);
+        const validPurchase = purchases.find(p => !p.expiresAt || new Date(p.expiresAt) > new Date());
+        if (validPurchase) return res.json({ hasAccess: true, reason: "purchased", token: validPurchase.token });
+      }
+      res.json({ hasAccess: false });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check access" });
+    }
+  });
+
   app.post("/api/songs/:id/play", async (req, res) => {
     try {
       await storage.incrementPlayCount(req.params.id);
@@ -641,14 +708,27 @@ export async function registerRoutes(
     }
   });
 
+  async function verifySongAccess(token: string | undefined, songId: string): Promise<{ allowed: boolean; reason: string }> {
+    const song = await storage.getSong(songId);
+    if (!song) return { allowed: false, reason: "Song not found" };
+    if (song.isFree) return { allowed: true, reason: "free" };
+    if (!token) return { allowed: false, reason: "Access token required" };
+    const allAccess = await storage.getSongAccessToken(token);
+    if (allAccess && (!allAccess.expiresAt || new Date(allAccess.expiresAt) > new Date())) {
+      return { allowed: true, reason: "all-access" };
+    }
+    const purchase = await storage.getSongPurchaseByToken(token);
+    if (purchase && purchase.songId === songId && (!purchase.expiresAt || new Date(purchase.expiresAt) > new Date())) {
+      return { allowed: true, reason: "purchased" };
+    }
+    return { allowed: false, reason: "Invalid or expired access token" };
+  }
+
   app.get("/api/songs/:id/stream", async (req, res) => {
     try {
       const { token } = req.query as { token?: string };
-      if (!token) return res.status(401).json({ error: "Access token required" });
-      const access = await storage.getSongAccessToken(token);
-      if (!access || (access.expiresAt && new Date(access.expiresAt) < new Date())) {
-        return res.status(403).json({ error: "Invalid or expired access token" });
-      }
+      const { allowed, reason } = await verifySongAccess(token, req.params.id);
+      if (!allowed) return res.status(403).json({ error: reason });
       const song = await storage.getSong(req.params.id);
       if (!song) return res.status(404).json({ error: "Song not found" });
       const filePath = path.join(process.cwd(), song.fileUrl);
@@ -681,12 +761,8 @@ export async function registerRoutes(
   app.get("/api/songs/:id/download", async (req, res) => {
     try {
       const { token } = req.query as { token?: string };
-      if (!token) return res.status(401).json({ error: "Access token required" });
-      const access = await storage.getSongAccessToken(token);
-      if (!access) return res.status(403).json({ error: "Invalid access token" });
-      if (access.expiresAt && new Date(access.expiresAt) < new Date()) {
-        return res.status(403).json({ error: "Access token has expired" });
-      }
+      const { allowed, reason } = await verifySongAccess(token, req.params.id);
+      if (!allowed) return res.status(403).json({ error: reason });
       const song = await storage.getSong(req.params.id);
       if (!song) return res.status(404).json({ error: "Song not found" });
 
