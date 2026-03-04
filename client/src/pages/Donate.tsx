@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Heart, DollarSign, Users, Globe, CheckCircle, Shield } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import RevolutionarySongs from "@/components/RevolutionarySongs";
 
 const donationSchema = z.object({
   donorName: z.string().min(2, "Name must be at least 2 characters"),
@@ -323,6 +324,8 @@ export default function Donate() {
             </Card>
           </div>
         </div>
+
+        <RevolutionarySongs />
       </div>
     </div>
   );

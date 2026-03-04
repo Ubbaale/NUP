@@ -13,6 +13,8 @@ import {
   type NewsItem, type InsertNewsItem, newsItems,
   type Subscription, type InsertSubscription, subscriptions,
   type CouncilMember, type InsertCouncilMember, councilMembers,
+  type RevolutionarySong, type InsertRevolutionarySong, revolutionarySongs,
+  type SongAccessToken, type InsertSongAccessToken, songAccessTokens,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -102,6 +104,21 @@ export interface IStorage {
   // Council Members
   getCouncilMembersByRegion(regionId: string): Promise<CouncilMember[]>;
   createCouncilMember(member: InsertCouncilMember): Promise<CouncilMember>;
+
+  // Revolutionary Songs
+  getAllSongs(): Promise<RevolutionarySong[]>;
+  getActiveSongs(): Promise<RevolutionarySong[]>;
+  getSong(id: string): Promise<RevolutionarySong | undefined>;
+  createSong(song: InsertRevolutionarySong): Promise<RevolutionarySong>;
+  updateSong(id: string, data: Partial<RevolutionarySong>): Promise<RevolutionarySong | undefined>;
+  deleteSong(id: string): Promise<void>;
+  incrementPlayCount(id: string): Promise<void>;
+  incrementDownloadCount(id: string): Promise<void>;
+
+  // Song Access Tokens
+  createSongAccessToken(token: InsertSongAccessToken): Promise<SongAccessToken>;
+  getSongAccessToken(token: string): Promise<SongAccessToken | undefined>;
+  getSongAccessByEmail(email: string): Promise<SongAccessToken[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -358,6 +375,63 @@ export class DatabaseStorage implements IStorage {
   async createCouncilMember(insertMember: InsertCouncilMember): Promise<CouncilMember> {
     const [member] = await db.insert(councilMembers).values(insertMember).returning();
     return member;
+  }
+
+  // Revolutionary Songs
+  async getAllSongs(): Promise<RevolutionarySong[]> {
+    return db.select().from(revolutionarySongs).orderBy(desc(revolutionarySongs.createdAt));
+  }
+
+  async getActiveSongs(): Promise<RevolutionarySong[]> {
+    return db.select().from(revolutionarySongs).where(eq(revolutionarySongs.isActive, true)).orderBy(desc(revolutionarySongs.createdAt));
+  }
+
+  async getSong(id: string): Promise<RevolutionarySong | undefined> {
+    const [song] = await db.select().from(revolutionarySongs).where(eq(revolutionarySongs.id, id));
+    return song;
+  }
+
+  async createSong(insertSong: InsertRevolutionarySong): Promise<RevolutionarySong> {
+    const [song] = await db.insert(revolutionarySongs).values(insertSong).returning();
+    return song;
+  }
+
+  async updateSong(id: string, data: Partial<RevolutionarySong>): Promise<RevolutionarySong | undefined> {
+    const [song] = await db.update(revolutionarySongs).set(data).where(eq(revolutionarySongs.id, id)).returning();
+    return song;
+  }
+
+  async deleteSong(id: string): Promise<void> {
+    await db.delete(revolutionarySongs).where(eq(revolutionarySongs.id, id));
+  }
+
+  async incrementPlayCount(id: string): Promise<void> {
+    const song = await this.getSong(id);
+    if (song) {
+      await db.update(revolutionarySongs).set({ playCount: (song.playCount || 0) + 1 }).where(eq(revolutionarySongs.id, id));
+    }
+  }
+
+  async incrementDownloadCount(id: string): Promise<void> {
+    const song = await this.getSong(id);
+    if (song) {
+      await db.update(revolutionarySongs).set({ downloadCount: (song.downloadCount || 0) + 1 }).where(eq(revolutionarySongs.id, id));
+    }
+  }
+
+  // Song Access Tokens
+  async createSongAccessToken(insertToken: InsertSongAccessToken): Promise<SongAccessToken> {
+    const [token] = await db.insert(songAccessTokens).values(insertToken).returning();
+    return token;
+  }
+
+  async getSongAccessToken(token: string): Promise<SongAccessToken | undefined> {
+    const [access] = await db.select().from(songAccessTokens).where(eq(songAccessTokens.token, token));
+    return access;
+  }
+
+  async getSongAccessByEmail(email: string): Promise<SongAccessToken[]> {
+    return db.select().from(songAccessTokens).where(eq(songAccessTokens.email, email)).orderBy(desc(songAccessTokens.createdAt));
   }
 }
 

@@ -254,6 +254,42 @@ export const insertCouncilMemberSchema = createInsertSchema(councilMembers).omit
 export type InsertCouncilMember = z.infer<typeof insertCouncilMemberSchema>;
 export type CouncilMember = typeof councilMembers.$inferSelect;
 
+// Revolutionary Songs
+export const revolutionarySongs = pgTable("revolutionary_songs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  duration: integer("duration"),
+  coverImageUrl: text("cover_image_url"),
+  description: text("description"),
+  minimumDonation: decimal("minimum_donation", { precision: 10, scale: 2 }).notNull().default("20.00"),
+  downloadCount: integer("download_count").notNull().default(0),
+  playCount: integer("play_count").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertRevolutionarySongSchema = createInsertSchema(revolutionarySongs).omit({ id: true, createdAt: true, downloadCount: true, playCount: true });
+export type InsertRevolutionarySong = z.infer<typeof insertRevolutionarySongSchema>;
+export type RevolutionarySong = typeof revolutionarySongs.$inferSelect;
+
+// Song Access Tokens (granted after donation)
+export const songAccessTokens = pgTable("song_access_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  donationId: varchar("donation_id").notNull(),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const insertSongAccessTokenSchema = createInsertSchema(songAccessTokens).omit({ id: true, createdAt: true });
+export type InsertSongAccessToken = z.infer<typeof insertSongAccessTokenSchema>;
+export type SongAccessToken = typeof songAccessTokens.$inferSelect;
+
 // Legacy Users table for compatibility
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

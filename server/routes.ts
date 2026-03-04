@@ -3,6 +3,49 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductRatingSchema } from "@shared/schema";
 import * as printful from "./printful";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import crypto from "crypto";
+
+const songUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", "songs");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = [".mp4", ".mp3", ".m4a", ".wav", ".ogg", ".aac"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only audio/video files (MP4, MP3, M4A, WAV, OGG, AAC) are allowed"));
+    }
+  },
+  limits: { fileSize: 100 * 1024 * 1024 },
+});
+
+const coverUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", "covers");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 export async function registerRoutes(
   httpServer: Server,
@@ -439,6 +482,227 @@ export async function registerRoutes(
       res.json({ success: false, error: fulfillResult.error });
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to resubmit order" });
+    }
+  });
+
+  // ===== REVOLUTIONARY SONGS =====
+  app.use("/uploads/covers", (await import("express")).default.static(path.join(process.cwd(), "uploads", "covers")));
+
+  app.get("/api/songs", async (req, res) => {
+    try {
+      const songs = await storage.getActiveSongs();
+      res.json(songs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch songs" });
+    }
+  });
+
+  app.get("/api/songs/all", async (req, res) => {
+    try {
+      const songs = await storage.getAllSongs();
+      res.json(songs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch songs" });
+    }
+  });
+
+  app.post("/api/songs", songUpload.single("songFile"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Song file is required" });
+      }
+      const { title, artist, description, minimumDonation } = req.body;
+      if (!title || !artist) {
+        return res.status(400).json({ error: "Title and artist are required" });
+      }
+      const song = await storage.createSong({
+        title,
+        artist,
+        fileName: req.file.originalname,
+        fileUrl: `/uploads/songs/${req.file.filename}`,
+        description: description || null,
+        minimumDonation: minimumDonation || "20.00",
+        duration: null,
+        coverImageUrl: null,
+        isActive: true,
+      });
+      res.status(201).json(song);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to upload song" });
+    }
+  });
+
+  app.post("/api/songs/:id/cover", coverUpload.single("coverImage"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Cover image is required" });
+      }
+      const song = await storage.updateSong(req.params.id, {
+        coverImageUrl: `/uploads/covers/${req.file.filename}`,
+      });
+      if (!song) return res.status(404).json({ error: "Song not found" });
+      res.json(song);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to upload cover" });
+    }
+  });
+
+  app.patch("/api/songs/:id", async (req, res) => {
+    try {
+      const song = await storage.updateSong(req.params.id, req.body);
+      if (!song) return res.status(404).json({ error: "Song not found" });
+      res.json(song);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update song" });
+    }
+  });
+
+  app.delete("/api/songs/:id", async (req, res) => {
+    try {
+      const song = await storage.getSong(req.params.id);
+      if (!song) return res.status(404).json({ error: "Song not found" });
+      const filePath = path.join(process.cwd(), song.fileUrl);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      if (song.coverImageUrl) {
+        const coverPath = path.join(process.cwd(), song.coverImageUrl);
+        if (fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
+      }
+      await storage.deleteSong(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete song" });
+    }
+  });
+
+  app.post("/api/songs/donate-for-access", async (req, res) => {
+    try {
+      const { donorName, email, amount } = req.body;
+      if (!donorName || !email || !amount) {
+        return res.status(400).json({ error: "Name, email, and amount are required" });
+      }
+      if (Number(amount) < 20) {
+        return res.status(400).json({ error: "Minimum donation for song access is $20" });
+      }
+      const donation = await storage.createDonation({
+        donorName,
+        email,
+        amount: String(amount),
+        currency: "USD",
+        message: "Revolutionary Songs Access Donation",
+        isRecurring: false,
+        isAnonymous: false,
+      });
+      const token = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      const accessToken = await storage.createSongAccessToken({
+        donationId: donation.id,
+        email,
+        token,
+        amount: String(amount),
+        expiresAt,
+      });
+      res.status(201).json({ success: true, token: accessToken.token, expiresAt });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to process donation" });
+    }
+  });
+
+  app.get("/api/songs/verify-access", async (req, res) => {
+    try {
+      const { token, email } = req.query as { token?: string; email?: string };
+      if (token) {
+        const access = await storage.getSongAccessToken(token);
+        if (!access) return res.json({ hasAccess: false });
+        if (access.expiresAt && new Date(access.expiresAt) < new Date()) {
+          return res.json({ hasAccess: false, reason: "expired" });
+        }
+        return res.json({ hasAccess: true, email: access.email });
+      }
+      if (email) {
+        const tokens = await storage.getSongAccessByEmail(email);
+        const validToken = tokens.find(t => !t.expiresAt || new Date(t.expiresAt) > new Date());
+        return res.json({ hasAccess: !!validToken, token: validToken?.token });
+      }
+      res.json({ hasAccess: false });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to verify access" });
+    }
+  });
+
+  app.post("/api/songs/:id/play", async (req, res) => {
+    try {
+      await storage.incrementPlayCount(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to record play" });
+    }
+  });
+
+  app.get("/api/songs/:id/stream", async (req, res) => {
+    try {
+      const { token } = req.query as { token?: string };
+      if (!token) return res.status(401).json({ error: "Access token required" });
+      const access = await storage.getSongAccessToken(token);
+      if (!access || (access.expiresAt && new Date(access.expiresAt) < new Date())) {
+        return res.status(403).json({ error: "Invalid or expired access token" });
+      }
+      const song = await storage.getSong(req.params.id);
+      if (!song) return res.status(404).json({ error: "Song not found" });
+      const filePath = path.join(process.cwd(), song.fileUrl);
+      if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File not found" });
+      const stat = fs.statSync(filePath);
+      const range = req.headers.range;
+      if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+        res.writeHead(206, {
+          "Content-Range": `bytes ${start}-${end}/${stat.size}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": end - start + 1,
+          "Content-Type": "video/mp4",
+        });
+        fs.createReadStream(filePath, { start, end }).pipe(res);
+      } else {
+        res.writeHead(200, {
+          "Content-Length": stat.size,
+          "Content-Type": "video/mp4",
+        });
+        fs.createReadStream(filePath).pipe(res);
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to stream song" });
+    }
+  });
+
+  app.get("/api/songs/:id/download", async (req, res) => {
+    try {
+      const { token } = req.query as { token?: string };
+      if (!token) return res.status(401).json({ error: "Access token required" });
+      const access = await storage.getSongAccessToken(token);
+      if (!access) return res.status(403).json({ error: "Invalid access token" });
+      if (access.expiresAt && new Date(access.expiresAt) < new Date()) {
+        return res.status(403).json({ error: "Access token has expired" });
+      }
+      const song = await storage.getSong(req.params.id);
+      if (!song) return res.status(404).json({ error: "Song not found" });
+
+      const format = (req.query.format as string) || "mp4";
+      await storage.incrementDownloadCount(song.id);
+      const filePath = path.join(process.cwd(), song.fileUrl);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "File not found on server" });
+      }
+
+      const ext = format === "m4r" ? ".m4r" : format === "mp3" ? ".mp3" : ".mp4";
+      const downloadName = `${song.title} - ${song.artist}${ext}`.replace(/[^a-zA-Z0-9\s\-_.]/g, "");
+      res.setHeader("Content-Disposition", `attachment; filename="${downloadName}"`);
+      res.setHeader("Content-Type", format === "mp3" ? "audio/mpeg" : format === "m4r" ? "audio/x-m4r" : "video/mp4");
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to download song" });
     }
   });
 

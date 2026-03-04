@@ -20,6 +20,7 @@ import BlogPostDetail from "@/pages/BlogPostDetail";
 import Checkout from "@/pages/Checkout";
 import OrderTracking from "@/pages/OrderTracking";
 import PrintfulAdmin from "@/pages/PrintfulAdmin";
+import SongsAdmin from "@/pages/SongsAdmin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/order-tracking" component={OrderTracking} />
       <Route path="/admin/printful" component={PrintfulAdmin} />
+      <Route path="/admin/songs" component={SongsAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

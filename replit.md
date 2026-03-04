@@ -117,6 +117,15 @@ npm run db:push      # Push schema to database
 - SESSION_SECRET - Session encryption key
 - PRINTFUL_API_KEY - Printful API key for automatic order fulfillment (optional — orders queue locally when not set)
 
+## Revolutionary Songs Feature
+- Songs section on `/donate` page — donation-gated music player with download
+- Admin page: `/admin/songs` — upload, manage, toggle visibility, add cover images
+- Donation gate: minimum $20 donation required to play or download songs
+- Download formats: MP4 (original), MP3 (Android ringtone), M4R (iPhone ringtone)
+- Access tokens stored in localStorage and validated server-side with 1-year expiry
+- Song files stored in `uploads/songs/`, cover images in `uploads/covers/`
+- Database tables: `revolutionary_songs`, `song_access_tokens`
+
 ## Printful Integration
 - Admin page: `/admin/printful` — manage connection, link products, view profit margins
 - Service file: `server/printful.ts` — handles all Printful API communication
