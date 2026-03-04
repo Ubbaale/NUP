@@ -596,7 +596,7 @@ export async function registerRoutes(
       });
       const token = crypto.randomBytes(32).toString("hex");
       const expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      expiresAt.setMonth(expiresAt.getMonth() + 1);
       const accessToken = await storage.createSongAccessToken({
         donationId: donation.id,
         email,
