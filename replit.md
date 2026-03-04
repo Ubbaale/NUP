@@ -140,6 +140,9 @@ shared/
 - `POST /api/auctions/:slug/bid` - Place bid
 - `GET /api/auctions/:slug/bids` - Bid history
 - `POST /api/auctions/:slug/raffle-ticket` - Buy raffle tickets
+- `GET /api/config/payment` - Check Stripe and email configuration status
+- `POST /api/payments/verify` - Verify a Stripe payment intent
+- `POST /api/webhooks/stripe` - Stripe webhook handler
 
 ## E-Commerce Flow
 - **Shopping Cart**: Persistent localStorage cart with quantity controls
@@ -153,6 +156,25 @@ shared/
 - **Crowdfunding Campaigns**: `/campaigns` with progress bars, `/campaigns/:slug` with donation form, donor wall, countdown timers
 - **Membership Tiers**: `/membership-tiers` pricing table with 4 tiers, subscribe modal, status check by email
 - **Auctions & Raffles**: `/auctions` listing, `/auctions/:slug` detail with bid forms (auctions) or ticket purchase (raffles), bid history
+
+## Stripe Payment Framework
+- Service file: `server/stripe.ts` — handles payment intents for tickets, donations, and memberships
+- How to activate: Add `STRIPE_SECRET_KEY` to Replit Secrets; optionally add `STRIPE_WEBHOOK_SECRET` for webhook verification
+- When not configured: All transactions are recorded locally without payment collection
+- Supports: ticket purchases, campaign donations, membership subscriptions
+- Webhook endpoint: `POST /api/webhooks/stripe` — updates ticket payment status on successful payment
+
+## Email Notification Framework
+- Service file: `server/email.ts` — sends branded HTML emails via SMTP (nodemailer)
+- How to activate: Add `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` to Replit Secrets; optionally `SMTP_PORT`, `FROM_EMAIL`, `FROM_NAME`
+- When not configured: Emails are logged to console but not sent
+- Email types: ticket confirmations, donation receipts, membership welcome, member registration
+- All emails use NUP red branding and "People Power" messaging
+
+## Admin Pages
+- `/admin/printful` — Printful integration management
+- `/admin/songs` — Revolutionary songs upload and management
+- `/admin/events` — Create/manage virtual events, view Stripe & email config status, toggle active/featured
 
 ## Theme
 - Primary color: Red (NUP party color) - HSL 0 84% 45%

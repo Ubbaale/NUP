@@ -323,6 +323,8 @@ export const eventTickets = pgTable("event_tickets", {
   buyerEmail: text("buyer_email").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   ticketCode: text("ticket_code").notNull().unique(),
+  paymentStatus: text("payment_status").notNull().default("pending"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
   purchasedAt: timestamp("purchased_at").defaultNow(),
 });
 

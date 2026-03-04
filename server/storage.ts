@@ -139,6 +139,7 @@ export interface IStorage {
   createTicket(ticket: InsertEventTicket): Promise<EventTicket>;
   getTicketsByEvent(eventId: string): Promise<EventTicket[]>;
   getTicketByCode(code: string): Promise<EventTicket | undefined>;
+  updateTicketPaymentStatus(id: string, status: string): Promise<void>;
 
   // Campaigns
   getAllCampaigns(): Promise<Campaign[]>;
@@ -517,6 +518,9 @@ export class DatabaseStorage implements IStorage {
   async getTicketByCode(code: string): Promise<EventTicket | undefined> {
     const [ticket] = await db.select().from(eventTickets).where(eq(eventTickets.ticketCode, code));
     return ticket;
+  }
+  async updateTicketPaymentStatus(id: string, status: string): Promise<void> {
+    await db.update(eventTickets).set({ paymentStatus: status }).where(eq(eventTickets.id, id));
   }
 
   // Campaigns

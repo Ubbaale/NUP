@@ -1,8 +1,10 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductRatingSchema } from "@shared/schema";
 import * as printful from "./printful";
+import * as stripe from "./stripe";
+import * as email from "./email";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -769,14 +771,51 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Event is sold out" });
       }
       const ticketCode = `NUP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const price = Number(event.ticketPrice || 0);
+
+      let paymentIntent = null;
+      let paymentStatus = "completed";
+      let stripePaymentIntentId = null;
+
+      if (price > 0 && stripe.isStripeConfigured()) {
+        paymentIntent = await stripe.createTicketPaymentIntent({
+          amount: price,
+          buyerEmail,
+          buyerName,
+          eventTitle: event.title,
+          ticketCode,
+        });
+        if (paymentIntent) {
+          paymentStatus = "pending";
+          stripePaymentIntentId = paymentIntent.paymentIntentId;
+        }
+      }
+
       const ticket = await storage.createTicket({
         eventId: event.id,
         buyerName,
         buyerEmail,
         amount: event.ticketPrice || "0",
         ticketCode,
+        paymentStatus,
+        stripePaymentIntentId,
       });
-      const responseData: any = { ...ticket, meetingLink: event.meetingLink };
+
+      email.sendTicketConfirmation({
+        buyerEmail,
+        buyerName,
+        eventTitle: event.title,
+        eventDate: new Date(event.eventDate).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
+        ticketCode,
+        ticketPrice: price.toFixed(2),
+        meetingLink: event.meetingLink || undefined,
+      }).catch(() => {});
+
+      const responseData: any = {
+        ...ticket,
+        meetingLink: event.meetingLink,
+        ...(paymentIntent ? { clientSecret: paymentIntent.clientSecret } : {}),
+      };
       res.status(201).json(responseData);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to purchase ticket" });
@@ -831,12 +870,12 @@ export async function registerRoutes(
     try {
       const campaign = await storage.getCampaignBySlug(req.params.slug);
       if (!campaign) return res.status(404).json({ error: "Campaign not found" });
-      const { donorName, email, amount, message, isAnonymous } = req.body;
-      if (!donorName || !email || !amount) return res.status(400).json({ error: "Name, email, and amount required" });
+      const { donorName, email: donorEmail, amount, message, isAnonymous } = req.body;
+      if (!donorName || !donorEmail || !amount) return res.status(400).json({ error: "Name, email, and amount required" });
       const donation = await storage.createCampaignDonation({
         campaignId: campaign.id,
         donorName,
-        email,
+        email: donorEmail,
         amount: String(amount),
         message: message || null,
         isAnonymous: isAnonymous || false,
@@ -846,6 +885,15 @@ export async function registerRoutes(
         raisedAmount: newRaised,
         donorCount: (campaign.donorCount || 0) + 1,
       });
+
+      email.sendDonationReceipt({
+        donorEmail,
+        donorName,
+        amount: String(amount),
+        campaignTitle: campaign.title,
+        donationDate: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+      }).catch(() => {});
+
       res.status(201).json(donation);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to process donation" });
@@ -884,11 +932,11 @@ export async function registerRoutes(
 
   app.post("/api/membership/subscribe", async (req, res) => {
     try {
-      const { tierId, email, fullName } = req.body;
-      if (!tierId || !email || !fullName) return res.status(400).json({ error: "Tier, email, and name required" });
+      const { tierId, email: memberEmail, fullName } = req.body;
+      if (!tierId || !memberEmail || !fullName) return res.status(400).json({ error: "Tier, email, and name required" });
       const tier = await storage.getTier(tierId);
       if (!tier) return res.status(404).json({ error: "Tier not found" });
-      const existing = await storage.getMemberSubscriptionByEmail(email);
+      const existing = await storage.getMemberSubscriptionByEmail(memberEmail);
       if (existing) return res.status(400).json({ error: "Already have an active subscription. Contact us to change tiers." });
       const renewalDate = new Date();
       if (tier.interval === "yearly") {
@@ -898,13 +946,26 @@ export async function registerRoutes(
       }
       const sub = await storage.createMemberSubscription({
         tierId,
-        email,
+        email: memberEmail,
         fullName,
         status: "active",
         amount: tier.price,
         startDate: new Date(),
         renewalDate,
       });
+
+      let benefits: string[] = [];
+      try { benefits = JSON.parse(tier.benefits || "[]"); } catch {}
+      email.sendMembershipWelcome({
+        email: memberEmail,
+        fullName,
+        tierName: tier.name,
+        amount: tier.price,
+        interval: tier.interval || "monthly",
+        renewalDate: renewalDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+        benefits,
+      }).catch(() => {});
+
       res.status(201).json(sub);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to subscribe" });
@@ -913,9 +974,9 @@ export async function registerRoutes(
 
   app.get("/api/membership/status", async (req, res) => {
     try {
-      const email = req.query.email as string;
-      if (!email) return res.status(400).json({ error: "Email required" });
-      const sub = await storage.getMemberSubscriptionByEmail(email);
+      const memberEmail = req.query.email as string;
+      if (!memberEmail) return res.status(400).json({ error: "Email required" });
+      const sub = await storage.getMemberSubscriptionByEmail(memberEmail);
       if (!sub) return res.json({ active: false });
       const tier = await storage.getTier(sub.tierId);
       res.json({ active: true, subscription: sub, tier });
@@ -1019,6 +1080,48 @@ export async function registerRoutes(
       res.status(201).json(ticket);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to purchase tickets" });
+    }
+  });
+
+  // ===== PAYMENT & CONFIGURATION STATUS =====
+  app.get("/api/config/payment", async (req, res) => {
+    res.json({
+      stripeConfigured: stripe.isStripeConfigured(),
+      emailConfigured: email.isEmailConfigured(),
+    });
+  });
+
+  app.post("/api/payments/verify", async (req, res) => {
+    try {
+      const { paymentIntentId } = req.body;
+      if (!paymentIntentId) return res.status(400).json({ error: "Payment intent ID required" });
+      const result = await stripe.verifyPaymentIntent(paymentIntentId);
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to verify payment" });
+    }
+  });
+
+  app.post("/api/webhooks/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+    try {
+      const sig = req.headers["stripe-signature"] as string;
+      if (!sig) return res.status(400).json({ error: "No signature" });
+      const event = await stripe.handleWebhookEvent(req.body, sig);
+      if (!event) return res.status(400).json({ error: "Webhook not configured" });
+
+      if (event.type === "payment_intent.succeeded") {
+        const metadata = event.data?.metadata;
+        if (metadata?.type === "event_ticket" && metadata?.ticketCode) {
+          const ticket = await storage.getTicketByCode(metadata.ticketCode);
+          if (ticket) {
+            await storage.updateTicketPaymentStatus(ticket.id, "completed");
+          }
+        }
+      }
+
+      res.json({ received: true });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
     }
   });
 
