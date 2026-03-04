@@ -22,6 +22,7 @@ import Checkout from "@/pages/Checkout";
 import OrderTracking from "@/pages/OrderTracking";
 import PrintfulAdmin from "@/pages/PrintfulAdmin";
 import SongsAdmin from "@/pages/SongsAdmin";
+import Songs from "@/pages/Songs";
 import EventsAdmin from "@/pages/EventsAdmin";
 import MembershipTiers from "@/pages/MembershipTiers";
 import VirtualEvents from "@/pages/VirtualEvents";
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/order-tracking" component={OrderTracking} />
       <Route path="/admin/printful" component={PrintfulAdmin} />
+      <Route path="/songs" component={Songs} />
       <Route path="/admin/songs" component={SongsAdmin} />
       <Route path="/admin/events" component={EventsAdmin} />
       <Route path="/membership-tiers" component={MembershipTiers} />

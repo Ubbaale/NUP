@@ -159,7 +159,7 @@ export default function RevolutionarySongs() {
     );
   }
 
-  if (!songs || songs.length === 0) return null;
+  const hasSongs = songs && songs.length > 0;
 
   return (
     <>
@@ -175,7 +175,22 @@ export default function RevolutionarySongs() {
           </p>
         </div>
 
-        {!hasAccess && (
+        {!hasSongs && (
+          <Card className="border-dashed">
+            <CardContent className="py-12 text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Music className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Revolutionary songs are being prepared. Check back soon to listen to and download 
+                powerful music from the People Power movement.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {hasSongs && !hasAccess && (
           <Card className="mb-8 border-primary/30 bg-primary/5">
             <CardContent className="py-6">
               <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
@@ -197,7 +212,7 @@ export default function RevolutionarySongs() {
           </Card>
         )}
 
-        <div className="space-y-3">
+        {hasSongs && <div className="space-y-3">
           {songs.map((song) => {
             const isPlaying = currentlyPlaying === song.id;
             const progress = playProgress[song.id] || 0;
@@ -278,9 +293,9 @@ export default function RevolutionarySongs() {
               </Card>
             );
           })}
-        </div>
+        </div>}
 
-        {hasAccess && (
+        {hasSongs && hasAccess && (
           <div className="mt-6 text-center">
             <Badge variant="outline" className="text-green-600 border-green-300">
               <CheckCircle className="w-3 h-3 mr-1" /> Full access unlocked — Thank you for your donation!

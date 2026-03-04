@@ -12,6 +12,7 @@ import {
   Gavel,
   Crown,
   Settings,
+  Music,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -24,6 +25,7 @@ const bottomTabs = [
 ];
 
 const moreItems = [
+  { href: "/songs", label: "Songs", icon: Music },
   { href: "/campaigns", label: "Campaigns", icon: Target },
   { href: "/conferences", label: "Conferences", icon: Calendar },
   { href: "/news", label: "News", icon: Newspaper },
