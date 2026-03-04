@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Users, Search, CheckCircle, UserPlus, IdCard, Shield } from "lucide-react";
+import { Users, Search, CheckCircle, UserPlus, IdCard, Shield, Crown } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 import type { Region, Member } from "@shared/schema";
 
 const registrationSchema = z.object({
@@ -114,6 +115,14 @@ export default function Membership() {
             Become part of the National Unity Platform Diaspora. Register as a member 
             or retrieve your existing membership information.
           </p>
+          <div className="mt-4">
+            <Link href="/membership-tiers">
+              <Button variant="outline" data-testid="link-membership-tiers">
+                <Crown className="w-4 h-4 mr-2" />
+                View Premium Membership Tiers
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="max-w-2xl mx-auto">

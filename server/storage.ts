@@ -15,6 +15,15 @@ import {
   type CouncilMember, type InsertCouncilMember, councilMembers,
   type RevolutionarySong, type InsertRevolutionarySong, revolutionarySongs,
   type SongAccessToken, type InsertSongAccessToken, songAccessTokens,
+  type VirtualEvent, type InsertVirtualEvent, virtualEvents,
+  type EventTicket, type InsertEventTicket, eventTickets,
+  type Campaign, type InsertCampaign, campaigns,
+  type CampaignDonation, type InsertCampaignDonation, campaignDonations,
+  type MembershipTier, type InsertMembershipTier, membershipTiers,
+  type MemberSubscription, type InsertMemberSubscription, memberSubscriptions,
+  type AuctionItem, type InsertAuctionItem, auctionItems,
+  type Bid, type InsertBid, bids,
+  type RaffleTicket, type InsertRaffleTicket, raffleTickets,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -119,6 +128,48 @@ export interface IStorage {
   createSongAccessToken(token: InsertSongAccessToken): Promise<SongAccessToken>;
   getSongAccessToken(token: string): Promise<SongAccessToken | undefined>;
   getSongAccessByEmail(email: string): Promise<SongAccessToken[]>;
+
+  // Virtual Events
+  getAllEvents(): Promise<VirtualEvent[]>;
+  getActiveEvents(): Promise<VirtualEvent[]>;
+  getEventBySlug(slug: string): Promise<VirtualEvent | undefined>;
+  createEvent(event: InsertVirtualEvent): Promise<VirtualEvent>;
+  updateEvent(id: string, data: Partial<VirtualEvent>): Promise<VirtualEvent | undefined>;
+  deleteEvent(id: string): Promise<void>;
+  createTicket(ticket: InsertEventTicket): Promise<EventTicket>;
+  getTicketsByEvent(eventId: string): Promise<EventTicket[]>;
+  getTicketByCode(code: string): Promise<EventTicket | undefined>;
+
+  // Campaigns
+  getAllCampaigns(): Promise<Campaign[]>;
+  getActiveCampaigns(): Promise<Campaign[]>;
+  getCampaignBySlug(slug: string): Promise<Campaign | undefined>;
+  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: string, data: Partial<Campaign>): Promise<Campaign | undefined>;
+  createCampaignDonation(donation: InsertCampaignDonation): Promise<CampaignDonation>;
+  getCampaignDonations(campaignId: string): Promise<CampaignDonation[]>;
+
+  // Membership Tiers
+  getAllTiers(): Promise<MembershipTier[]>;
+  getActiveTiers(): Promise<MembershipTier[]>;
+  getTier(id: string): Promise<MembershipTier | undefined>;
+  createTier(tier: InsertMembershipTier): Promise<MembershipTier>;
+  updateTier(id: string, data: Partial<MembershipTier>): Promise<MembershipTier | undefined>;
+  createMemberSubscription(sub: InsertMemberSubscription): Promise<MemberSubscription>;
+  getMemberSubscriptionByEmail(email: string): Promise<MemberSubscription | undefined>;
+  getAllMemberSubscriptions(): Promise<MemberSubscription[]>;
+
+  // Auctions & Raffles
+  getAllAuctionItems(): Promise<AuctionItem[]>;
+  getActiveAuctionItems(): Promise<AuctionItem[]>;
+  getAuctionItemBySlug(slug: string): Promise<AuctionItem | undefined>;
+  createAuctionItem(item: InsertAuctionItem): Promise<AuctionItem>;
+  updateAuctionItem(id: string, data: Partial<AuctionItem>): Promise<AuctionItem | undefined>;
+  createBid(bid: InsertBid): Promise<Bid>;
+  getBidsByItem(auctionItemId: string): Promise<Bid[]>;
+  getHighestBid(auctionItemId: string): Promise<Bid | undefined>;
+  createRaffleTicket(ticket: InsertRaffleTicket): Promise<RaffleTicket>;
+  getRaffleTicketsByItem(auctionItemId: string): Promise<RaffleTicket[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -432,6 +483,136 @@ export class DatabaseStorage implements IStorage {
 
   async getSongAccessByEmail(email: string): Promise<SongAccessToken[]> {
     return db.select().from(songAccessTokens).where(eq(songAccessTokens.email, email)).orderBy(desc(songAccessTokens.createdAt));
+  }
+
+  // Virtual Events
+  async getAllEvents(): Promise<VirtualEvent[]> {
+    return db.select().from(virtualEvents).orderBy(desc(virtualEvents.eventDate));
+  }
+  async getActiveEvents(): Promise<VirtualEvent[]> {
+    return db.select().from(virtualEvents).where(eq(virtualEvents.isActive, true)).orderBy(virtualEvents.eventDate);
+  }
+  async getEventBySlug(slug: string): Promise<VirtualEvent | undefined> {
+    const [event] = await db.select().from(virtualEvents).where(eq(virtualEvents.slug, slug));
+    return event;
+  }
+  async createEvent(insertEvent: InsertVirtualEvent): Promise<VirtualEvent> {
+    const [event] = await db.insert(virtualEvents).values(insertEvent).returning();
+    return event;
+  }
+  async updateEvent(id: string, data: Partial<VirtualEvent>): Promise<VirtualEvent | undefined> {
+    const [event] = await db.update(virtualEvents).set(data).where(eq(virtualEvents.id, id)).returning();
+    return event;
+  }
+  async deleteEvent(id: string): Promise<void> {
+    await db.delete(virtualEvents).where(eq(virtualEvents.id, id));
+  }
+  async createTicket(insertTicket: InsertEventTicket): Promise<EventTicket> {
+    const [ticket] = await db.insert(eventTickets).values(insertTicket).returning();
+    return ticket;
+  }
+  async getTicketsByEvent(eventId: string): Promise<EventTicket[]> {
+    return db.select().from(eventTickets).where(eq(eventTickets.eventId, eventId)).orderBy(desc(eventTickets.purchasedAt));
+  }
+  async getTicketByCode(code: string): Promise<EventTicket | undefined> {
+    const [ticket] = await db.select().from(eventTickets).where(eq(eventTickets.ticketCode, code));
+    return ticket;
+  }
+
+  // Campaigns
+  async getAllCampaigns(): Promise<Campaign[]> {
+    return db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
+  }
+  async getActiveCampaigns(): Promise<Campaign[]> {
+    return db.select().from(campaigns).where(eq(campaigns.isActive, true)).orderBy(desc(campaigns.createdAt));
+  }
+  async getCampaignBySlug(slug: string): Promise<Campaign | undefined> {
+    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.slug, slug));
+    return campaign;
+  }
+  async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
+    const [campaign] = await db.insert(campaigns).values(insertCampaign).returning();
+    return campaign;
+  }
+  async updateCampaign(id: string, data: Partial<Campaign>): Promise<Campaign | undefined> {
+    const [campaign] = await db.update(campaigns).set(data).where(eq(campaigns.id, id)).returning();
+    return campaign;
+  }
+  async createCampaignDonation(insertDonation: InsertCampaignDonation): Promise<CampaignDonation> {
+    const [donation] = await db.insert(campaignDonations).values(insertDonation).returning();
+    return donation;
+  }
+  async getCampaignDonations(campaignId: string): Promise<CampaignDonation[]> {
+    return db.select().from(campaignDonations).where(eq(campaignDonations.campaignId, campaignId)).orderBy(desc(campaignDonations.createdAt));
+  }
+
+  // Membership Tiers
+  async getAllTiers(): Promise<MembershipTier[]> {
+    return db.select().from(membershipTiers).orderBy(membershipTiers.displayOrder);
+  }
+  async getActiveTiers(): Promise<MembershipTier[]> {
+    return db.select().from(membershipTiers).where(eq(membershipTiers.isActive, true)).orderBy(membershipTiers.displayOrder);
+  }
+  async getTier(id: string): Promise<MembershipTier | undefined> {
+    const [tier] = await db.select().from(membershipTiers).where(eq(membershipTiers.id, id));
+    return tier;
+  }
+  async createTier(insertTier: InsertMembershipTier): Promise<MembershipTier> {
+    const [tier] = await db.insert(membershipTiers).values(insertTier).returning();
+    return tier;
+  }
+  async updateTier(id: string, data: Partial<MembershipTier>): Promise<MembershipTier | undefined> {
+    const [tier] = await db.update(membershipTiers).set(data).where(eq(membershipTiers.id, id)).returning();
+    return tier;
+  }
+  async createMemberSubscription(insertSub: InsertMemberSubscription): Promise<MemberSubscription> {
+    const [sub] = await db.insert(memberSubscriptions).values(insertSub).returning();
+    return sub;
+  }
+  async getMemberSubscriptionByEmail(email: string): Promise<MemberSubscription | undefined> {
+    const [sub] = await db.select().from(memberSubscriptions).where(and(eq(memberSubscriptions.email, email), eq(memberSubscriptions.status, "active")));
+    return sub;
+  }
+  async getAllMemberSubscriptions(): Promise<MemberSubscription[]> {
+    return db.select().from(memberSubscriptions).orderBy(desc(memberSubscriptions.createdAt));
+  }
+
+  // Auctions & Raffles
+  async getAllAuctionItems(): Promise<AuctionItem[]> {
+    return db.select().from(auctionItems).orderBy(desc(auctionItems.createdAt));
+  }
+  async getActiveAuctionItems(): Promise<AuctionItem[]> {
+    return db.select().from(auctionItems).where(eq(auctionItems.isActive, true)).orderBy(auctionItems.endDate);
+  }
+  async getAuctionItemBySlug(slug: string): Promise<AuctionItem | undefined> {
+    const [item] = await db.select().from(auctionItems).where(eq(auctionItems.slug, slug));
+    return item;
+  }
+  async createAuctionItem(insertItem: InsertAuctionItem): Promise<AuctionItem> {
+    const [item] = await db.insert(auctionItems).values(insertItem).returning();
+    return item;
+  }
+  async updateAuctionItem(id: string, data: Partial<AuctionItem>): Promise<AuctionItem | undefined> {
+    const [item] = await db.update(auctionItems).set(data).where(eq(auctionItems.id, id)).returning();
+    return item;
+  }
+  async createBid(insertBid: InsertBid): Promise<Bid> {
+    const [bid] = await db.insert(bids).values(insertBid).returning();
+    return bid;
+  }
+  async getBidsByItem(auctionItemId: string): Promise<Bid[]> {
+    return db.select().from(bids).where(eq(bids.auctionItemId, auctionItemId)).orderBy(desc(bids.amount));
+  }
+  async getHighestBid(auctionItemId: string): Promise<Bid | undefined> {
+    const [bid] = await db.select().from(bids).where(eq(bids.auctionItemId, auctionItemId)).orderBy(desc(bids.amount)).limit(1);
+    return bid;
+  }
+  async createRaffleTicket(insertTicket: InsertRaffleTicket): Promise<RaffleTicket> {
+    const [ticket] = await db.insert(raffleTickets).values(insertTicket).returning();
+    return ticket;
+  }
+  async getRaffleTicketsByItem(auctionItemId: string): Promise<RaffleTicket[]> {
+    return db.select().from(raffleTickets).where(eq(raffleTickets.auctionItemId, auctionItemId)).orderBy(desc(raffleTickets.createdAt));
   }
 }
 

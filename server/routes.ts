@@ -706,6 +706,322 @@ export async function registerRoutes(
     }
   });
 
+  // ===== VIRTUAL EVENTS & TICKETING =====
+  app.get("/api/events", async (req, res) => {
+    try {
+      const events = await storage.getActiveEvents();
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch events" });
+    }
+  });
+
+  app.get("/api/events/all", async (req, res) => {
+    try {
+      const events = await storage.getAllEvents();
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch events" });
+    }
+  });
+
+  app.get("/api/events/:slug", async (req, res) => {
+    try {
+      const event = await storage.getEventBySlug(req.params.slug);
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      const tickets = await storage.getTicketsByEvent(event.id);
+      res.json({ ...event, ticketsSold: tickets.length });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch event" });
+    }
+  });
+
+  app.post("/api/events", async (req, res) => {
+    try {
+      const data = { ...req.body };
+      if (data.eventDate) data.eventDate = new Date(data.eventDate);
+      if (data.endDate) data.endDate = new Date(data.endDate);
+      const event = await storage.createEvent(data);
+      res.status(201).json(event);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create event" });
+    }
+  });
+
+  app.patch("/api/events/:id", async (req, res) => {
+    try {
+      const event = await storage.updateEvent(req.params.id, req.body);
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      res.json(event);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update event" });
+    }
+  });
+
+  app.post("/api/events/:slug/tickets", async (req, res) => {
+    try {
+      const event = await storage.getEventBySlug(req.params.slug);
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      const { buyerName, buyerEmail } = req.body;
+      if (!buyerName || !buyerEmail) return res.status(400).json({ error: "Name and email required" });
+      const existingTickets = await storage.getTicketsByEvent(event.id);
+      if (event.maxAttendees && existingTickets.length >= event.maxAttendees) {
+        return res.status(400).json({ error: "Event is sold out" });
+      }
+      const ticketCode = `NUP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const ticket = await storage.createTicket({
+        eventId: event.id,
+        buyerName,
+        buyerEmail,
+        amount: event.ticketPrice || "0",
+        ticketCode,
+      });
+      const responseData: any = { ...ticket, meetingLink: event.meetingLink };
+      res.status(201).json(responseData);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to purchase ticket" });
+    }
+  });
+
+  app.get("/api/events/tickets/verify", async (req, res) => {
+    try {
+      const code = req.query.code as string;
+      if (!code) return res.status(400).json({ error: "Ticket code required" });
+      const ticket = await storage.getTicketByCode(code);
+      if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+      res.json(ticket);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to verify ticket" });
+    }
+  });
+
+  // ===== CROWDFUNDING CAMPAIGNS =====
+  app.get("/api/campaigns", async (req, res) => {
+    try {
+      const campaignsList = await storage.getActiveCampaigns();
+      res.json(campaignsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch campaigns" });
+    }
+  });
+
+  app.get("/api/campaigns/:slug", async (req, res) => {
+    try {
+      const campaign = await storage.getCampaignBySlug(req.params.slug);
+      if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+      res.json(campaign);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch campaign" });
+    }
+  });
+
+  app.post("/api/campaigns", async (req, res) => {
+    try {
+      const data = { ...req.body };
+      if (data.startDate) data.startDate = new Date(data.startDate);
+      if (data.endDate) data.endDate = new Date(data.endDate);
+      const campaign = await storage.createCampaign(data);
+      res.status(201).json(campaign);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create campaign" });
+    }
+  });
+
+  app.post("/api/campaigns/:slug/donate", async (req, res) => {
+    try {
+      const campaign = await storage.getCampaignBySlug(req.params.slug);
+      if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+      const { donorName, email, amount, message, isAnonymous } = req.body;
+      if (!donorName || !email || !amount) return res.status(400).json({ error: "Name, email, and amount required" });
+      const donation = await storage.createCampaignDonation({
+        campaignId: campaign.id,
+        donorName,
+        email,
+        amount: String(amount),
+        message: message || null,
+        isAnonymous: isAnonymous || false,
+      });
+      const newRaised = (Number(campaign.raisedAmount) + Number(amount)).toFixed(2);
+      await storage.updateCampaign(campaign.id, {
+        raisedAmount: newRaised,
+        donorCount: (campaign.donorCount || 0) + 1,
+      });
+      res.status(201).json(donation);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to process donation" });
+    }
+  });
+
+  app.get("/api/campaigns/:slug/donations", async (req, res) => {
+    try {
+      const campaign = await storage.getCampaignBySlug(req.params.slug);
+      if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+      const donations = await storage.getCampaignDonations(campaign.id);
+      res.json(donations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch donations" });
+    }
+  });
+
+  // ===== MEMBERSHIP TIERS =====
+  app.get("/api/membership-tiers", async (req, res) => {
+    try {
+      const tiers = await storage.getActiveTiers();
+      res.json(tiers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch tiers" });
+    }
+  });
+
+  app.post("/api/membership-tiers", async (req, res) => {
+    try {
+      const tier = await storage.createTier(req.body);
+      res.status(201).json(tier);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create tier" });
+    }
+  });
+
+  app.post("/api/membership/subscribe", async (req, res) => {
+    try {
+      const { tierId, email, fullName } = req.body;
+      if (!tierId || !email || !fullName) return res.status(400).json({ error: "Tier, email, and name required" });
+      const tier = await storage.getTier(tierId);
+      if (!tier) return res.status(404).json({ error: "Tier not found" });
+      const existing = await storage.getMemberSubscriptionByEmail(email);
+      if (existing) return res.status(400).json({ error: "Already have an active subscription. Contact us to change tiers." });
+      const renewalDate = new Date();
+      if (tier.interval === "yearly") {
+        renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+      } else {
+        renewalDate.setMonth(renewalDate.getMonth() + 1);
+      }
+      const sub = await storage.createMemberSubscription({
+        tierId,
+        email,
+        fullName,
+        status: "active",
+        amount: tier.price,
+        startDate: new Date(),
+        renewalDate,
+      });
+      res.status(201).json(sub);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to subscribe" });
+    }
+  });
+
+  app.get("/api/membership/status", async (req, res) => {
+    try {
+      const email = req.query.email as string;
+      if (!email) return res.status(400).json({ error: "Email required" });
+      const sub = await storage.getMemberSubscriptionByEmail(email);
+      if (!sub) return res.json({ active: false });
+      const tier = await storage.getTier(sub.tierId);
+      res.json({ active: true, subscription: sub, tier });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check status" });
+    }
+  });
+
+  // ===== AUCTIONS & RAFFLES =====
+  app.get("/api/auctions", async (req, res) => {
+    try {
+      const items = await storage.getActiveAuctionItems();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch auctions" });
+    }
+  });
+
+  app.get("/api/auctions/:slug", async (req, res) => {
+    try {
+      const item = await storage.getAuctionItemBySlug(req.params.slug);
+      if (!item) return res.status(404).json({ error: "Item not found" });
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch auction item" });
+    }
+  });
+
+  app.post("/api/auctions", async (req, res) => {
+    try {
+      const data = { ...req.body };
+      if (data.startDate) data.startDate = new Date(data.startDate);
+      if (data.endDate) data.endDate = new Date(data.endDate);
+      const item = await storage.createAuctionItem(data);
+      res.status(201).json(item);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create auction item" });
+    }
+  });
+
+  app.post("/api/auctions/:slug/bid", async (req, res) => {
+    try {
+      const item = await storage.getAuctionItemBySlug(req.params.slug);
+      if (!item) return res.status(404).json({ error: "Item not found" });
+      if (item.auctionType !== "auction") return res.status(400).json({ error: "This item is a raffle, not an auction" });
+      if (new Date(item.endDate) < new Date()) return res.status(400).json({ error: "Auction has ended" });
+      const { bidderName, bidderEmail, amount } = req.body;
+      if (!bidderName || !bidderEmail || !amount) return res.status(400).json({ error: "Name, email, and amount required" });
+      const minBid = Math.max(Number(item.startingBid), Number(item.currentBid) + Number(item.bidIncrement));
+      if (Number(amount) < minBid) {
+        return res.status(400).json({ error: `Minimum bid is $${minBid.toFixed(2)}` });
+      }
+      const bid = await storage.createBid({
+        auctionItemId: item.id,
+        bidderName,
+        bidderEmail,
+        amount: String(amount),
+      });
+      await storage.updateAuctionItem(item.id, { currentBid: String(amount) });
+      res.status(201).json(bid);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to place bid" });
+    }
+  });
+
+  app.get("/api/auctions/:slug/bids", async (req, res) => {
+    try {
+      const item = await storage.getAuctionItemBySlug(req.params.slug);
+      if (!item) return res.status(404).json({ error: "Item not found" });
+      const bidsList = await storage.getBidsByItem(item.id);
+      res.json(bidsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch bids" });
+    }
+  });
+
+  app.post("/api/auctions/:slug/raffle-ticket", async (req, res) => {
+    try {
+      const item = await storage.getAuctionItemBySlug(req.params.slug);
+      if (!item) return res.status(404).json({ error: "Item not found" });
+      if (item.auctionType !== "raffle") return res.status(400).json({ error: "This item is an auction, not a raffle" });
+      if (new Date(item.endDate) < new Date()) return res.status(400).json({ error: "Raffle has ended" });
+      const { buyerName, buyerEmail, ticketCount } = req.body;
+      if (!buyerName || !buyerEmail || !ticketCount) return res.status(400).json({ error: "Name, email, and ticket count required" });
+      const count = Number(ticketCount);
+      const pricePerTicket = Number(item.ticketPrice || 5);
+      const totalAmount = (count * pricePerTicket).toFixed(2);
+      const startNum = (item.totalTicketsSold || 0) + 1;
+      const ticketNumbers = Array.from({ length: count }, (_, i) => String(startNum + i).padStart(4, "0")).join(",");
+      const ticket = await storage.createRaffleTicket({
+        auctionItemId: item.id,
+        buyerName,
+        buyerEmail,
+        ticketCount: count,
+        amount: totalAmount,
+        ticketNumbers,
+      });
+      await storage.updateAuctionItem(item.id, {
+        totalTicketsSold: (item.totalTicketsSold || 0) + count,
+      });
+      res.status(201).json(ticket);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to purchase tickets" });
+    }
+  });
+
   // ===== SUBSCRIPTIONS =====
   app.post("/api/subscriptions", async (req, res) => {
     try {

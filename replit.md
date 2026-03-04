@@ -13,6 +13,10 @@ A comprehensive political website for the National Unity Platform (NUP) / People
 - **News Feed** - Latest news from Uganda about NUP and Bobi Wine
 - **Member Blog** - Verified members can post articles
 - **Newsletter Subscription** - Email signup in footer
+- **Virtual Events & Ticketing** - Upcoming virtual events (townhalls, concerts, workshops, webinars) with ticket purchase
+- **Crowdfunding Campaigns** - Goal-based fundraising with progress bars, donor walls, and campaign donations
+- **Membership Tiers** - Tiered subscription plans (Supporter, Advocate, Champion, Ambassador) with benefits
+- **Auctions & Raffles** - Auction items with bidding and raffle items with ticket purchases
 
 ## Tech Stack
 - **Frontend**: React 18, TypeScript, Tailwind CSS, shadcn/ui components
@@ -34,7 +38,8 @@ client/
 │   │   ├── ProductCard.tsx
 │   │   ├── ConferenceCard.tsx
 │   │   ├── ChapterCard.tsx
-│   │   └── BlogPostCard.tsx
+│   │   ├── BlogPostCard.tsx
+│   │   └── RevolutionarySongs.tsx
 │   ├── pages/
 │   │   ├── Home.tsx
 │   │   ├── Regions.tsx
@@ -45,15 +50,27 @@ client/
 │   │   ├── News.tsx
 │   │   ├── Store.tsx
 │   │   ├── Membership.tsx
+│   │   ├── MembershipTiers.tsx
 │   │   ├── Donate.tsx
 │   │   ├── Blog.tsx
-│   │   └── BlogPostDetail.tsx
+│   │   ├── BlogPostDetail.tsx
+│   │   ├── VirtualEvents.tsx
+│   │   ├── VirtualEventDetail.tsx
+│   │   ├── Campaigns.tsx
+│   │   ├── CampaignDetail.tsx
+│   │   ├── Auctions.tsx
+│   │   ├── AuctionDetail.tsx
+│   │   ├── Checkout.tsx
+│   │   ├── OrderTracking.tsx
+│   │   ├── PrintfulAdmin.tsx
+│   │   └── SongsAdmin.tsx
 │   └── App.tsx
 server/
 ├── db.ts                    # Database connection
 ├── storage.ts               # Data access layer
 ├── routes.ts                # API endpoints
 ├── seed.ts                  # Initial data seeding
+├── printful.ts              # Printful API integration
 └── index.ts
 shared/
 └── schema.ts                # Drizzle schemas and types
@@ -72,6 +89,15 @@ shared/
 - **newsItems** - Uganda news feed
 - **subscriptions** - Newsletter signups
 - **councilMembers** - Diaspora council members
+- **virtualEvents** - Virtual events (townhalls, concerts, workshops, webinars)
+- **eventTickets** - Tickets purchased for virtual events
+- **campaigns** - Crowdfunding campaigns with goals and deadlines
+- **campaignDonations** - Donations to specific campaigns
+- **membershipTiers** - Subscription tier definitions (Supporter, Advocate, Champion, Ambassador)
+- **memberSubscriptions** - Active member subscriptions to tiers
+- **auctionItems** - Auction and raffle items
+- **bids** - Bids on auction items
+- **raffleTickets** - Raffle ticket purchases
 
 ## API Endpoints
 - `GET /api/regions` - All regions
@@ -93,6 +119,27 @@ shared/
 - `GET /api/orders/track?email=` - Track by email
 - `PATCH /api/orders/:id/status` - Update order status
 - `POST /api/ratings` - Submit product rating
+- `GET /api/events` - Active virtual events
+- `GET /api/events/:slug` - Single event with ticket count
+- `POST /api/events` - Create event (admin)
+- `PATCH /api/events/:id` - Update event
+- `POST /api/events/:slug/tickets` - Purchase ticket
+- `GET /api/events/tickets/verify?code=` - Verify ticket
+- `GET /api/campaigns` - Active campaigns
+- `GET /api/campaigns/:slug` - Single campaign
+- `POST /api/campaigns` - Create campaign (admin)
+- `POST /api/campaigns/:slug/donate` - Donate to campaign
+- `GET /api/campaigns/:slug/donations` - Campaign donor list
+- `GET /api/membership-tiers` - All active tiers
+- `POST /api/membership-tiers` - Create tier (admin)
+- `POST /api/membership/subscribe` - Subscribe to tier
+- `GET /api/membership/status?email=` - Check membership status
+- `GET /api/auctions` - Active auctions/raffles
+- `GET /api/auctions/:slug` - Single auction/raffle item
+- `POST /api/auctions` - Create auction item (admin)
+- `POST /api/auctions/:slug/bid` - Place bid
+- `GET /api/auctions/:slug/bids` - Bid history
+- `POST /api/auctions/:slug/raffle-ticket` - Buy raffle tickets
 
 ## E-Commerce Flow
 - **Shopping Cart**: Persistent localStorage cart with quantity controls
@@ -100,6 +147,12 @@ shared/
 - **Order Tracking**: `/order-tracking` page - search by order ID or email
 - **Order Lifecycle**: pending → processing → shipped → out_for_delivery → delivered
 - **Product Ratings**: Star ratings + reviews after delivery, per product per order
+
+## Fundraising Modules
+- **Virtual Events**: `/events` listing, `/events/:slug` detail with ticket purchase, ticket codes, meeting links revealed post-purchase
+- **Crowdfunding Campaigns**: `/campaigns` with progress bars, `/campaigns/:slug` with donation form, donor wall, countdown timers
+- **Membership Tiers**: `/membership-tiers` pricing table with 4 tiers, subscribe modal, status check by email
+- **Auctions & Raffles**: `/auctions` listing, `/auctions/:slug` detail with bid forms (auctions) or ticket purchase (raffles), bid history
 
 ## Theme
 - Primary color: Red (NUP party color) - HSL 0 84% 45%

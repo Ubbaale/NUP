@@ -290,6 +290,171 @@ export const insertSongAccessTokenSchema = createInsertSchema(songAccessTokens).
 export type InsertSongAccessToken = z.infer<typeof insertSongAccessTokenSchema>;
 export type SongAccessToken = typeof songAccessTokens.$inferSelect;
 
+// ===== FUNDRAISING FEATURES =====
+
+// Virtual Events & Ticketing
+export const virtualEvents = pgTable("virtual_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  eventDate: timestamp("event_date").notNull(),
+  endDate: timestamp("end_date"),
+  eventType: text("event_type").notNull().default("webinar"),
+  meetingLink: text("meeting_link"),
+  ticketPrice: decimal("ticket_price", { precision: 10, scale: 2 }).notNull().default("0"),
+  maxAttendees: integer("max_attendees"),
+  hostName: text("host_name"),
+  hostTitle: text("host_title"),
+  imageUrl: text("image_url"),
+  isFeatured: boolean("is_featured").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertVirtualEventSchema = createInsertSchema(virtualEvents).omit({ id: true, createdAt: true });
+export type InsertVirtualEvent = z.infer<typeof insertVirtualEventSchema>;
+export type VirtualEvent = typeof virtualEvents.$inferSelect;
+
+export const eventTickets = pgTable("event_tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull(),
+  buyerName: text("buyer_name").notNull(),
+  buyerEmail: text("buyer_email").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  ticketCode: text("ticket_code").notNull().unique(),
+  purchasedAt: timestamp("purchased_at").defaultNow(),
+});
+
+export const insertEventTicketSchema = createInsertSchema(eventTickets).omit({ id: true, purchasedAt: true });
+export type InsertEventTicket = z.infer<typeof insertEventTicketSchema>;
+export type EventTicket = typeof eventTickets.$inferSelect;
+
+// Crowdfunding Campaigns
+export const campaigns = pgTable("campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  goalAmount: decimal("goal_amount", { precision: 10, scale: 2 }).notNull(),
+  raisedAmount: decimal("raised_amount", { precision: 10, scale: 2 }).notNull().default("0"),
+  donorCount: integer("donor_count").notNull().default(0),
+  category: text("category").notNull().default("general"),
+  imageUrl: text("image_url"),
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCampaignSchema = createInsertSchema(campaigns).omit({ id: true, createdAt: true, raisedAmount: true, donorCount: true });
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type Campaign = typeof campaigns.$inferSelect;
+
+export const campaignDonations = pgTable("campaign_donations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull(),
+  donorName: text("donor_name").notNull(),
+  email: text("email").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  message: text("message"),
+  isAnonymous: boolean("is_anonymous").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCampaignDonationSchema = createInsertSchema(campaignDonations).omit({ id: true, createdAt: true });
+export type InsertCampaignDonation = z.infer<typeof insertCampaignDonationSchema>;
+export type CampaignDonation = typeof campaignDonations.$inferSelect;
+
+// Membership Tiers
+export const membershipTiers = pgTable("membership_tiers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  interval: text("interval").notNull().default("monthly"),
+  description: text("description"),
+  benefits: text("benefits"),
+  badgeColor: text("badge_color"),
+  isPopular: boolean("is_popular").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  displayOrder: integer("display_order").notNull().default(0),
+});
+
+export const insertMembershipTierSchema = createInsertSchema(membershipTiers).omit({ id: true });
+export type InsertMembershipTier = z.infer<typeof insertMembershipTierSchema>;
+export type MembershipTier = typeof membershipTiers.$inferSelect;
+
+export const memberSubscriptions = pgTable("member_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tierId: varchar("tier_id").notNull(),
+  email: text("email").notNull(),
+  fullName: text("full_name").notNull(),
+  status: text("status").notNull().default("active"),
+  startDate: timestamp("start_date").defaultNow(),
+  renewalDate: timestamp("renewal_date"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMemberSubscriptionSchema = createInsertSchema(memberSubscriptions).omit({ id: true, createdAt: true });
+export type InsertMemberSubscription = z.infer<typeof insertMemberSubscriptionSchema>;
+export type MemberSubscription = typeof memberSubscriptions.$inferSelect;
+
+// Auctions & Raffles
+export const auctionItems = pgTable("auction_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  startingBid: decimal("starting_bid", { precision: 10, scale: 2 }).notNull().default("10"),
+  currentBid: decimal("current_bid", { precision: 10, scale: 2 }).notNull().default("0"),
+  buyNowPrice: decimal("buy_now_price", { precision: 10, scale: 2 }),
+  bidIncrement: decimal("bid_increment", { precision: 10, scale: 2 }).notNull().default("5"),
+  ticketPrice: decimal("ticket_price", { precision: 10, scale: 2 }).default("5"),
+  totalTicketsSold: integer("total_tickets_sold").notNull().default(0),
+  auctionType: text("auction_type").notNull().default("auction"),
+  startDate: timestamp("start_date").defaultNow(),
+  endDate: timestamp("end_date").notNull(),
+  winnerName: text("winner_name"),
+  winnerEmail: text("winner_email"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAuctionItemSchema = createInsertSchema(auctionItems).omit({ id: true, createdAt: true, currentBid: true, totalTicketsSold: true });
+export type InsertAuctionItem = z.infer<typeof insertAuctionItemSchema>;
+export type AuctionItem = typeof auctionItems.$inferSelect;
+
+export const bids = pgTable("bids", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auctionItemId: varchar("auction_item_id").notNull(),
+  bidderName: text("bidder_name").notNull(),
+  bidderEmail: text("bidder_email").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true });
+export type InsertBid = z.infer<typeof insertBidSchema>;
+export type Bid = typeof bids.$inferSelect;
+
+export const raffleTickets = pgTable("raffle_tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  auctionItemId: varchar("auction_item_id").notNull(),
+  buyerName: text("buyer_name").notNull(),
+  buyerEmail: text("buyer_email").notNull(),
+  ticketCount: integer("ticket_count").notNull().default(1),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  ticketNumbers: text("ticket_numbers"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertRaffleTicketSchema = createInsertSchema(raffleTickets).omit({ id: true, createdAt: true });
+export type InsertRaffleTicket = z.infer<typeof insertRaffleTicketSchema>;
+export type RaffleTicket = typeof raffleTickets.$inferSelect;
+
 // Legacy Users table for compatibility
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -397,6 +397,197 @@ export async function seedDatabase() {
       await storage.createBlogPost(blogPost);
     }
 
+    // Seed Virtual Events
+    const eventsData = [
+      {
+        title: "Town Hall: Uganda 2026 Election Strategy",
+        slug: "townhall-2026-strategy",
+        description: "Join NUP leadership for a live discussion on the 2026 election strategy. Ask questions, share ideas, and hear directly from key organizers about the path forward for Uganda's democracy.",
+        eventDate: new Date("2026-04-15T18:00:00Z"),
+        endDate: new Date("2026-04-15T20:00:00Z"),
+        eventType: "townhall",
+        meetingLink: "https://zoom.us/j/nup-townhall-2026",
+        ticketPrice: "10.00",
+        maxAttendees: 500,
+        hostName: "Hon. Robert Kyagulanyi",
+        hostTitle: "NUP President",
+        isFeatured: true,
+        isActive: true,
+      },
+      {
+        title: "Virtual Concert: Songs of Freedom",
+        slug: "concert-songs-of-freedom",
+        description: "An evening of revolutionary music featuring Uganda's finest artists performing live. All proceeds support the NUP diaspora mobilization fund.",
+        eventDate: new Date("2026-05-20T19:00:00Z"),
+        endDate: new Date("2026-05-20T22:00:00Z"),
+        eventType: "concert",
+        meetingLink: "https://youtube.com/live/nup-concert",
+        ticketPrice: "25.00",
+        maxAttendees: 1000,
+        hostName: "Bobi Wine",
+        hostTitle: "Artist & NUP President",
+        isFeatured: true,
+        isActive: true,
+      },
+      {
+        title: "Workshop: Civic Engagement for Diaspora Youth",
+        slug: "workshop-civic-engagement",
+        description: "Interactive workshop teaching young Ugandans in the diaspora how to engage in civic activities, voter registration drives, and community organizing.",
+        eventDate: new Date("2026-06-10T16:00:00Z"),
+        endDate: new Date("2026-06-10T18:00:00Z"),
+        eventType: "workshop",
+        meetingLink: "https://meet.google.com/nup-workshop",
+        ticketPrice: "5.00",
+        maxAttendees: 200,
+        hostName: "Dr. Stella Nyanzi",
+        hostTitle: "Activist & Scholar",
+        isFeatured: false,
+        isActive: true,
+      },
+    ];
+
+    for (const event of eventsData) {
+      await storage.createEvent(event);
+    }
+
+    // Seed Crowdfunding Campaigns
+    const campaignsData = [
+      {
+        title: "Fund Voter Education in Rural Uganda",
+        slug: "voter-education-rural",
+        description: "Help us bring voter education materials and training to rural communities across Uganda. This campaign will fund printed guides, community radio spots, and local volunteer training programs to ensure every Ugandan knows their voting rights.",
+        goalAmount: "50000.00",
+        category: "civic-education",
+        startDate: new Date("2026-01-01"),
+        endDate: new Date("2026-06-30"),
+        isActive: true,
+      },
+      {
+        title: "Legal Defense Fund for Political Prisoners",
+        slug: "legal-defense-fund",
+        description: "Provide legal representation to NUP members and supporters who have been unjustly detained. Your donations go directly to hiring experienced lawyers and covering court fees.",
+        goalAmount: "100000.00",
+        category: "legal",
+        startDate: new Date("2026-02-01"),
+        endDate: new Date("2026-12-31"),
+        isActive: true,
+      },
+      {
+        title: "NUP Youth Empowerment Program",
+        slug: "youth-empowerment",
+        description: "Empower the next generation of Ugandan leaders through skills training, mentorship programs, and leadership workshops. Invest in Uganda's future.",
+        goalAmount: "30000.00",
+        category: "youth",
+        startDate: new Date("2026-03-01"),
+        endDate: new Date("2026-09-30"),
+        isActive: true,
+      },
+    ];
+
+    for (const campaign of campaignsData) {
+      await storage.createCampaign(campaign);
+    }
+
+    // Seed Membership Tiers
+    const tiersData = [
+      {
+        name: "Supporter",
+        slug: "supporter",
+        price: "10.00",
+        interval: "monthly",
+        description: "Show your support for the movement and stay informed with regular updates.",
+        benefits: JSON.stringify(["Monthly newsletter", "Digital membership card", "Access to members-only updates", "NUP supporter badge"]),
+        badgeColor: "#3B82F6",
+        isPopular: false,
+        isActive: true,
+        displayOrder: 1,
+      },
+      {
+        name: "Advocate",
+        slug: "advocate",
+        price: "25.00",
+        interval: "monthly",
+        description: "Take an active role in supporting democracy and get exclusive access to NUP content.",
+        benefits: JSON.stringify(["All Supporter benefits", "Priority event registration", "Exclusive webinar invites", "Quarterly video calls with leadership", "NUP advocate badge"]),
+        badgeColor: "#EAB308",
+        isPopular: true,
+        isActive: true,
+        displayOrder: 2,
+      },
+      {
+        name: "Champion",
+        slug: "champion",
+        price: "50.00",
+        interval: "monthly",
+        description: "Be a champion of change with premium access and direct engagement with NUP leadership.",
+        benefits: JSON.stringify(["All Advocate benefits", "Direct messaging with chapter leaders", "Name on donor wall", "Annual convention VIP access", "Signed merchandise", "NUP champion badge"]),
+        badgeColor: "#F97316",
+        isPopular: false,
+        isActive: true,
+        displayOrder: 3,
+      },
+      {
+        name: "Ambassador",
+        slug: "ambassador",
+        price: "100.00",
+        interval: "monthly",
+        description: "The highest level of commitment. Become an ambassador for change and help shape NUP's direction.",
+        benefits: JSON.stringify(["All Champion benefits", "Monthly call with NUP president", "Advisory council invitation", "Free convention passes for family", "Custom NUP ambassador kit", "Recognition at all NUP events"]),
+        badgeColor: "#DC2626",
+        isPopular: false,
+        isActive: true,
+        displayOrder: 4,
+      },
+    ];
+
+    for (const tier of tiersData) {
+      await storage.createTier(tier);
+    }
+
+    // Seed Auction Items
+    const auctionData = [
+      {
+        title: "Signed Bobi Wine Concert Poster",
+        slug: "signed-bobi-wine-poster",
+        description: "A rare, hand-signed concert poster from Bobi Wine's 2024 Freedom Tour. This collector's item features original artwork by a Ugandan artist and is personally autographed by Hon. Robert Kyagulanyi.",
+        startingBid: "50.00",
+        bidIncrement: "10.00",
+        buyNowPrice: "500.00",
+        auctionType: "auction",
+        startDate: new Date("2026-03-01"),
+        endDate: new Date("2026-04-30"),
+        isActive: true,
+      },
+      {
+        title: "Virtual Dinner with NUP Leadership",
+        slug: "dinner-nup-leadership",
+        description: "Win an exclusive 1-hour virtual dinner conversation with senior NUP leadership. Discuss the future of Uganda, share your ideas, and connect personally with the movement's leaders.",
+        startingBid: "100.00",
+        bidIncrement: "25.00",
+        buyNowPrice: "1000.00",
+        auctionType: "auction",
+        startDate: new Date("2026-03-01"),
+        endDate: new Date("2026-05-15"),
+        isActive: true,
+      },
+      {
+        title: "Win a Custom NUP Red Beret Gift Package",
+        slug: "raffle-red-beret-package",
+        description: "Enter for a chance to win a premium NUP gift package including: custom red beret, signed t-shirt, People Power wristband, and a personal video message from Hon. Kyagulanyi. Each ticket is $5 — buy more for better odds!",
+        startingBid: "5.00",
+        ticketPrice: "5.00",
+        bidIncrement: "5.00",
+        auctionType: "raffle",
+        startDate: new Date("2026-03-01"),
+        endDate: new Date("2026-06-01"),
+        isActive: true,
+      },
+    ];
+
+    for (const item of auctionData) {
+      await storage.createAuctionItem(item);
+    }
+
     console.log("Database seeded successfully!");
   } catch (error) {
     console.error("Error seeding database:", error);

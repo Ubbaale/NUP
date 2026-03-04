@@ -1,16 +1,19 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen } from "lucide-react";
+import { Menu, Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel } from "lucide-react";
 import { useState } from "react";
 import nupLogo from "@/assets/images/nup-official-logo.png";
 
 const navItems = [
   { href: "/", label: "Home", icon: Globe2 },
   { href: "/regions", label: "Regions", icon: Globe2 },
+  { href: "/events", label: "Events", icon: Video },
+  { href: "/campaigns", label: "Campaigns", icon: Target },
   { href: "/conferences", label: "Conferences", icon: Calendar },
   { href: "/news", label: "News", icon: Newspaper },
   { href: "/blog", label: "Blog", icon: BookOpen },
+  { href: "/auctions", label: "Auctions", icon: Gavel },
   { href: "/store", label: "Store", icon: ShoppingBag },
   { href: "/membership", label: "Membership", icon: Users },
   { href: "/donate", label: "Donate", icon: Heart },

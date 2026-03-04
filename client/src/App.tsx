@@ -21,6 +21,13 @@ import Checkout from "@/pages/Checkout";
 import OrderTracking from "@/pages/OrderTracking";
 import PrintfulAdmin from "@/pages/PrintfulAdmin";
 import SongsAdmin from "@/pages/SongsAdmin";
+import MembershipTiers from "@/pages/MembershipTiers";
+import VirtualEvents from "@/pages/VirtualEvents";
+import VirtualEventDetail from "@/pages/VirtualEventDetail";
+import CampaignsList from "@/pages/Campaigns";
+import CampaignDetail from "@/pages/CampaignDetail";
+import Auctions from "@/pages/Auctions";
+import AuctionDetail from "@/pages/AuctionDetail";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -42,6 +49,13 @@ function Router() {
       <Route path="/order-tracking" component={OrderTracking} />
       <Route path="/admin/printful" component={PrintfulAdmin} />
       <Route path="/admin/songs" component={SongsAdmin} />
+      <Route path="/membership-tiers" component={MembershipTiers} />
+      <Route path="/events" component={VirtualEvents} />
+      <Route path="/events/:slug" component={VirtualEventDetail} />
+      <Route path="/campaigns" component={CampaignsList} />
+      <Route path="/campaigns/:slug" component={CampaignDetail} />
+      <Route path="/auctions" component={Auctions} />
+      <Route path="/auctions/:slug" component={AuctionDetail} />
       <Route component={NotFound} />
     </Switch>
   );
