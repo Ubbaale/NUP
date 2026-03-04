@@ -25,13 +25,14 @@ A comprehensive political website for the National Unity Platform (NUP) / People
 - **State Management**: TanStack Query (React Query)
 - **Routing**: Wouter
 - **Animations**: Framer Motion
+- **PWA**: Web App Manifest, Service Worker, iOS/Android installable
 
 ## Project Structure
 ```
 client/
 ├── src/
 │   ├── components/
-│   │   ├── layout/          # Header, Footer
+│   │   ├── layout/          # Header, Footer, MobileNav
 │   │   ├── ui/              # shadcn components
 │   │   ├── WorldMap.tsx     # Interactive map component
 │   │   ├── NewsCard.tsx
@@ -175,6 +176,18 @@ shared/
 - `/admin/printful` — Printful integration management
 - `/admin/songs` — Revolutionary songs upload and management
 - `/admin/events` — Create/manage virtual events, view Stripe & email config status, toggle active/featured
+
+## PWA (Progressive Web App)
+- **Manifest**: `client/public/manifest.json` — app name, icons, theme color, standalone display mode
+- **Service Worker**: `client/public/sw.js` — offline caching with SPA navigation fallback, stale-while-revalidate for static assets, network-first for API calls
+- **Icons**: 192x192, 384x384, 512x512 PNG icons + apple-touch-icon (180x180) generated from favicon
+- **iOS Support**: `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent`, `apple-touch-icon`
+- **Android Support**: Web App Manifest with maskable icons, theme-color meta tag
+- **Mobile Navigation**: Bottom tab bar (`MobileNav.tsx`) with 5 tabs (Home, Events, Regions, Donate, More) — visible on screens < 1024px
+- **More Menu**: Bottom sheet with grid of additional nav items (Campaigns, Conferences, News, Blog, Auctions, Store, Membership, admin pages)
+- **Desktop**: Full header nav + footer visible; bottom nav hidden
+- **Touch Optimizations**: 44px minimum touch targets, 16px input font (prevents iOS zoom), disabled tap highlight, overscroll prevention
+- **Safe Area**: Header handles `safe-area-inset-top`, MobileNav handles `safe-area-inset-bottom` for notched devices
 
 ## Theme
 - Primary color: Red (NUP party color) - HSL 0 84% 45%

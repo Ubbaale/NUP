@@ -168,10 +168,32 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  @media (max-width: 1023px) {
+    .container {
+      @apply px-4;
+    }
+
+    button, a, input, select, textarea {
+      min-height: 44px;
+      font-size: max(16px, 1em);
+    }
+
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  @media (display-mode: standalone) {
+    .hide-in-pwa {
+      display: none !important;
+    }
   }
 }
 
