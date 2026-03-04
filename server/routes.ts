@@ -1076,6 +1076,38 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/membership/subscriptions", async (req, res) => {
+    try {
+      const subs = await storage.getAllMemberSubscriptions();
+      const tiers = await storage.getAllTiers();
+      const tierMap = new Map(tiers.map(t => [t.id, t]));
+      const enriched = subs.map(sub => ({
+        ...sub,
+        tierName: tierMap.get(sub.tierId)?.name || "Unknown",
+        tierSlug: tierMap.get(sub.tierId)?.slug || "",
+        awardType: tierMap.get(sub.tierId)?.awardType || null,
+      }));
+      res.json(enriched);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch subscriptions" });
+    }
+  });
+
+  app.patch("/api/membership/subscriptions/:id/award-status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { awardStatus } = req.body;
+      if (!awardStatus || !["pending", "processing", "shipped", "delivered"].includes(awardStatus)) {
+        return res.status(400).json({ error: "Invalid award status" });
+      }
+      const updated = await storage.updateMemberSubscription(id, { awardStatus });
+      if (!updated) return res.status(404).json({ error: "Subscription not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update award status" });
+    }
+  });
+
   // ===== AUCTIONS & RAFFLES =====
   app.get("/api/auctions", async (req, res) => {
     try {

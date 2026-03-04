@@ -176,6 +176,7 @@ shared/
 - `/admin/printful` — Printful integration management
 - `/admin/songs` — Revolutionary songs upload and management
 - `/admin/events` — Create/manage virtual events, view Stripe & email config status, toggle active/featured
+- `/admin/membership` — Membership subscription dashboard with stats, search/filter, award status management, shipping details view
 
 ## PWA (Progressive Web App)
 - **Manifest**: `client/public/manifest.json` — app name, icons, theme color, standalone display mode

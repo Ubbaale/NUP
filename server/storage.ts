@@ -166,6 +166,7 @@ export interface IStorage {
   createMemberSubscription(sub: InsertMemberSubscription): Promise<MemberSubscription>;
   getMemberSubscriptionByEmail(email: string): Promise<MemberSubscription | undefined>;
   getAllMemberSubscriptions(): Promise<MemberSubscription[]>;
+  updateMemberSubscription(id: string, data: Partial<MemberSubscription>): Promise<MemberSubscription | undefined>;
 
   // Auctions & Raffles
   getAllAuctionItems(): Promise<AuctionItem[]>;
@@ -607,6 +608,10 @@ export class DatabaseStorage implements IStorage {
   }
   async getAllMemberSubscriptions(): Promise<MemberSubscription[]> {
     return db.select().from(memberSubscriptions).orderBy(desc(memberSubscriptions.createdAt));
+  }
+  async updateMemberSubscription(id: string, data: Partial<MemberSubscription>): Promise<MemberSubscription | undefined> {
+    const [sub] = await db.update(memberSubscriptions).set(data).where(eq(memberSubscriptions.id, id)).returning();
+    return sub;
   }
 
   // Auctions & Raffles

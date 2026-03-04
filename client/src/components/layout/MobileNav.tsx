@@ -36,6 +36,7 @@ const moreItems = [
   { href: "/membership-tiers", label: "Premium Tiers", icon: Crown },
   { href: "/order-tracking", label: "Track Order", icon: ShoppingBag },
   { href: "/admin/events", label: "Admin: Events", icon: Settings },
+  { href: "/admin/membership", label: "Admin: Members", icon: Settings },
   { href: "/admin/songs", label: "Admin: Songs", icon: Settings },
   { href: "/admin/printful", label: "Admin: Printful", icon: Settings },
 ];

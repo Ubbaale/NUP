@@ -24,6 +24,7 @@ import PrintfulAdmin from "@/pages/PrintfulAdmin";
 import SongsAdmin from "@/pages/SongsAdmin";
 import Songs from "@/pages/Songs";
 import EventsAdmin from "@/pages/EventsAdmin";
+import MembershipAdmin from "@/pages/MembershipAdmin";
 import MembershipTiers from "@/pages/MembershipTiers";
 import VirtualEvents from "@/pages/VirtualEvents";
 import VirtualEventDetail from "@/pages/VirtualEventDetail";
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/songs" component={Songs} />
       <Route path="/admin/songs" component={SongsAdmin} />
       <Route path="/admin/events" component={EventsAdmin} />
+      <Route path="/admin/membership" component={MembershipAdmin} />
       <Route path="/membership-tiers" component={MembershipTiers} />
       <Route path="/events" component={VirtualEvents} />
       <Route path="/events/:slug" component={VirtualEventDetail} />
