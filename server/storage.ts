@@ -3,6 +3,7 @@ import {
   type Member, type InsertMember, members,
   type Region, type InsertRegion, regions,
   type Chapter, type InsertChapter, chapters,
+  type ChapterLeader, type InsertChapterLeader, chapterLeaders,
   type Activity, type InsertActivity, activities,
   type Conference, type InsertConference, conferences,
   type Product, type InsertProduct, products,
@@ -63,6 +64,14 @@ export interface IStorage {
   getChaptersByRegion(regionId: string): Promise<Chapter[]>;
   getAllChapters(): Promise<Chapter[]>;
   createChapter(chapter: InsertChapter): Promise<Chapter>;
+  updateChapter(id: string, data: Partial<InsertChapter>): Promise<Chapter | undefined>;
+  deleteChapter(id: string): Promise<void>;
+
+  // Chapter Leaders
+  getChapterLeaders(chapterId: string): Promise<ChapterLeader[]>;
+  createChapterLeader(leader: InsertChapterLeader): Promise<ChapterLeader>;
+  updateChapterLeader(id: string, data: Partial<InsertChapterLeader>): Promise<ChapterLeader | undefined>;
+  deleteChapterLeader(id: string): Promise<void>;
   
   // Activities
   getActivitiesByChapter(chapterId: string): Promise<Activity[]>;
@@ -266,6 +275,36 @@ export class DatabaseStorage implements IStorage {
   async createChapter(insertChapter: InsertChapter): Promise<Chapter> {
     const [chapter] = await db.insert(chapters).values(insertChapter).returning();
     return chapter;
+  }
+
+  async updateChapter(id: string, data: Partial<InsertChapter>): Promise<Chapter | undefined> {
+    const [chapter] = await db.update(chapters).set(data).where(eq(chapters.id, id)).returning();
+    return chapter;
+  }
+
+  async deleteChapter(id: string): Promise<void> {
+    await db.delete(chapterLeaders).where(eq(chapterLeaders.chapterId, id));
+    await db.delete(activities).where(eq(activities.chapterId, id));
+    await db.delete(chapters).where(eq(chapters.id, id));
+  }
+
+  // Chapter Leaders
+  async getChapterLeaders(chapterId: string): Promise<ChapterLeader[]> {
+    return db.select().from(chapterLeaders).where(eq(chapterLeaders.chapterId, chapterId)).orderBy(chapterLeaders.displayOrder);
+  }
+
+  async createChapterLeader(leader: InsertChapterLeader): Promise<ChapterLeader> {
+    const [created] = await db.insert(chapterLeaders).values(leader).returning();
+    return created;
+  }
+
+  async updateChapterLeader(id: string, data: Partial<InsertChapterLeader>): Promise<ChapterLeader | undefined> {
+    const [updated] = await db.update(chapterLeaders).set(data).where(eq(chapterLeaders.id, id)).returning();
+    return updated;
+  }
+
+  async deleteChapterLeader(id: string): Promise<void> {
+    await db.delete(chapterLeaders).where(eq(chapterLeaders.id, id));
   }
 
   // Activities

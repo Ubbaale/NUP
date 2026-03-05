@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, MapPin, Mail, Phone, Calendar, Users, Clock, Building } from "lucide-react";
 import { format } from "date-fns";
-import type { Chapter, Activity } from "@shared/schema";
+import type { Chapter, Activity, ChapterLeader } from "@shared/schema";
 
 export default function ChapterDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -18,6 +18,11 @@ export default function ChapterDetail() {
 
   const { data: activities } = useQuery<Activity[]>({
     queryKey: ["/api/chapters", slug, "activities"],
+    enabled: !!chapter,
+  });
+
+  const { data: leaders } = useQuery<ChapterLeader[]>({
+    queryKey: ["/api/chapters", slug, "leaders"],
     enabled: !!chapter,
   });
 
@@ -137,6 +142,37 @@ export default function ChapterDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {leaders && leaders.length > 0 && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <h2 className="font-semibold flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Leadership Team
+                  </h2>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {leaders.map((leader) => (
+                      <div key={leader.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg" data-testid={`leader-${leader.id}`}>
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={leader.image || undefined} />
+                          <AvatarFallback>{leader.name.split(" ").map(n => n[0]).join("").toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm">{leader.name}</p>
+                          <p className="text-xs text-muted-foreground">{leader.title}</p>
+                          {leader.bio && <p className="text-xs text-muted-foreground mt-1">{leader.bio}</p>}
+                          {leader.email && (
+                            <a href={`mailto:${leader.email}`} className="text-xs text-primary hover:underline">{leader.email}</a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {activities && activities.length > 0 && (
               <section>

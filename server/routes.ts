@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductRatingSchema } from "@shared/schema";
+import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -134,6 +134,100 @@ export async function registerRoutes(
       res.json(activities);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch activities" });
+    }
+  });
+
+  // Chapter Admin CRUD
+  app.post("/api/chapters", async (req, res) => {
+    try {
+      const parsed = insertChapterSchema.parse(req.body);
+      const existing = await storage.getChapterBySlug(parsed.slug);
+      if (existing) {
+        return res.status(400).json({ error: "A chapter with this slug already exists" });
+      }
+      const chapter = await storage.createChapter(parsed);
+      res.status(201).json(chapter);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create chapter" });
+    }
+  });
+
+  app.patch("/api/chapters/:id", async (req, res) => {
+    try {
+      const existing = await storage.getChapter(req.params.id);
+      if (!existing) {
+        return res.status(404).json({ error: "Chapter not found" });
+      }
+      const allowed = insertChapterSchema.partial().parse(req.body);
+      if (allowed.slug && allowed.slug !== existing.slug) {
+        const slugConflict = await storage.getChapterBySlug(allowed.slug);
+        if (slugConflict) {
+          return res.status(400).json({ error: "A chapter with this slug already exists" });
+        }
+      }
+      const chapter = await storage.updateChapter(req.params.id, allowed);
+      res.json(chapter);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update chapter" });
+    }
+  });
+
+  app.delete("/api/chapters/:id", async (req, res) => {
+    try {
+      await storage.deleteChapter(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete chapter" });
+    }
+  });
+
+  // Chapter Leaders
+  app.get("/api/chapters/:slug/leaders", async (req, res) => {
+    try {
+      const chapter = await storage.getChapterBySlug(req.params.slug);
+      if (!chapter) {
+        return res.status(404).json({ error: "Chapter not found" });
+      }
+      const leaders = await storage.getChapterLeaders(chapter.id);
+      res.json(leaders);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch leaders" });
+    }
+  });
+
+  app.post("/api/chapters/:id/leaders", async (req, res) => {
+    try {
+      const chapter = await storage.getChapter(req.params.id);
+      if (!chapter) {
+        return res.status(404).json({ error: "Chapter not found" });
+      }
+      const parsed = insertChapterLeaderSchema.parse({ ...req.body, chapterId: req.params.id });
+      const leader = await storage.createChapterLeader(parsed);
+      res.status(201).json(leader);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to add leader" });
+    }
+  });
+
+  app.patch("/api/chapter-leaders/:id", async (req, res) => {
+    try {
+      const allowed = insertChapterLeaderSchema.partial().omit({ chapterId: true }).parse(req.body);
+      const leader = await storage.updateChapterLeader(req.params.id, allowed);
+      if (!leader) {
+        return res.status(404).json({ error: "Leader not found" });
+      }
+      res.json(leader);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update leader" });
+    }
+  });
+
+  app.delete("/api/chapter-leaders/:id", async (req, res) => {
+    try {
+      await storage.deleteChapterLeader(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete leader" });
     }
   });
 

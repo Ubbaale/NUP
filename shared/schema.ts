@@ -68,6 +68,23 @@ export const insertChapterSchema = createInsertSchema(chapters).omit({ id: true 
 export type InsertChapter = z.infer<typeof insertChapterSchema>;
 export type Chapter = typeof chapters.$inferSelect;
 
+// Chapter Leadership Members
+export const chapterLeaders = pgTable("chapter_leaders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chapterId: varchar("chapter_id").notNull(),
+  name: text("name").notNull(),
+  title: text("title").notNull(),
+  image: text("image"),
+  bio: text("bio"),
+  email: text("email"),
+  phone: text("phone"),
+  displayOrder: integer("display_order").notNull().default(0),
+});
+
+export const insertChapterLeaderSchema = createInsertSchema(chapterLeaders).omit({ id: true });
+export type InsertChapterLeader = z.infer<typeof insertChapterLeaderSchema>;
+export type ChapterLeader = typeof chapterLeaders.$inferSelect;
+
 // Chapter Activities
 export const activities = pgTable("activities", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

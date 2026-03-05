@@ -81,6 +81,7 @@ shared/
 - **members** - Registered NUP members with auto-generated membership IDs
 - **regions** - 6 global regions with coordinators
 - **chapters** - Local chapters within regions (with iconEmoji for landmark icons)
+- **chapterLeaders** - Leadership team members per chapter (name, title, bio, email, displayOrder)
 - **activities** - Chapter events and activities
 - **conferences** - Annual conventions (upcoming and archived)
 - **products** - Store merchandise
@@ -104,7 +105,15 @@ shared/
 - `GET /api/regions` - All regions
 - `GET /api/regions/:slug` - Single region
 - `GET /api/regions/:slug/chapters` - Chapters in region
+- `GET /api/chapters` - All chapters
 - `GET /api/chapters/:slug` - Single chapter
+- `POST /api/chapters` - Create chapter (admin)
+- `PATCH /api/chapters/:id` - Update chapter (admin)
+- `DELETE /api/chapters/:id` - Delete chapter (admin)
+- `GET /api/chapters/:slug/leaders` - Chapter leadership team
+- `POST /api/chapters/:id/leaders` - Add leader (admin)
+- `PATCH /api/chapter-leaders/:id` - Update leader (admin)
+- `DELETE /api/chapter-leaders/:id` - Remove leader (admin)
 - `GET /api/conferences` - All conferences
 - `GET /api/products` - All products
 - `GET /api/products/:slug/ratings` - Product ratings
@@ -173,6 +182,7 @@ shared/
 - All emails use NUP red branding and "People Power" messaging
 
 ## Admin Pages
+- `/admin/chapters` — Chapter CMS: create/edit/delete chapters, assign to regions, manage leadership teams
 - `/admin/printful` — Printful integration management
 - `/admin/songs` — Revolutionary songs upload and management
 - `/admin/events` — Create/manage virtual events, view Stripe & email config status, toggle active/featured
