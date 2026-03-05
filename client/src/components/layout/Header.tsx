@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown } from "lucide-react";
 import nupLogo from "@/assets/images/nup-official-logo.png";
+import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
 
 const primaryNav = [
   { href: "/", label: "Home" },
@@ -79,7 +80,7 @@ export function Header() {
             </div>
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link href="/donate" className="hidden lg:block">
               <Button data-testid="button-donate-header">
                 <Heart className="w-4 h-4 mr-2" />
@@ -87,6 +88,10 @@ export function Header() {
               </Button>
             </Link>
             <span className="lg:hidden text-sm font-semibold text-foreground">NUP Diaspora</span>
+            <div className="flex items-center gap-2">
+              <img src={peoplePowerLogo} alt="People Power" className="h-8 lg:h-10 w-8 lg:w-10 rounded-full object-cover" />
+              <span className="hidden xl:block text-xs font-bold leading-tight text-muted-foreground">Powered by<br /><span className="text-primary">People Power</span></span>
+            </div>
           </div>
         </div>
       </div>
