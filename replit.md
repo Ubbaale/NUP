@@ -115,7 +115,8 @@ shared/
 - `POST /api/chapters/:id/leaders` - Add leader (admin)
 - `PATCH /api/chapter-leaders/:id` - Update leader (admin)
 - `DELETE /api/chapter-leaders/:id` - Remove leader (admin)
-- `GET /api/conferences` - All conferences
+- `GET /api/conferences` - All conferences (convention-2026 has dedicated rich page)
+- `GET /api/conferences/:slug` - Single conference detail
 - `GET /api/products` - All products
 - `GET /api/products/:slug/ratings` - Product ratings
 - `GET /api/news` - News feed
