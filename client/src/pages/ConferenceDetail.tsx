@@ -405,37 +405,51 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           <h2 className="text-3xl font-bold mb-2 text-center">Boat Cruise Experience</h2>
           <p className="text-center text-muted-foreground mb-8">An unforgettable evening on the Southern California coastline</p>
 
-          <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto mb-6">
-            <div className="rounded-xl overflow-hidden shadow-lg">
-              <img src={cityCruiseBoatImg} alt="City Cruises luxury yacht on Pacific Ocean" className="w-full h-56 object-cover" loading="lazy" />
-            </div>
-            <div className="rounded-xl overflow-hidden shadow-lg">
-              <img src={cityCruiseInteriorImg} alt="Elegant dining interior of City Cruises boat" className="w-full h-56 object-cover" loading="lazy" />
-            </div>
-          </div>
+          <div className="relative max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-2xl">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+              poster={cityCruiseBoatImg}
+            >
+              <source src="/videos/ocean-cruise.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-900/40 via-blue-900/60 to-blue-950/90" />
 
-          <Card className="max-w-4xl mx-auto overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-900 to-blue-700 p-8 text-white">
-              <div className="flex items-center gap-4 mb-4">
-                <Ship className="w-12 h-12" />
-                <div>
-                  <h3 className="text-2xl font-bold">Heroes Celebration on Waters</h3>
-                  <p className="text-white/80">Saturday, August 15th · 7:00 PM – 11:00 PM</p>
+            <div className="relative z-10 p-8 md:p-12">
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                <div className="rounded-xl overflow-hidden shadow-lg border border-white/20">
+                  <img src={cityCruiseBoatImg} alt="City Cruises luxury yacht on Pacific Ocean" className="w-full h-48 object-cover" loading="lazy" />
+                </div>
+                <div className="rounded-xl overflow-hidden shadow-lg border border-white/20">
+                  <img src={cityCruiseInteriorImg} alt="Elegant dining interior of City Cruises boat" className="w-full h-48 object-cover" loading="lazy" />
                 </div>
               </div>
-              <p className="text-white/90 mb-6">
-                Join fellow Ugandans and friends of Uganda aboard a luxury City Cruises vessel departing from the scenic Marina del Rey. Enjoy breathtaking ocean views, live entertainment, music, dinner, and conversations with NUP leaders and convention guests.
-              </p>
-              <div className="flex flex-wrap items-center gap-4">
-                <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-1">$220</Badge>
-                <Button className="bg-white text-blue-900 hover:bg-white/90" asChild>
-                  <a href="https://buy.stripe.com/9AQ4k10e1cW96Ri14e" target="_blank" rel="noopener noreferrer">
-                    Buy Boat Cruise Ticket <ExternalLink className="w-4 h-4 ml-2" />
-                  </a>
-                </Button>
+
+              <div className="text-white">
+                <div className="flex items-center gap-4 mb-4">
+                  <Ship className="w-12 h-12" />
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-bold">Heroes Celebration on Waters</h3>
+                    <p className="text-white/80">Saturday, August 15th · 7:00 PM – 11:00 PM</p>
+                  </div>
+                </div>
+                <p className="text-white/90 mb-6 text-lg max-w-2xl">
+                  Join fellow Ugandans and friends of Uganda aboard a luxury City Cruises vessel departing from the scenic Marina del Rey. Enjoy breathtaking ocean views, live entertainment, music, dinner, and conversations with NUP leaders and convention guests.
+                </p>
+                <div className="flex flex-wrap items-center gap-4">
+                  <Badge className="bg-white/20 text-white border-white/30 text-xl px-5 py-2">$220</Badge>
+                  <Button size="lg" className="bg-white text-blue-900 hover:bg-white/90 font-bold" asChild>
+                    <a href="https://buy.stripe.com/9AQ4k10e1cW96Ri14e" target="_blank" rel="noopener noreferrer">
+                      Buy Boat Cruise Ticket <ExternalLink className="w-4 h-4 ml-2" />
+                    </a>
+                  </Button>
+                </div>
               </div>
             </div>
-          </Card>
+          </div>
         </section>
 
         <section className="mb-16">
