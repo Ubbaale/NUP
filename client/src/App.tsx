@@ -33,6 +33,7 @@ import CampaignsList from "@/pages/Campaigns";
 import CampaignDetail from "@/pages/CampaignDetail";
 import Auctions from "@/pages/Auctions";
 import AuctionDetail from "@/pages/AuctionDetail";
+import ProductDetail from "@/pages/ProductDetail";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/conferences/:slug" component={ConferenceDetail} />
       <Route path="/news" component={News} />
       <Route path="/store" component={Store} />
+      <Route path="/store/:slug" component={ProductDetail} />
       <Route path="/membership" component={Membership} />
       <Route path="/donate" component={Donate} />
       <Route path="/blog" component={Blog} />

@@ -116,6 +116,37 @@ export async function createMembershipPaymentIntent(params: {
   };
 }
 
+export async function createOrderPaymentIntent(params: {
+  amount: number;
+  currency?: string;
+  email: string;
+  fullName: string;
+  orderId: string;
+}): Promise<{ clientSecret: string; paymentIntentId: string } | null> {
+  const stripe = getStripe();
+  if (!stripe) {
+    console.log("[Stripe] Not configured — order recorded without payment");
+    return null;
+  }
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: Math.round(params.amount * 100),
+    currency: params.currency || "usd",
+    receipt_email: params.email,
+    metadata: {
+      type: "store_order",
+      orderId: params.orderId,
+      fullName: params.fullName,
+    },
+    description: `NUP Store Order #${params.orderId.slice(0, 8).toUpperCase()}`,
+  });
+
+  return {
+    clientSecret: paymentIntent.client_secret!,
+    paymentIntentId: paymentIntent.id,
+  };
+}
+
 export async function verifyPaymentIntent(paymentIntentId: string): Promise<{
   status: string;
   paid: boolean;

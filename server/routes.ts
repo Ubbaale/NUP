@@ -607,6 +607,7 @@ export async function registerRoutes(
 
   // ===== LEADER IMAGES =====
   app.use("/uploads/leaders", (await import("express")).default.static(path.join(process.cwd(), "uploads", "leaders")));
+  app.use("/uploads/products", (await import("express")).default.static(path.join(process.cwd(), "uploads", "products")));
 
   app.post("/api/upload/leader-image", leaderImageUpload.single("image"), (req, res) => {
     try {

@@ -50,6 +50,7 @@ client/
 │   │   ├── ConferenceDetail.tsx
 │   │   ├── News.tsx
 │   │   ├── Store.tsx
+│   │   ├── ProductDetail.tsx
 │   │   ├── Membership.tsx
 │   │   ├── MembershipTiers.tsx
 │   │   ├── Donate.tsx

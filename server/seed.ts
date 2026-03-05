@@ -230,11 +230,38 @@ async function seedMissingChapters(existingRegions: Region[]) {
   }
 }
 
+const PRODUCT_IMAGE_MAP: Record<string, string> = {
+  "nup-polo-red": "/uploads/products/nup-polo-red.png",
+  "people-power-cap": "/uploads/products/people-power-cap.png",
+  "nup-fist-tshirt": "/uploads/products/nup-fist-tshirt.png",
+  "free-uganda-flag": "/uploads/products/free-uganda-flag.png",
+  "nup-wristbands": "/uploads/products/nup-wristbands.png",
+  "bobi-wine-poster": "/uploads/products/bobi-wine-poster.png",
+  "nup-hoodie": "/uploads/products/nup-hoodie.png",
+  "democracy-mug": "/uploads/products/democracy-mug.png",
+};
+
+async function seedMissingProductImages() {
+  const allProducts = await storage.getAllProducts();
+  let updated = 0;
+  for (const product of allProducts) {
+    if (!product.imageUrl && PRODUCT_IMAGE_MAP[product.slug]) {
+      await storage.updateProduct(product.id, { imageUrl: PRODUCT_IMAGE_MAP[product.slug] });
+      updated++;
+      console.log(`  Updated image for: ${product.name}`);
+    }
+  }
+  if (updated > 0) {
+    console.log(`Updated images for ${updated} products.`);
+  }
+}
+
 export async function seedDatabase() {
   try {
     const existingRegions = await storage.getAllRegions();
     if (existingRegions.length > 0) {
       await seedMissingChapters(existingRegions);
+      await seedMissingProductImages();
       console.log("Database already seeded, skipping...");
       return;
     }
@@ -429,6 +456,7 @@ export async function seedDatabase() {
         category: "Apparel",
         sizes: JSON.stringify(["S", "M", "L", "XL", "XXL"]),
         colors: JSON.stringify(["Red"]),
+        imageUrl: "/uploads/products/nup-polo-red.png",
         inStock: true,
         featured: true,
       },
@@ -439,6 +467,7 @@ export async function seedDatabase() {
         price: "25.00",
         category: "Accessories",
         colors: JSON.stringify(["Red", "Black", "White"]),
+        imageUrl: "/uploads/products/people-power-cap.png",
         inStock: true,
         featured: true,
       },
@@ -450,6 +479,7 @@ export async function seedDatabase() {
         category: "Apparel",
         sizes: JSON.stringify(["S", "M", "L", "XL", "XXL"]),
         colors: JSON.stringify(["Red", "Black"]),
+        imageUrl: "/uploads/products/nup-fist-tshirt.png",
         inStock: true,
         featured: false,
       },
@@ -459,6 +489,7 @@ export async function seedDatabase() {
         description: "Large banner flag with 'Free Uganda' design, perfect for rallies and events.",
         price: "45.00",
         category: "Merchandise",
+        imageUrl: "/uploads/products/free-uganda-flag.png",
         inStock: true,
         featured: false,
       },
@@ -468,6 +499,7 @@ export async function seedDatabase() {
         description: "Set of 5 silicone wristbands in NUP red with People Power message.",
         price: "12.00",
         category: "Accessories",
+        imageUrl: "/uploads/products/nup-wristbands.png",
         inStock: true,
         featured: false,
       },
@@ -477,6 +509,7 @@ export async function seedDatabase() {
         description: "High-quality poster featuring Hon. Robert Kyagulanyi.",
         price: "18.00",
         category: "Merchandise",
+        imageUrl: "/uploads/products/bobi-wine-poster.png",
         inStock: true,
         featured: true,
       },
@@ -488,6 +521,7 @@ export async function seedDatabase() {
         category: "Apparel",
         sizes: JSON.stringify(["S", "M", "L", "XL", "XXL"]),
         colors: JSON.stringify(["Red", "Black"]),
+        imageUrl: "/uploads/products/nup-hoodie.png",
         inStock: true,
         featured: true,
       },
@@ -497,6 +531,7 @@ export async function seedDatabase() {
         description: "Ceramic mug with 'Democracy is Non-Negotiable' quote.",
         price: "15.00",
         category: "Merchandise",
+        imageUrl: "/uploads/products/democracy-mug.png",
         inStock: true,
         featured: false,
       },

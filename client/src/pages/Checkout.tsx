@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
 import { apiRequest } from "@/lib/queryClient";
-import { ShoppingBag, Package, CreditCard, CheckCircle, ArrowLeft, ArrowRight, Truck, Star, Lock } from "lucide-react";
+import { ShoppingBag, Package, CheckCircle, ArrowLeft, ArrowRight, Truck, Star, Lock, ShieldCheck, CreditCard } from "lucide-react";
 import type { Order } from "@shared/schema";
 
 const shippingSchema = z.object({
@@ -28,20 +28,12 @@ const shippingSchema = z.object({
   postalCode: z.string().optional(),
 });
 
-const paymentSchema = z.object({
-  cardName: z.string().min(2, "Name on card required"),
-  cardNumber: z.string().regex(/^\d{16}$/, "Card number must be 16 digits"),
-  expiry: z.string().regex(/^\d{2}\/\d{2}$/, "Format: MM/YY"),
-  cvv: z.string().regex(/^\d{3,4}$/, "CVV must be 3-4 digits"),
-});
-
 type ShippingData = z.infer<typeof shippingSchema>;
-type PaymentData = z.infer<typeof paymentSchema>;
 
 const STEPS = [
   { id: 1, label: "Cart Review", icon: ShoppingBag },
   { id: 2, label: "Shipping", icon: Truck },
-  { id: 3, label: "Payment", icon: CreditCard },
+  { id: 3, label: "Review & Pay", icon: CreditCard },
   { id: 4, label: "Confirmation", icon: CheckCircle },
 ];
 
@@ -100,11 +92,6 @@ export default function Checkout() {
     defaultValues: { fullName: "", email: "", phone: "", address: "", city: "", state: "", country: "", postalCode: "" },
   });
 
-  const paymentForm = useForm<PaymentData>({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: { cardName: "", cardNumber: "", expiry: "", cvv: "" },
-  });
-
   const orderMutation = useMutation({
     mutationFn: async (data: { shipping: ShippingData }) => {
       const items = cart.map(item => ({
@@ -123,7 +110,8 @@ export default function Checkout() {
         totalAmount: total,
         status: "pending",
       };
-      return apiRequest<Order>("POST", "/api/orders", payload);
+      const res = await apiRequest("POST", "/api/orders", payload);
+      return await res.json() as Order;
     },
     onSuccess: (order) => {
       setPlacedOrder(order);
@@ -326,86 +314,75 @@ export default function Checkout() {
               </Card>
             )}
 
-            {step === 3 && (
+            {step === 3 && shippingData && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5" /> Payment Details
+                    <ShieldCheck className="w-5 h-5" /> Review & Place Order
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 mb-4 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg text-green-700 dark:text-green-400 text-sm">
-                    <Lock className="w-4 h-4 shrink-0" />
-                    <span>Your payment information is encrypted and secure</span>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Items</h4>
+                    <div className="space-y-2">
+                      {cart.map((item, idx) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {item.product.name}
+                            {item.selectedSize ? ` (${item.selectedSize})` : ""}
+                            {item.selectedColor ? ` · ${item.selectedColor}` : ""}
+                            {` × ${item.quantity}`}
+                          </span>
+                          <span className="font-medium">${(Number(item.product.price) * item.quantity).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <Form {...paymentForm}>
-                    <form onSubmit={paymentForm.handleSubmit(() => {
-                      if (shippingData) orderMutation.mutate({ shipping: shippingData });
-                    })} className="space-y-4">
-                      <FormField control={paymentForm.control} name="cardName" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name on Card</FormLabel>
-                          <FormControl><Input placeholder="John Doe" data-testid="input-card-name" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={paymentForm.control} name="cardNumber" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Card Number</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="1234 5678 9012 3456"
-                              maxLength={16}
-                              data-testid="input-card-number"
-                              {...field}
-                              onChange={e => field.onChange(e.target.value.replace(/\D/g, ""))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField control={paymentForm.control} name="expiry" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Expiry Date</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="MM/YY"
-                                maxLength={5}
-                                data-testid="input-expiry"
-                                {...field}
-                                onChange={e => {
-                                  let v = e.target.value.replace(/\D/g, "");
-                                  if (v.length >= 2) v = v.slice(0, 2) + "/" + v.slice(2);
-                                  field.onChange(v.slice(0, 5));
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        <FormField control={paymentForm.control} name="cvv" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CVV</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="123"
-                                maxLength={4}
-                                type="password"
-                                data-testid="input-cvv"
-                                {...field}
-                                onChange={e => field.onChange(e.target.value.replace(/\D/g, ""))}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                      </div>
-                      <Button type="submit" className="w-full mt-2" disabled={orderMutation.isPending} data-testid="button-place-order">
-                        {orderMutation.isPending ? "Processing..." : `Place Order · $${(cartTotal + getShippingCost()).toFixed(2)}`}
-                      </Button>
-                    </form>
-                  </Form>
+
+                  <Separator />
+
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Shipping To</h4>
+                    <div className="text-sm text-muted-foreground space-y-0.5">
+                      <p className="font-medium text-foreground">{shippingData.fullName}</p>
+                      <p>{shippingData.address}</p>
+                      <p>{shippingData.city}{shippingData.state ? `, ${shippingData.state}` : ""} {shippingData.postalCode}</p>
+                      <p>{shippingData.country}</p>
+                      <p>{shippingData.email}</p>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span>${cartTotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Shipping</span>
+                      <span>${getShippingCost().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                      <span>Total</span>
+                      <span>${(cartTotal + getShippingCost()).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg text-green-700 dark:text-green-400 text-sm">
+                    <Lock className="w-4 h-4 shrink-0" />
+                    <span>Your order is secure. Estimated delivery: {getEstimatedDelivery()}</span>
+                  </div>
+
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    disabled={orderMutation.isPending}
+                    onClick={() => orderMutation.mutate({ shipping: shippingData })}
+                    data-testid="button-place-order"
+                  >
+                    {orderMutation.isPending ? "Processing..." : `Place Order · $${(cartTotal + getShippingCost()).toFixed(2)}`}
+                  </Button>
                 </CardContent>
               </Card>
             )}

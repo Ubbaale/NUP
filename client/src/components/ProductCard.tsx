@@ -1,4 +1,5 @@
 import type { Product } from "@shared/schema";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +11,14 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const [, navigate] = useLocation();
+
+  const handleCardClick = () => {
+    navigate(`/store/${product.slug}`);
+  };
+
   return (
-    <Card className="overflow-hidden hover-elevate group" data-testid={`product-card-${product.id}`}>
+    <Card className="overflow-hidden hover-elevate group cursor-pointer" data-testid={`product-card-${product.id}`} onClick={handleCardClick}>
       <div className="aspect-square overflow-hidden bg-muted relative">
         {product.imageUrl ? (
           <img
@@ -46,7 +53,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <Button
             size="sm"
             disabled={!product.inStock}
-            onClick={() => onAddToCart(product)}
+            onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
             data-testid={`add-to-cart-${product.id}`}
           >
             <ShoppingCart className="w-4 h-4 mr-1" />
