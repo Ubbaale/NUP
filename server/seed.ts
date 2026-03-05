@@ -445,7 +445,7 @@ export async function seedDatabase() {
         description: "Annual convention bringing together NUP members from the diaspora to strategize and mobilize for change in Uganda.",
         theme: "Power to the People",
         registrationUrl: "https://buy.stripe.com/fZe4k1f8Vg8l2B214d",
-        isUpcoming: true,
+        isUpcoming: false,
         speakers: JSON.stringify(["Hon. Robert Kyagulanyi (Bobi Wine)", "Joel Ssenyonyi"]),
       },
       {
