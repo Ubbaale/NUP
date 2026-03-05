@@ -15,12 +15,17 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
     <Card className="hover-elevate" data-testid={`chapter-card-${chapter.id}`}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="font-bold text-lg">{chapter.name}</h3>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              {chapter.city}, {chapter.country}
-            </p>
+          <div className="flex items-start gap-3">
+            {chapter.iconEmoji && (
+              <span className="text-3xl leading-none mt-0.5" data-testid={`icon-chapter-${chapter.id}`}>{chapter.iconEmoji}</span>
+            )}
+            <div>
+              <h3 className="font-bold text-lg">{chapter.name}</h3>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {chapter.city}, {chapter.country}
+              </p>
+            </div>
           </div>
           {chapter.isActive ? (
             <Badge variant="default">Active</Badge>

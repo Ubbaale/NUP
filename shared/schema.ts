@@ -52,6 +52,7 @@ export const chapters = pgTable("chapters", {
   city: text("city").notNull(),
   country: text("country").notNull(),
   description: text("description"),
+  iconEmoji: text("icon_emoji"),
   leaderName: text("leader_name"),
   leaderTitle: text("leader_title"),
   leaderImage: text("leader_image"),

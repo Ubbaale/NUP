@@ -80,7 +80,7 @@ shared/
 ## Database Schema
 - **members** - Registered NUP members with auto-generated membership IDs
 - **regions** - 6 global regions with coordinators
-- **chapters** - Local chapters within regions
+- **chapters** - Local chapters within regions (with iconEmoji for landmark icons)
 - **activities** - Chapter events and activities
 - **conferences** - Annual conventions (upcoming and archived)
 - **products** - Store merchandise
