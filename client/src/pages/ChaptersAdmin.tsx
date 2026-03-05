@@ -601,7 +601,7 @@ function LeaderFormComponent({
           <FormField control={form.control} name="title" render={({ field }) => (
             <FormItem>
               <FormLabel>Title / Role</FormLabel>
-              <FormControl><Input placeholder="Chapter Coordinator" data-testid="input-leader-title" {...field} /></FormControl>
+              <FormControl><Input placeholder="Chapter Leader" data-testid="input-leader-title" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )} />
@@ -769,7 +769,7 @@ function ChapterFormComponent({
                 <FormField control={form.control} name="leaderTitle" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Leader Title</FormLabel>
-                    <FormControl><Input placeholder="Chapter Coordinator" data-testid="input-chapter-leader-title" {...field} /></FormControl>
+                    <FormControl><Input placeholder="Chapter Leader" data-testid="input-chapter-leader-title" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
