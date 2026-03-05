@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Form,
   FormControl,
@@ -54,8 +55,10 @@ import {
   ChevronUp,
   Building,
   Search,
+  Camera,
+  X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Chapter, Region, ChapterLeader } from "@shared/schema";
@@ -70,6 +73,7 @@ const chapterFormSchema = z.object({
   iconEmoji: z.string().optional(),
   leaderName: z.string().optional(),
   leaderTitle: z.string().optional(),
+  leaderImage: z.string().optional(),
   leaderBio: z.string().optional(),
   contactEmail: z.string().email("Invalid email").or(z.literal("")).optional(),
   contactPhone: z.string().optional(),
@@ -83,6 +87,7 @@ type ChapterFormData = z.infer<typeof chapterFormSchema>;
 const leaderFormSchema = z.object({
   name: z.string().min(2, "Name is required"),
   title: z.string().min(2, "Title is required"),
+  image: z.string().optional(),
   bio: z.string().optional(),
   email: z.string().email("Invalid email").or(z.literal("")).optional(),
   phone: z.string().optional(),
@@ -100,11 +105,110 @@ function autoSlug(title: string) {
     .trim();
 }
 
+function PhotoUpload({
+  currentUrl,
+  onUploaded,
+  size = "lg",
+}: {
+  currentUrl?: string;
+  onUploaded: (url: string) => void;
+  size?: "md" | "lg";
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(currentUrl);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const dimensions = size === "lg" ? "w-32 h-32" : "w-20 h-20";
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const localPreview = URL.createObjectURL(file);
+    setPreviewUrl(localPreview);
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/upload/leader-image", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Upload failed");
+      }
+      const data = await res.json();
+      setPreviewUrl(data.imageUrl);
+      onUploaded(data.imageUrl);
+    } catch (err: any) {
+      toast({ title: "Upload Failed", description: err.message, variant: "destructive" });
+      setPreviewUrl(currentUrl);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleRemove() {
+    setPreviewUrl(undefined);
+    onUploaded("");
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className={`${dimensions} rounded-xl border-2 border-dashed border-muted-foreground/30 relative overflow-hidden cursor-pointer group transition-colors hover:border-primary/50`}
+        onClick={() => fileRef.current?.click()}
+      >
+        {previewUrl ? (
+          <>
+            <img src={previewUrl} alt="Leader" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera className="w-6 h-6 text-white" />
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
+            <Camera className={size === "lg" ? "w-8 h-8 mb-1" : "w-5 h-5 mb-0.5"} />
+            <span className={size === "lg" ? "text-xs" : "text-[10px]"}>
+              {uploading ? "Uploading..." : "Add Photo"}
+            </span>
+          </div>
+        )}
+      </div>
+      {previewUrl && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-xs text-muted-foreground h-6"
+          onClick={(e) => { e.stopPropagation(); handleRemove(); }}
+        >
+          <X className="w-3 h-3 mr-1" />
+          Remove
+        </Button>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={handleFile}
+        data-testid="input-leader-photo"
+      />
+    </div>
+  );
+}
+
 export default function ChaptersAdmin() {
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editChapter, setEditChapter] = useState<Chapter | null>(null);
   const [leaderDialogChapter, setLeaderDialogChapter] = useState<Chapter | null>(null);
+  const [editLeader, setEditLeader] = useState<{ leader: ChapterLeader; chapterSlug: string } | null>(null);
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRegion, setFilterRegion] = useState<string>("all");
@@ -118,7 +222,7 @@ export default function ChaptersAdmin() {
   });
 
   const chapters = allChapters?.filter(ch => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       ch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ch.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ch.country.toLowerCase().includes(searchQuery.toLowerCase());
@@ -133,7 +237,7 @@ export default function ChaptersAdmin() {
     defaultValues: {
       name: "", slug: "", regionId: "", city: "", country: "",
       description: "", iconEmoji: "", leaderName: "", leaderTitle: "",
-      leaderBio: "", contactEmail: "", contactPhone: "",
+      leaderImage: "", leaderBio: "", contactEmail: "", contactPhone: "",
       meetingSchedule: "", address: "", isActive: true,
     },
   });
@@ -143,14 +247,19 @@ export default function ChaptersAdmin() {
     defaultValues: {
       name: "", slug: "", regionId: "", city: "", country: "",
       description: "", iconEmoji: "", leaderName: "", leaderTitle: "",
-      leaderBio: "", contactEmail: "", contactPhone: "",
+      leaderImage: "", leaderBio: "", contactEmail: "", contactPhone: "",
       meetingSchedule: "", address: "", isActive: true,
     },
   });
 
   const leaderForm = useForm<LeaderFormData>({
     resolver: zodResolver(leaderFormSchema),
-    defaultValues: { name: "", title: "", bio: "", email: "", phone: "", displayOrder: 0 },
+    defaultValues: { name: "", title: "", image: "", bio: "", email: "", phone: "", displayOrder: 0 },
+  });
+
+  const editLeaderForm = useForm<LeaderFormData>({
+    resolver: zodResolver(leaderFormSchema),
+    defaultValues: { name: "", title: "", image: "", bio: "", email: "", phone: "", displayOrder: 0 },
   });
 
   const createMutation = useMutation({
@@ -205,8 +314,24 @@ export default function ChaptersAdmin() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/chapters", variables.chapterSlug, "leaders"] });
+      setLeaderDialogChapter(null);
       leaderForm.reset();
       toast({ title: "Leader Added", description: "Leadership member added successfully." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateLeaderMutation = useMutation({
+    mutationFn: async ({ id, chapterSlug, data }: { id: string; chapterSlug: string; data: Partial<LeaderFormData> }) => {
+      const res = await apiRequest("PATCH", `/api/chapter-leaders/${id}`, data);
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chapters", variables.chapterSlug, "leaders"] });
+      setEditLeader(null);
+      toast({ title: "Leader Updated", description: "Leadership member updated successfully." });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -239,12 +364,26 @@ export default function ChaptersAdmin() {
       iconEmoji: chapter.iconEmoji || "",
       leaderName: chapter.leaderName || "",
       leaderTitle: chapter.leaderTitle || "",
+      leaderImage: chapter.leaderImage || "",
       leaderBio: chapter.leaderBio || "",
       contactEmail: chapter.contactEmail || "",
       contactPhone: chapter.contactPhone || "",
       meetingSchedule: chapter.meetingSchedule || "",
       address: chapter.address || "",
       isActive: chapter.isActive,
+    });
+  }
+
+  function openEditLeaderDialog(leader: ChapterLeader, chapterSlug: string) {
+    setEditLeader({ leader, chapterSlug });
+    editLeaderForm.reset({
+      name: leader.name,
+      title: leader.title,
+      image: leader.image || "",
+      bio: leader.bio || "",
+      email: leader.email || "",
+      phone: leader.phone || "",
+      displayOrder: leader.displayOrder,
     });
   }
 
@@ -364,8 +503,9 @@ export default function ChaptersAdmin() {
                 onDelete={() => deleteMutation.mutate(chapter.id)}
                 onAddLeader={() => {
                   setLeaderDialogChapter(chapter);
-                  leaderForm.reset();
+                  leaderForm.reset({ name: "", title: "", image: "", bio: "", email: "", phone: "", displayOrder: 0 });
                 }}
+                onEditLeader={(leader) => openEditLeaderDialog(leader, chapter.slug)}
                 onDeleteLeader={(id) => deleteLeaderMutation.mutate({ id, chapterSlug: chapter.slug })}
               />
             ))}
@@ -391,76 +531,124 @@ export default function ChaptersAdmin() {
 
         {leaderDialogChapter && (
           <Dialog open={!!leaderDialogChapter} onOpenChange={(open) => !open && setLeaderDialogChapter(null)}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add Leader to {leaderDialogChapter.name}</DialogTitle>
               </DialogHeader>
-              <Form {...leaderForm}>
-                <form onSubmit={leaderForm.handleSubmit((data) => addLeaderMutation.mutate({ chapterId: leaderDialogChapter.id, chapterSlug: leaderDialogChapter.slug, data }))} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField control={leaderForm.control} name="name" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl><Input placeholder="Jane Doe" data-testid="input-leader-name" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={leaderForm.control} name="title" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title / Role</FormLabel>
-                        <FormControl><Input placeholder="Chapter Coordinator" data-testid="input-leader-title" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  </div>
-                  <FormField control={leaderForm.control} name="bio" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bio (optional)</FormLabel>
-                      <FormControl><Textarea rows={3} placeholder="Brief biography..." data-testid="input-leader-bio" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField control={leaderForm.control} name="email" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email (optional)</FormLabel>
-                        <FormControl><Input placeholder="email@example.com" data-testid="input-leader-email" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={leaderForm.control} name="phone" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone (optional)</FormLabel>
-                        <FormControl><Input placeholder="+1 555-0123" data-testid="input-leader-phone" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  </div>
-                  <FormField control={leaderForm.control} name="displayOrder" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Display Order</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          data-testid="input-leader-order"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <Button type="submit" className="w-full" disabled={addLeaderMutation.isPending} data-testid="button-submit-leader">
-                    {addLeaderMutation.isPending ? "Adding..." : "Add Leader"}
-                  </Button>
-                </form>
-              </Form>
+              <LeaderFormComponent
+                form={leaderForm}
+                onSubmit={(data) => addLeaderMutation.mutate({ chapterId: leaderDialogChapter.id, chapterSlug: leaderDialogChapter.slug, data })}
+                isPending={addLeaderMutation.isPending}
+                submitLabel="Add Leader"
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {editLeader && (
+          <Dialog open={!!editLeader} onOpenChange={(open) => !open && setEditLeader(null)}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Leader: {editLeader.leader.name}</DialogTitle>
+              </DialogHeader>
+              <LeaderFormComponent
+                form={editLeaderForm}
+                onSubmit={(data) => updateLeaderMutation.mutate({ id: editLeader.leader.id, chapterSlug: editLeader.chapterSlug, data })}
+                isPending={updateLeaderMutation.isPending}
+                submitLabel="Save Changes"
+                initialImage={editLeader.leader.image || undefined}
+              />
             </DialogContent>
           </Dialog>
         )}
       </div>
     </div>
+  );
+}
+
+function LeaderFormComponent({
+  form,
+  onSubmit,
+  isPending,
+  submitLabel,
+  initialImage,
+}: {
+  form: ReturnType<typeof useForm<LeaderFormData>>;
+  onSubmit: (data: LeaderFormData) => void;
+  isPending: boolean;
+  submitLabel: string;
+  initialImage?: string;
+}) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="flex justify-center">
+          <PhotoUpload
+            currentUrl={form.getValues("image") || initialImage}
+            onUploaded={(url) => form.setValue("image", url)}
+            size="lg"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField control={form.control} name="name" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl><Input placeholder="Jane Doe" data-testid="input-leader-name" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="title" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title / Role</FormLabel>
+              <FormControl><Input placeholder="Chapter Coordinator" data-testid="input-leader-title" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+        <FormField control={form.control} name="bio" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Bio (optional)</FormLabel>
+            <FormControl><Textarea rows={3} placeholder="Brief biography..." data-testid="input-leader-bio" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField control={form.control} name="email" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email (optional)</FormLabel>
+              <FormControl><Input placeholder="email@example.com" data-testid="input-leader-email" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField control={form.control} name="phone" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone (optional)</FormLabel>
+              <FormControl><Input placeholder="+1 555-0123" data-testid="input-leader-phone" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+        <FormField control={form.control} name="displayOrder" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Display Order</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                min="0"
+                data-testid="input-leader-order"
+                {...field}
+                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <Button type="submit" className="w-full" disabled={isPending} data-testid="button-submit-leader">
+          {isPending ? "Saving..." : submitLabel}
+        </Button>
+      </form>
+    </Form>
   );
 }
 
@@ -563,29 +751,38 @@ function ChapterFormComponent({
 
         <div className="border-t pt-4 mt-4">
           <h3 className="font-semibold mb-3">Primary Leader</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField control={form.control} name="leaderName" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Leader Name</FormLabel>
-                <FormControl><Input placeholder="John Doe" data-testid="input-chapter-leader-name" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="leaderTitle" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Leader Title</FormLabel>
-                <FormControl><Input placeholder="Chapter Coordinator" data-testid="input-chapter-leader-title" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+          <div className="flex gap-4">
+            <PhotoUpload
+              currentUrl={form.getValues("leaderImage") || undefined}
+              onUploaded={(url) => form.setValue("leaderImage", url)}
+              size="md"
+            />
+            <div className="flex-1 space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="leaderName" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Leader Name</FormLabel>
+                    <FormControl><Input placeholder="John Doe" data-testid="input-chapter-leader-name" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="leaderTitle" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Leader Title</FormLabel>
+                    <FormControl><Input placeholder="Chapter Coordinator" data-testid="input-chapter-leader-title" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="leaderBio" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Leader Bio (optional)</FormLabel>
+                  <FormControl><Textarea rows={2} placeholder="Brief bio..." data-testid="input-chapter-leader-bio" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
           </div>
-          <FormField control={form.control} name="leaderBio" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Leader Bio (optional)</FormLabel>
-              <FormControl><Textarea rows={2} placeholder="Brief bio..." data-testid="input-chapter-leader-bio" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
         </div>
 
         <div className="border-t pt-4 mt-4">
@@ -647,6 +844,7 @@ function ChapterRow({
   onEdit,
   onDelete,
   onAddLeader,
+  onEditLeader,
   onDeleteLeader,
 }: {
   chapter: Chapter;
@@ -656,6 +854,7 @@ function ChapterRow({
   onEdit: () => void;
   onDelete: () => void;
   onAddLeader: () => void;
+  onEditLeader: (leader: ChapterLeader) => void;
   onDeleteLeader: (id: string) => void;
 }) {
   const { data: leaders } = useQuery<ChapterLeader[]>({
@@ -702,15 +901,15 @@ function ChapterRow({
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Button variant="ghost" size="sm" onClick={onAddLeader} data-testid={`button-add-leader-${chapter.id}`}>
+            <Button variant="ghost" size="sm" onClick={onAddLeader} title="Add leader" data-testid={`button-add-leader-${chapter.id}`}>
               <UserPlus className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={onEdit} data-testid={`button-edit-chapter-${chapter.id}`}>
+            <Button variant="ghost" size="sm" onClick={onEdit} title="Edit chapter" data-testid={`button-edit-chapter-${chapter.id}`}>
               <Pencil className="w-4 h-4" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" data-testid={`button-delete-chapter-${chapter.id}`}>
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" title="Delete chapter" data-testid={`button-delete-chapter-${chapter.id}`}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -773,9 +972,21 @@ function ChapterRow({
 
             {chapter.leaderName && (
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-1">Primary Leader</h4>
-                <p className="text-sm font-medium">{chapter.leaderName} {chapter.leaderTitle && `— ${chapter.leaderTitle}`}</p>
-                {chapter.leaderBio && <p className="text-sm text-muted-foreground mt-1">{chapter.leaderBio}</p>}
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Primary Leader</h4>
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  {chapter.leaderImage ? (
+                    <img src={chapter.leaderImage} alt={chapter.leaderName} className="w-14 h-14 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-lg">
+                      {chapter.leaderName.split(" ").map(n => n[0]).join("").toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium">{chapter.leaderName}</p>
+                    {chapter.leaderTitle && <p className="text-sm text-muted-foreground">{chapter.leaderTitle}</p>}
+                    {chapter.leaderBio && <p className="text-sm text-muted-foreground mt-1">{chapter.leaderBio}</p>}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -788,23 +999,64 @@ function ChapterRow({
                 </Button>
               </div>
               {leaders && leaders.length > 0 ? (
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {leaders.map((leader) => (
-                    <div key={leader.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg" data-testid={`leader-row-${leader.id}`}>
-                      <div>
-                        <p className="text-sm font-medium">{leader.name}</p>
+                    <div key={leader.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg" data-testid={`leader-row-${leader.id}`}>
+                      {leader.image ? (
+                        <img src={leader.image} alt={leader.name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-semibold text-lg flex-shrink-0">
+                          {leader.name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">{leader.name}</p>
                         <p className="text-xs text-muted-foreground">{leader.title}</p>
+                        {leader.bio && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{leader.bio}</p>}
                         {leader.email && <p className="text-xs text-muted-foreground">{leader.email}</p>}
+                        <div className="flex items-center gap-1 mt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs px-2"
+                            onClick={() => onEditLeader(leader)}
+                            data-testid={`button-edit-leader-${leader.id}`}
+                          >
+                            <Pencil className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs px-2 text-destructive hover:text-destructive"
+                                data-testid={`button-delete-leader-${leader.id}`}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Remove
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Remove Leader</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to remove {leader.name} from the leadership team?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => onDeleteLeader(leader.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Remove
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => onDeleteLeader(leader.id)}
-                        data-testid={`button-delete-leader-${leader.id}`}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
                     </div>
                   ))}
                 </div>

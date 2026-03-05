@@ -152,21 +152,26 @@ export default function ChapterDetail() {
                   </h2>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {leaders.map((leader) => (
-                      <div key={leader.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg" data-testid={`leader-${leader.id}`}>
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage src={leader.image || undefined} />
-                          <AvatarFallback>{leader.name.split(" ").map(n => n[0]).join("").toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-sm">{leader.name}</p>
-                          <p className="text-xs text-muted-foreground">{leader.title}</p>
-                          {leader.bio && <p className="text-xs text-muted-foreground mt-1">{leader.bio}</p>}
-                          {leader.email && (
-                            <a href={`mailto:${leader.email}`} className="text-xs text-primary hover:underline">{leader.email}</a>
-                          )}
-                        </div>
+                      <div key={leader.id} className="flex flex-col items-center text-center p-4 bg-muted/50 rounded-xl" data-testid={`leader-${leader.id}`}>
+                        {leader.image ? (
+                          <img
+                            src={leader.image}
+                            alt={leader.name}
+                            className="w-24 h-24 rounded-full object-cover mb-3 ring-2 ring-primary/20"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl mb-3 ring-2 ring-primary/20">
+                            {leader.name.split(" ").map(n => n[0]).join("").toUpperCase()}
+                          </div>
+                        )}
+                        <p className="font-semibold">{leader.name}</p>
+                        <p className="text-sm text-muted-foreground">{leader.title}</p>
+                        {leader.bio && <p className="text-xs text-muted-foreground mt-2 line-clamp-3">{leader.bio}</p>}
+                        {leader.email && (
+                          <a href={`mailto:${leader.email}`} className="text-xs text-primary hover:underline mt-1">{leader.email}</a>
+                        )}
                       </div>
                     ))}
                   </div>
