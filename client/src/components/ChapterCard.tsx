@@ -16,9 +16,11 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-3">
-            {chapter.iconEmoji && (
+            {chapter.logoUrl ? (
+              <img src={chapter.logoUrl} alt={`${chapter.name} logo`} className="w-10 h-10 object-contain rounded flex-shrink-0 mt-0.5" data-testid={`img-chapter-logo-${chapter.id}`} />
+            ) : chapter.iconEmoji ? (
               <span className="text-3xl leading-none mt-0.5" data-testid={`icon-chapter-${chapter.id}`}>{chapter.iconEmoji}</span>
-            )}
+            ) : null}
             <div>
               <h3 className="font-bold text-lg">{chapter.name}</h3>
               <p className="text-sm text-muted-foreground flex items-center gap-1">

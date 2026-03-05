@@ -71,6 +71,7 @@ const chapterFormSchema = z.object({
   country: z.string().min(1, "Country is required"),
   description: z.string().optional(),
   iconEmoji: z.string().optional(),
+  logoUrl: z.string().optional(),
   leaderName: z.string().optional(),
   leaderTitle: z.string().optional(),
   leaderImage: z.string().optional(),
@@ -236,7 +237,7 @@ export default function ChaptersAdmin() {
     resolver: zodResolver(chapterFormSchema),
     defaultValues: {
       name: "", slug: "", regionId: "", city: "", country: "",
-      description: "", iconEmoji: "", leaderName: "", leaderTitle: "",
+      description: "", iconEmoji: "", logoUrl: "", leaderName: "", leaderTitle: "",
       leaderImage: "", leaderBio: "", contactEmail: "", contactPhone: "",
       meetingSchedule: "", address: "", isActive: true,
     },
@@ -246,7 +247,7 @@ export default function ChaptersAdmin() {
     resolver: zodResolver(chapterFormSchema),
     defaultValues: {
       name: "", slug: "", regionId: "", city: "", country: "",
-      description: "", iconEmoji: "", leaderName: "", leaderTitle: "",
+      description: "", iconEmoji: "", logoUrl: "", leaderName: "", leaderTitle: "",
       leaderImage: "", leaderBio: "", contactEmail: "", contactPhone: "",
       meetingSchedule: "", address: "", isActive: true,
     },
@@ -362,6 +363,7 @@ export default function ChaptersAdmin() {
       country: chapter.country,
       description: chapter.description || "",
       iconEmoji: chapter.iconEmoji || "",
+      logoUrl: chapter.logoUrl || "",
       leaderName: chapter.leaderName || "",
       leaderTitle: chapter.leaderTitle || "",
       leaderImage: chapter.leaderImage || "",
@@ -741,6 +743,52 @@ function ChapterFormComponent({
           </FormItem>
         )} />
 
+        <FormField control={form.control} name="logoUrl" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Chapter Logo (optional)</FormLabel>
+            <div className="flex items-center gap-4">
+              {field.value ? (
+                <img src={field.value} alt="Logo" className="w-16 h-16 object-contain rounded-lg border" />
+              ) : (
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center border">
+                  <span className="text-xs text-muted-foreground">No logo</span>
+                </div>
+              )}
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  id="chapter-logo-upload"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fd = new FormData();
+                    fd.append("image", file);
+                    try {
+                      const res = await fetch("/api/upload/chapter-logo", { method: "POST", body: fd });
+                      if (!res.ok) throw new Error("Upload failed");
+                      const data = await res.json();
+                      form.setValue("logoUrl", data.imageUrl);
+                    } catch {
+                      toast({ title: "Logo upload failed", variant: "destructive" });
+                    }
+                  }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById("chapter-logo-upload")?.click()} data-testid="button-upload-logo">
+                  Upload Logo
+                </Button>
+                {field.value && (
+                  <Button type="button" variant="ghost" size="sm" className="ml-2 text-destructive" onClick={() => form.setValue("logoUrl", "")} data-testid="button-remove-logo">
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </div>
+            <FormMessage />
+          </FormItem>
+        )} />
+
         <FormField control={form.control} name="description" render={({ field }) => (
           <FormItem>
             <FormLabel>Introduction / Description</FormLabel>
@@ -867,9 +915,11 @@ function ChapterRow({
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onClick={onToggleExpand}>
-            {chapter.iconEmoji && (
+            {chapter.logoUrl ? (
+              <img src={chapter.logoUrl} alt={`${chapter.name} logo`} className="w-8 h-8 object-contain rounded flex-shrink-0" />
+            ) : chapter.iconEmoji ? (
               <span className="text-2xl flex-shrink-0">{chapter.iconEmoji}</span>
-            )}
+            ) : null}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-semibold truncate" data-testid={`text-chapter-name-${chapter.id}`}>{chapter.name}</h3>

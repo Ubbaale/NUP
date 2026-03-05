@@ -73,6 +73,30 @@ const productImageUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+const chapterLogoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", "chapter-logos");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files (JPG, PNG, WebP, GIF, SVG) are allowed"));
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
 const leaderImageUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -675,6 +699,19 @@ export async function registerRoutes(
   // ===== LEADER IMAGES =====
   app.use("/uploads/leaders", (await import("express")).default.static(path.join(process.cwd(), "uploads", "leaders")));
   app.use("/uploads/products", (await import("express")).default.static(path.join(process.cwd(), "uploads", "products")));
+  app.use("/uploads/chapter-logos", (await import("express")).default.static(path.join(process.cwd(), "uploads", "chapter-logos")));
+
+  app.post("/api/upload/chapter-logo", chapterLogoUpload.single("image"), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+      const imageUrl = `/uploads/chapter-logos/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to upload image" });
+    }
+  });
 
   app.post("/api/upload/leader-image", leaderImageUpload.single("image"), (req, res) => {
     try {

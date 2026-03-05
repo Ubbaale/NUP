@@ -71,9 +71,11 @@ export default function ChapterDetail() {
                 </Badge>
               </div>
               <div className="flex items-center gap-4">
-                {chapter.iconEmoji && (
+                {chapter.logoUrl ? (
+                  <img src={chapter.logoUrl} alt={`${chapter.name} logo`} className="w-16 h-16 object-contain rounded-lg" data-testid="img-chapter-logo" />
+                ) : chapter.iconEmoji ? (
                   <span className="text-5xl" data-testid="icon-chapter-detail">{chapter.iconEmoji}</span>
-                )}
+                ) : null}
                 <div>
                   <h1 className="text-4xl font-bold mb-2">{chapter.name}</h1>
                   <p className="text-lg text-muted-foreground flex items-center gap-2">
