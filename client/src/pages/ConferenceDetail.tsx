@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,7 +15,19 @@ import {
 import { format } from "date-fns";
 import type { Conference } from "@shared/schema";
 import conventionHeroImg from "@assets/convention-2026-hero.png";
+import laMorningImg from "@assets/la-morning.png";
+import laSunsetImg from "@assets/la-sunset.png";
+import laNightImg from "@assets/la-night.png";
+import laSantaMonicaImg from "@assets/la-santa-monica.png";
 import boatCruiseImg from "@assets/convention-2026-boat.png";
+
+const HERO_SLIDES = [
+  { src: conventionHeroImg, alt: "Los Angeles skyline at golden hour" },
+  { src: laMorningImg, alt: "Los Angeles sunrise with palm trees" },
+  { src: laSunsetImg, alt: "Hollywood Hills sunset over Los Angeles" },
+  { src: laNightImg, alt: "Los Angeles city lights at night" },
+  { src: laSantaMonicaImg, alt: "Santa Monica pier at dusk" },
+];
 
 const SCHEDULE_DATA = [
   {
@@ -123,16 +135,34 @@ function CountdownTimer({ targetDate }: { targetDate: Date }) {
 }
 
 function Convention2026Page({ conference }: { conference: Conference }) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const goToSlide = useCallback((index: number) => {
+    setCurrentSlide(index);
+  }, []);
+
   return (
     <div className="min-h-screen">
       <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={conventionHeroImg}
-            alt="Los Angeles skyline at sunset"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-red-900/80 via-red-900/70 to-black/80" />
+          {HERO_SLIDES.map((slide, i) => (
+            <img
+              key={i}
+              src={slide.src}
+              alt={slide.alt}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-in-out ${
+                i === currentSlide ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-b from-red-900/75 via-red-900/60 to-black/80" />
         </div>
         <div className="container mx-auto px-4 relative z-10 text-center py-12">
           <Link href="/conferences">
@@ -155,6 +185,22 @@ function Convention2026Page({ conference }: { conference: Conference }) {
 
           <div className="mb-10">
             <CountdownTimer targetDate={new Date("2026-08-13T08:00:00-07:00")} />
+          </div>
+
+          <div className="flex items-center justify-center gap-2 mb-8" data-testid="slide-indicators">
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToSlide(i)}
+                className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
+                  i === currentSlide
+                    ? "bg-white w-8"
+                    : "bg-white/40 hover:bg-white/60"
+                }`}
+                aria-label={`Go to slide ${i + 1}`}
+                data-testid={`slide-dot-${i}`}
+              />
+            ))}
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
