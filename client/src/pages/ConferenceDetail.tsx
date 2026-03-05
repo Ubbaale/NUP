@@ -19,12 +19,17 @@ import laOceanImg from "@assets/la-ocean.png";
 import laStreetsImg from "@assets/la-streets.png";
 import laSkylineDayImg from "@assets/la-skyline-day.png";
 import laPierDayImg from "@assets/la-pier-day.png";
-import boatCruiseImg from "@assets/convention-2026-boat.png";
+import hiltonExteriorImg from "@assets/hilton-la-exterior.png";
+import hiltonLobbyImg from "@assets/hilton-la-lobby.png";
+import cityCruiseBoatImg from "@assets/city-cruise-boat.png";
+import cityCruiseInteriorImg from "@assets/city-cruise-interior.png";
 
 const HERO_SLIDES = [
   { src: laSkylineDayImg, alt: "Los Angeles skyline on a bright sunny day" },
   { src: laOceanImg, alt: "Beautiful Pacific Ocean beach in California" },
+  { src: hiltonExteriorImg, alt: "Hilton Los Angeles Airport Hotel exterior" },
   { src: laStreetsImg, alt: "Beverly Hills boulevard with luxury buildings" },
+  { src: hiltonLobbyImg, alt: "Hilton Los Angeles Airport Hotel elegant lobby" },
   { src: laBrightDayImg, alt: "Sunny Los Angeles boulevard with palm trees" },
   { src: laPierDayImg, alt: "Santa Monica pier on a beautiful day" },
 ];
@@ -399,11 +404,17 @@ function Convention2026Page({ conference }: { conference: Conference }) {
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-2 text-center">Boat Cruise Experience</h2>
           <p className="text-center text-muted-foreground mb-8">An unforgettable evening on the Southern California coastline</p>
-          <Card className="max-w-3xl mx-auto overflow-hidden">
-            <div className="relative">
-              <img src={boatCruiseImg} alt="Luxury boat cruise at sunset" className="w-full h-56 object-cover" loading="lazy" />
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 to-transparent" />
+
+          <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto mb-6">
+            <div className="rounded-xl overflow-hidden shadow-lg">
+              <img src={cityCruiseBoatImg} alt="City Cruises luxury yacht on Pacific Ocean" className="w-full h-56 object-cover" loading="lazy" />
             </div>
+            <div className="rounded-xl overflow-hidden shadow-lg">
+              <img src={cityCruiseInteriorImg} alt="Elegant dining interior of City Cruises boat" className="w-full h-56 object-cover" loading="lazy" />
+            </div>
+          </div>
+
+          <Card className="max-w-4xl mx-auto overflow-hidden">
             <div className="bg-gradient-to-r from-blue-900 to-blue-700 p-8 text-white">
               <div className="flex items-center gap-4 mb-4">
                 <Ship className="w-12 h-12" />
@@ -413,9 +424,9 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                 </div>
               </div>
               <p className="text-white/90 mb-6">
-                Join fellow Ugandans and friends of Uganda aboard a luxury charter vessel departing from the scenic Marina del Rey. Enjoy breathtaking ocean views, live entertainment, music, dinner, and conversations with NUP leaders and convention guests.
+                Join fellow Ugandans and friends of Uganda aboard a luxury City Cruises vessel departing from the scenic Marina del Rey. Enjoy breathtaking ocean views, live entertainment, music, dinner, and conversations with NUP leaders and convention guests.
               </p>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <Badge className="bg-white/20 text-white border-white/30 text-lg px-4 py-1">$220</Badge>
                 <Button className="bg-white text-blue-900 hover:bg-white/90" asChild>
                   <a href="https://buy.stripe.com/9AQ4k10e1cW96Ri14e" target="_blank" rel="noopener noreferrer">
