@@ -12,10 +12,13 @@ import { useState, useEffect } from "react";
 import { 
   Globe2, Users, Heart, Calendar, ArrowRight, 
   Newspaper, ShoppingBag, MapPin, ChevronRight,
-  Shield, Handshake, Award, UsersRound, Flag
+  Shield, Handshake, Award, UsersRound, Flag,
+  Ship, Hotel, ExternalLink, Clock
 } from "lucide-react";
 import type { Region, NewsItem, Conference } from "@shared/schema";
 
+import nupEventPhotoImg from "@assets/nup-event-photo.jpg";
+import laSkylineDayImg from "@assets/la-skyline-day.png";
 import bobiCrowd1 from "@assets/481158321_1250421886443613_5486285688228274535_n_1771985183074.jpg";
 import bobiSpeech from "@assets/481960678_1247756343376834_40067085171628253_n_1771985183075.jpg";
 import bobiCrowd2 from "@assets/482020332_1247763793376089_5532648801704771009_n_1771985183075.jpg";
@@ -215,52 +218,85 @@ export default function Home() {
       </section>
 
       {upcomingConference && (
-        <section className="py-16 bg-gradient-to-r from-primary/10 to-primary/5">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <Badge className="mb-4">Upcoming Event</Badge>
-                <h2 className="text-3xl font-bold mb-4">{upcomingConference.title}</h2>
-                {upcomingConference.theme && (
-                  <p className="text-lg text-muted-foreground italic mb-4">"{upcomingConference.theme}"</p>
-                )}
-                <div className="space-y-2 mb-6">
-                  <p className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-primary" />
-                    {upcomingConference.city}, {upcomingConference.country}
+        <section className="py-0" data-testid="section-convention">
+          <div className="relative overflow-hidden">
+            <div className="absolute inset-0">
+              <img src={laSkylineDayImg} alt="Los Angeles" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-red-900/90 via-red-900/80 to-red-900/60" />
+            </div>
+            <div className="container mx-auto px-4 relative z-10 py-16">
+              <div className="grid lg:grid-cols-5 gap-8 items-center">
+                <div className="lg:col-span-3 text-white">
+                  <Badge className="bg-white/20 text-white border-white/30 mb-4 text-sm">
+                    Upcoming Convention
+                  </Badge>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-2" data-testid="text-convention-title">
+                    {upcomingConference.title}
+                  </h2>
+                  <p className="text-xl text-white/80 italic mb-6">
+                    "{upcomingConference.theme}"
                   </p>
-                  <p className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-primary" />
-                    {upcomingConference.year}
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <Link href={`/conferences/${upcomingConference.slug}`}>
-                    <Button data-testid="button-conference-details">
-                      Learn More
-                    </Button>
-                  </Link>
-                  {upcomingConference.registrationUrl && (
-                    <Button variant="outline" asChild>
-                      <a href={upcomingConference.registrationUrl} target="_blank" rel="noopener noreferrer">
-                        Register Now
-                      </a>
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <div className="hidden md:block">
-                {upcomingConference.imageUrl ? (
-                  <img 
-                    src={upcomingConference.imageUrl} 
-                    alt={upcomingConference.title}
-                    className="rounded-lg shadow-lg"
-                  />
-                ) : (
-                  <div className="aspect-video bg-card rounded-lg flex items-center justify-center border">
-                    <Calendar className="w-24 h-24 text-primary/30" />
+                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 text-white/70 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Hilton Los Angeles Airport</p>
+                        <p className="text-sm text-white/70">Los Angeles, California</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-5 h-5 text-white/70 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">August 13th – 17th, 2026</p>
+                        <p className="text-sm text-white/70">4 days of leadership & unity</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Ship className="w-5 h-5 text-white/70 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Boat Cruise — $220</p>
+                        <p className="text-sm text-white/70">Heroes Celebration on Waters</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Hotel className="w-5 h-5 text-white/70 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">Hotel from $179/night</p>
+                        <p className="text-sm text-white/70">Breakfast included</p>
+                      </div>
+                    </div>
                   </div>
-                )}
+                  <div className="flex flex-wrap gap-3">
+                    <Link href={`/conferences/${upcomingConference.slug}`}>
+                      <Button size="lg" className="bg-white text-red-900 hover:bg-white/90 font-bold" data-testid="button-conference-details">
+                        View Full Details
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                    {upcomingConference.registrationUrl && (
+                      <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/10 font-bold" asChild data-testid="button-convention-register">
+                        <a href={upcomingConference.registrationUrl} target="_blank" rel="noopener noreferrer">
+                          Register — $280
+                          <ExternalLink className="w-4 h-4 ml-2" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="hidden lg:block lg:col-span-2">
+                  <div className="rounded-xl overflow-hidden shadow-2xl border-2 border-white/20">
+                    <img
+                      src={nupEventPhotoImg}
+                      alt="NUP Diaspora community event"
+                      className="w-full h-64 object-cover"
+                    />
+                  </div>
+                  <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                    <p className="text-white text-sm text-center">
+                      Join Ugandans from across the globe — register early and be part of this historic gathering.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

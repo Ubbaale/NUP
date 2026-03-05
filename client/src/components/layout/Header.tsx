@@ -1,25 +1,29 @@
 import { Link, useLocation } from "wouter";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music } from "lucide-react";
+import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown } from "lucide-react";
 import nupLogo from "@/assets/images/nup-official-logo.png";
 
-const navItems = [
-  { href: "/", label: "Home", icon: Globe2 },
-  { href: "/regions", label: "Regions", icon: Globe2 },
-  { href: "/events", label: "Events", icon: Video },
+const primaryNav = [
+  { href: "/", label: "Home" },
+  { href: "/regions", label: "Regions" },
+  { href: "/conferences", label: "Convention" },
+  { href: "/events", label: "Events" },
+  { href: "/news", label: "News" },
+  { href: "/store", label: "Store" },
+  { href: "/membership", label: "Membership" },
+];
+
+const moreNavItems = [
   { href: "/campaigns", label: "Campaigns", icon: Target },
-  { href: "/conferences", label: "Conferences", icon: Calendar },
-  { href: "/news", label: "News", icon: Newspaper },
   { href: "/blog", label: "Blog", icon: BookOpen },
   { href: "/auctions", label: "Auctions", icon: Gavel },
   { href: "/songs", label: "Songs", icon: Music },
-  { href: "/store", label: "Store", icon: ShoppingBag },
-  { href: "/membership", label: "Membership", icon: Users },
-  { href: "/donate", label: "Donate", icon: Heart },
 ];
 
 export function Header() {
   const [location] = useLocation();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b" style={{ paddingTop: "env(safe-area-inset-top)" }}>
@@ -30,7 +34,7 @@ export function Header() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => (
+            {primaryNav.map((item) => (
               <Link key={item.href} href={item.href}>
                 <Button
                   variant={location === item.href ? "secondary" : "ghost"}
@@ -41,6 +45,38 @@ export function Header() {
                 </Button>
               </Link>
             ))}
+            <div
+              className="relative"
+              onMouseEnter={() => setMoreOpen(true)}
+              onMouseLeave={() => setMoreOpen(false)}
+            >
+              <Button
+                variant="ghost"
+                className="font-bold"
+                data-testid="nav-more"
+              >
+                More
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </Button>
+              {moreOpen && (
+                <div className="absolute top-full right-0 mt-1 bg-background border rounded-lg shadow-lg py-1 min-w-[160px] z-50">
+                  {moreNavItems.map((item) => (
+                    <Link key={item.href} href={item.href}>
+                      <button
+                        className={`w-full text-left px-4 py-2 text-sm font-medium flex items-center gap-2 hover:bg-muted transition-colors ${
+                          location === item.href ? "bg-muted text-primary" : ""
+                        }`}
+                        data-testid={`nav-${item.label.toLowerCase()}`}
+                        onClick={() => setMoreOpen(false)}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {item.label}
+                      </button>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
 
           <div className="flex items-center gap-2">
