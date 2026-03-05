@@ -14,19 +14,19 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Conference } from "@shared/schema";
-import conventionHeroImg from "@assets/convention-2026-hero.png";
-import laMorningImg from "@assets/la-morning.png";
-import laSunsetImg from "@assets/la-sunset.png";
-import laNightImg from "@assets/la-night.png";
-import laSantaMonicaImg from "@assets/la-santa-monica.png";
+import laBrightDayImg from "@assets/la-bright-day.png";
+import laOceanImg from "@assets/la-ocean.png";
+import laStreetsImg from "@assets/la-streets.png";
+import laSkylineDayImg from "@assets/la-skyline-day.png";
+import laPierDayImg from "@assets/la-pier-day.png";
 import boatCruiseImg from "@assets/convention-2026-boat.png";
 
 const HERO_SLIDES = [
-  { src: conventionHeroImg, alt: "Los Angeles skyline at golden hour" },
-  { src: laMorningImg, alt: "Los Angeles sunrise with palm trees" },
-  { src: laSunsetImg, alt: "Hollywood Hills sunset over Los Angeles" },
-  { src: laNightImg, alt: "Los Angeles city lights at night" },
-  { src: laSantaMonicaImg, alt: "Santa Monica pier at dusk" },
+  { src: laSkylineDayImg, alt: "Los Angeles skyline on a bright sunny day" },
+  { src: laOceanImg, alt: "Beautiful Pacific Ocean beach in California" },
+  { src: laStreetsImg, alt: "Beverly Hills boulevard with luxury buildings" },
+  { src: laBrightDayImg, alt: "Sunny Los Angeles boulevard with palm trees" },
+  { src: laPierDayImg, alt: "Santa Monica pier on a beautiful day" },
 ];
 
 const SCHEDULE_DATA = [
@@ -150,7 +150,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
 
   return (
     <div className="min-h-screen">
-      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <div className="relative h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           {HERO_SLIDES.map((slide, i) => (
             <img
@@ -162,29 +162,23 @@ function Convention2026Page({ conference }: { conference: Conference }) {
               }`}
             />
           ))}
-          <div className="absolute inset-0 bg-gradient-to-b from-red-900/75 via-red-900/60 to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
         </div>
-        <div className="container mx-auto px-4 relative z-10 text-center py-12">
+        <div className="container mx-auto px-4 relative z-10 text-center">
           <Link href="/conferences">
             <Button variant="ghost" className="mb-6 text-white/80 hover:text-white hover:bg-white/10 absolute left-4 top-0" data-testid="button-back-to-conferences">
               <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
           </Link>
-          <Badge className="bg-white/20 text-white border-white/30 mb-6 text-sm px-4 py-1">
-            Upcoming Convention
-          </Badge>
-          <p className="text-white/90 text-lg md:text-xl mb-3 tracking-widest uppercase font-medium">{conference.theme}</p>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-4 text-white drop-shadow-lg" data-testid="text-conference-title">
-            NUP Diaspora<br />Convention 2026
+          <h2 className="text-xl md:text-2xl font-medium text-white/90 mb-3 tracking-wide" data-testid="text-conference-theme">
+            Building a New Uganda Together &nbsp; Los Angeles 2026
+          </h2>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-white drop-shadow-lg" data-testid="text-conference-title">
+            August 13th-17th
           </h1>
-          <p className="text-2xl md:text-3xl font-light text-white/90 mb-2">Los Angeles, California</p>
-          <div className="flex items-center justify-center gap-2 text-white/80 text-lg mb-8">
-            <Calendar className="w-5 h-5" />
-            <span>August 13th – 17th, 2026</span>
-          </div>
 
-          <div className="mb-10">
-            <CountdownTimer targetDate={new Date("2026-08-13T08:00:00-07:00")} />
+          <div className="mb-8">
+            <CountdownTimer targetDate={new Date("2026-08-13T00:00:00")} />
           </div>
 
           <div className="flex items-center justify-center gap-2 mb-8" data-testid="slide-indicators">
@@ -192,10 +186,10 @@ function Convention2026Page({ conference }: { conference: Conference }) {
               <button
                 key={i}
                 onClick={() => goToSlide(i)}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
+                className={`h-2.5 rounded-full transition-all duration-500 ${
                   i === currentSlide
                     ? "bg-white w-8"
-                    : "bg-white/40 hover:bg-white/60"
+                    : "bg-white/40 w-2.5 hover:bg-white/60"
                 }`}
                 aria-label={`Go to slide ${i + 1}`}
                 data-testid={`slide-dot-${i}`}
