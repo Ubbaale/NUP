@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +14,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import type { Conference } from "@shared/schema";
+import conventionHeroImg from "@assets/convention-2026-hero.png";
+import boatCruiseImg from "@assets/convention-2026-boat.png";
 
 const SCHEDULE_DATA = [
   {
@@ -72,31 +75,90 @@ const SPEAKERS = [
   { name: "Katie Lowe", role: "Guest Speaker", desc: "CFO, American Leaders Class — human rights activist" },
 ];
 
+function CountdownTimer({ targetDate }: { targetDate: Date }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const calculate = () => {
+      const now = new Date().getTime();
+      const target = targetDate.getTime();
+      const diff = target - now;
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diff % (1000 * 60)) / 1000),
+      });
+    };
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  const units = [
+    { label: "Days", value: timeLeft.days },
+    { label: "Hours", value: timeLeft.hours },
+    { label: "Minutes", value: timeLeft.minutes },
+    { label: "Seconds", value: timeLeft.seconds },
+  ];
+
+  return (
+    <div className="flex items-center justify-center gap-3 sm:gap-5" data-testid="countdown-timer">
+      {units.map((unit) => (
+        <div key={unit.label} className="text-center">
+          <div className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-1">
+            <span className="text-2xl sm:text-4xl font-bold text-white tabular-nums">
+              {String(unit.value).padStart(2, "0")}
+            </span>
+          </div>
+          <span className="text-[10px] sm:text-xs text-white/70 uppercase tracking-wider font-medium">{unit.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Convention2026Page({ conference }: { conference: Conference }) {
   return (
     <div className="min-h-screen">
-      <div className="relative bg-gradient-to-br from-red-900 via-red-800 to-red-950 text-white py-20">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50" />
-        <div className="container mx-auto px-4 relative z-10 text-center">
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src={conventionHeroImg}
+            alt="Los Angeles skyline at sunset"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-red-900/80 via-red-900/70 to-black/80" />
+        </div>
+        <div className="container mx-auto px-4 relative z-10 text-center py-12">
           <Link href="/conferences">
             <Button variant="ghost" className="mb-6 text-white/80 hover:text-white hover:bg-white/10 absolute left-4 top-0" data-testid="button-back-to-conferences">
               <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
           </Link>
-          <Badge className="bg-white/20 text-white border-white/30 mb-4 text-sm px-4 py-1">
+          <Badge className="bg-white/20 text-white border-white/30 mb-6 text-sm px-4 py-1">
             Upcoming Convention
           </Badge>
-          <p className="text-white/80 text-lg mb-2 tracking-widest uppercase">{conference.theme}</p>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4" data-testid="text-conference-title">
-            NUP Diaspora Convention 2026
+          <p className="text-white/90 text-lg md:text-xl mb-3 tracking-widest uppercase font-medium">{conference.theme}</p>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-4 text-white drop-shadow-lg" data-testid="text-conference-title">
+            NUP Diaspora<br />Convention 2026
           </h1>
           <p className="text-2xl md:text-3xl font-light text-white/90 mb-2">Los Angeles, California</p>
           <div className="flex items-center justify-center gap-2 text-white/80 text-lg mb-8">
             <Calendar className="w-5 h-5" />
             <span>August 13th – 17th, 2026</span>
           </div>
+
+          <div className="mb-10">
+            <CountdownTimer targetDate={new Date("2026-08-13T08:00:00-07:00")} />
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="bg-white text-red-900 hover:bg-white/90 font-bold text-lg px-8" asChild data-testid="button-register-convention">
+            <Button size="lg" className="bg-white text-red-900 hover:bg-white/90 font-bold text-lg px-8 shadow-xl" asChild data-testid="button-register-convention">
               <a href="https://buy.stripe.com/fZucN60BC3SKcLR9eYaR20j" target="_blank" rel="noopener noreferrer">
                 Pay for Convention
                 <ExternalLink className="w-5 h-5 ml-2" />
@@ -298,6 +360,10 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           <h2 className="text-3xl font-bold mb-2 text-center">Boat Cruise Experience</h2>
           <p className="text-center text-muted-foreground mb-8">An unforgettable evening on the Southern California coastline</p>
           <Card className="max-w-3xl mx-auto overflow-hidden">
+            <div className="relative">
+              <img src={boatCruiseImg} alt="Luxury boat cruise at sunset" className="w-full h-56 object-cover" loading="lazy" />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/90 to-transparent" />
+            </div>
             <div className="bg-gradient-to-r from-blue-900 to-blue-700 p-8 text-white">
               <div className="flex items-center gap-4 mb-4">
                 <Ship className="w-12 h-12" />
