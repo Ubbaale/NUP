@@ -21,13 +21,20 @@ import laSkylineDayImg from "@assets/la-skyline-day.png";
 import laPierDayImg from "@assets/la-pier-day.png";
 import hiltonExteriorImg from "@assets/hilton-la-exterior.png";
 import hiltonLobbyImg from "@assets/hilton-la-lobby.png";
-import cityCruiseBoatImg from "@assets/city-cruise-boat.png";
-import cityCruiseInteriorImg from "@assets/city-cruise-interior.png";
+import nupEventPhotoImg from "@assets/nup-event-photo.jpg";
+import nupInitiativesImg from "@assets/nup-initiatives.jpg";
+import nupGetInvolvedImg from "@assets/nup-get-involved.jpg";
+import nupBoatCruise1Img from "@assets/nup-boat-cruise-1.jpg";
+import nupBoatCruise2Img from "@assets/nup-boat-cruise-2.jpg";
+import bobiWineSpeakerImg from "@assets/bobi-wine-speaker.jpg";
 
 const HERO_SLIDES = [
+  { src: nupEventPhotoImg, alt: "NUP Diaspora community gathering" },
   { src: laSkylineDayImg, alt: "Los Angeles skyline on a bright sunny day" },
+  { src: nupInitiativesImg, alt: "NUP Diaspora engagement and initiatives" },
   { src: laOceanImg, alt: "Beautiful Pacific Ocean beach in California" },
   { src: hiltonExteriorImg, alt: "Hilton Los Angeles Airport Hotel exterior" },
+  { src: nupGetInvolvedImg, alt: "NUP Diaspora outreach and community" },
   { src: laStreetsImg, alt: "Beverly Hills boulevard with luxury buildings" },
   { src: hiltonLobbyImg, alt: "Hilton Los Angeles Airport Hotel elegant lobby" },
   { src: laBrightDayImg, alt: "Sunny Los Angeles boulevard with palm trees" },
@@ -84,12 +91,12 @@ const SCHEDULE_DATA = [
 ];
 
 const SPEAKERS = [
-  { name: "President Robert Ssentamu Kyagulanyi", role: "Keynote Speaker", desc: "Leader of the People Power Movement and President of NUP" },
-  { name: "Danny K Davis", role: "Distinguished Guest Speaker", desc: "U.S. Congressman and human rights advocate" },
-  { name: "Professor David Ssejinja", role: "Guest Speaker", desc: "Expert in international politics and African education" },
-  { name: "Professor James Powell", role: "Guest Speaker", desc: "Adjunct Professor and humanitarian advocate" },
-  { name: "Professor Tim Szczepanski", role: "Guest Speaker", desc: "Director of Student Engagement, CSU Northridge" },
-  { name: "Katie Lowe", role: "Guest Speaker", desc: "CFO, American Leaders Class — human rights activist" },
+  { name: "President Robert Ssentamu Kyagulanyi", role: "Keynote Speaker", desc: "Leader of the People Power Movement and President of NUP", photo: bobiWineSpeakerImg },
+  { name: "Danny K Davis", role: "Distinguished Guest Speaker", desc: "U.S. Congressman and human rights advocate", photo: null },
+  { name: "Professor David Ssejinja", role: "Guest Speaker", desc: "Expert in international politics and African education", photo: null },
+  { name: "Professor James Powell", role: "Guest Speaker", desc: "Adjunct Professor and humanitarian advocate", photo: null },
+  { name: "Professor Tim Szczepanski", role: "Guest Speaker", desc: "Director of Student Engagement, CSU Northridge", photo: null },
+  { name: "Katie Lowe", role: "Guest Speaker", desc: "CFO, American Leaders Class — human rights activist", photo: null },
 ];
 
 function CountdownTimer({ targetDate }: { targetDate: Date }) {
@@ -329,11 +336,17 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           <p className="text-center text-muted-foreground mb-8">Voices of Freedom and Justice</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SPEAKERS.map((speaker, i) => (
-              <Card key={i} className="text-center" data-testid={`card-speaker-${i}`}>
+              <Card key={i} className="text-center overflow-hidden" data-testid={`card-speaker-${i}`}>
                 <CardContent className="p-6">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-8 h-8 text-primary" />
-                  </div>
+                  {speaker.photo ? (
+                    <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 border-4 border-primary/20 shadow-lg">
+                      <img src={speaker.photo} alt={speaker.name} className="w-full h-full object-cover object-top" loading="lazy" />
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Users className="w-10 h-10 text-primary" />
+                    </div>
+                  )}
                   <h3 className="font-bold text-lg">{speaker.name}</h3>
                   <Badge variant="outline" className="mt-2 mb-3">{speaker.role}</Badge>
                   <p className="text-sm text-muted-foreground">{speaker.desc}</p>
@@ -412,7 +425,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
               muted
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
-              poster={cityCruiseBoatImg}
+              poster={nupBoatCruise1Img}
             >
               <source src="/videos/ocean-cruise.mp4" type="video/mp4" />
             </video>
@@ -421,10 +434,10 @@ function Convention2026Page({ conference }: { conference: Conference }) {
             <div className="relative z-10 p-8 md:p-12">
               <div className="grid md:grid-cols-2 gap-4 mb-8">
                 <div className="rounded-xl overflow-hidden shadow-lg border border-white/20">
-                  <img src={cityCruiseBoatImg} alt="City Cruises luxury yacht on Pacific Ocean" className="w-full h-48 object-cover" loading="lazy" />
+                  <img src={nupBoatCruise1Img} alt="City Cruises boat for NUP convention" className="w-full h-48 object-cover" loading="lazy" />
                 </div>
                 <div className="rounded-xl overflow-hidden shadow-lg border border-white/20">
-                  <img src={cityCruiseInteriorImg} alt="Elegant dining interior of City Cruises boat" className="w-full h-48 object-cover" loading="lazy" />
+                  <img src={nupBoatCruise2Img} alt="NUP Diaspora boat cruise experience" className="w-full h-48 object-cover" loading="lazy" />
                 </div>
               </div>
 
