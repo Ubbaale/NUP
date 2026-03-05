@@ -362,6 +362,17 @@ export async function seedDatabase() {
         coordinates: JSON.stringify({ lat: 34.0479, lng: 100.6197 }),
       },
       {
+        name: "Gulf-UAE",
+        slug: "gulf-uae",
+        description: "NUP Diaspora presence in the Gulf region and United Arab Emirates, connecting Ugandans across the Middle East.",
+        leaderName: "TBD",
+        leaderTitle: "Gulf-UAE Regional Coordinator",
+        leaderBio: "Coordinating diaspora activities across the Gulf states and UAE.",
+        contactEmail: "gulf@diasporanup.org",
+        contactPhone: "+971 4 555 0200",
+        coordinates: JSON.stringify({ lat: 24.4539, lng: 54.3773 }),
+      },
+      {
         name: "Australia",
         slug: "australia",
         description: "Australian NUP network spanning Sydney, Melbourne, Perth and other major cities.",

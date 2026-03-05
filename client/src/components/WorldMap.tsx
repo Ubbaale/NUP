@@ -22,6 +22,7 @@ const regionMarkers: Record<string, { coordinates: [number, number]; label: stri
   "uk": { coordinates: [-3.436, 55.3781], label: "United Kingdom" },
   "canada": { coordinates: [-106.3468, 56.1304], label: "Canada" },
   "asia": { coordinates: [100.6197, 34.0479], label: "Asia" },
+  "gulf-uae": { coordinates: [54.3773, 24.4539], label: "Gulf-UAE" },
   "australia": { coordinates: [133.7751, -25.2744], label: "Australia" },
   "africa": { coordinates: [17.8, 0], label: "Africa" },
 };
