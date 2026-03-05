@@ -178,9 +178,39 @@ async function seedMissingChapters(existingRegions: Region[]) {
   if (!naRegion) return;
 
   const existingChapters = await storage.getChaptersByRegion(naRegion.id);
-  const existingSlugs = new Set(existingChapters.map(c => c.slug));
 
-  const missingChapters = NA_CHAPTERS_DATA.filter(c => !existingSlugs.has(c.slug));
+  const seen = new Map<string, typeof existingChapters[0]>();
+  const duplicates: typeof existingChapters = [];
+  for (const ch of existingChapters) {
+    const key = ch.city?.toLowerCase() || ch.slug;
+    if (seen.has(key)) {
+      const existing = seen.get(key)!;
+      const keepNup = existing.slug.startsWith("nup-") ? existing : ch;
+      const removeOld = existing.slug.startsWith("nup-") ? ch : existing;
+      if (keepNup.id !== removeOld.id) {
+        duplicates.push(removeOld);
+        seen.set(key, keepNup);
+      }
+    } else {
+      seen.set(key, ch);
+    }
+  }
+
+  if (duplicates.length > 0) {
+    console.log(`Removing ${duplicates.length} duplicate chapters...`);
+    for (const dup of duplicates) {
+      await storage.deleteChapter(dup.id);
+      console.log(`  Removed duplicate: ${dup.name} (${dup.slug})`);
+    }
+  }
+
+  const refreshedChapters = await storage.getChaptersByRegion(naRegion.id);
+  const existingSlugs = new Set(refreshedChapters.map(c => c.slug));
+  const existingCities = new Set(refreshedChapters.map(c => c.city?.toLowerCase()));
+
+  const missingChapters = NA_CHAPTERS_DATA.filter(c =>
+    !existingSlugs.has(c.slug) && !existingCities.has(c.city.toLowerCase())
+  );
 
   if (missingChapters.length > 0) {
     console.log(`Adding ${missingChapters.length} missing North America chapters...`);
@@ -188,7 +218,6 @@ async function seedMissingChapters(existingRegions: Region[]) {
       await storage.createChapter({ ...chapterData, regionId: naRegion.id });
       console.log(`  Added: ${chapterData.name}`);
     }
-    console.log("Missing chapters seeded successfully.");
   }
 
   const allChapters = await storage.getAllChapters();
