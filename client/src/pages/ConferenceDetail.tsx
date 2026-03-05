@@ -146,6 +146,45 @@ function CountdownTimer({ targetDate }: { targetDate: Date }) {
   );
 }
 
+function PastConventions() {
+  const { data: conferences } = useQuery<Conference[]>({
+    queryKey: ["/api/conferences"],
+  });
+
+  const pastConferences = conferences?.filter(c => !c.isUpcoming) || [];
+
+  if (pastConferences.length === 0) return null;
+
+  return (
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold mb-2 text-center">Past Conventions</h2>
+      <p className="text-center text-muted-foreground mb-6">A look back at our previous gatherings</p>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {pastConferences.map((conf) => (
+          <Link key={conf.id} href={`/conferences/${conf.slug}`}>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full" data-testid={`card-past-convention-${conf.slug}`}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-primary">{conf.year}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm leading-tight">{conf.title}</h3>
+                    <p className="text-xs text-muted-foreground">{conf.city}, {conf.country}</p>
+                  </div>
+                </div>
+                {conf.theme && (
+                  <p className="text-xs text-muted-foreground italic">"{conf.theme}"</p>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Convention2026Page({ conference }: { conference: Conference }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -551,7 +590,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           </div>
         </section>
 
-        <section className="text-center py-12 bg-gradient-to-br from-red-900 via-red-800 to-red-950 text-white rounded-2xl px-8">
+        <section className="text-center py-12 bg-gradient-to-br from-red-900 via-red-800 to-red-950 text-white rounded-2xl px-8 mb-16">
           <h2 className="text-3xl font-bold mb-4">Join Us in Los Angeles</h2>
           <p className="text-white/80 max-w-2xl mx-auto mb-8 text-lg">
             Be part of this historic gathering. Register today and help build a New Uganda together.
@@ -572,6 +611,8 @@ function Convention2026Page({ conference }: { conference: Conference }) {
             Convention Chairman: Joseph William Ssenkumba
           </p>
         </section>
+
+        <PastConventions />
       </div>
     </div>
   );
