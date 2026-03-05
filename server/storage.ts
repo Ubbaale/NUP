@@ -29,7 +29,7 @@ import {
   users
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or } from "drizzle-orm";
+import { eq, desc, and, or, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 function generateMembershipId(): string {
@@ -331,6 +331,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllConferences(): Promise<Conference[]> {
+    const fourMonthsAgo = new Date();
+    fourMonthsAgo.setMonth(fourMonthsAgo.getMonth() - 4);
+
+    await db
+      .update(conferences)
+      .set({ isUpcoming: false })
+      .where(
+        and(
+          eq(conferences.isUpcoming, true),
+          lte(conferences.endDate, fourMonthsAgo)
+        )
+      );
+
     return db.select().from(conferences).orderBy(desc(conferences.year));
   }
 
