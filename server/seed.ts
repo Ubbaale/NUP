@@ -239,6 +239,8 @@ const PRODUCT_IMAGE_MAP: Record<string, string> = {
   "bobi-wine-poster": "/uploads/products/bobi-wine-poster.png",
   "nup-hoodie": "/uploads/products/nup-hoodie.png",
   "democracy-mug": "/uploads/products/democracy-mug.png",
+  "bobi-wine-tshirt": "/uploads/products/bobi-wine-tshirt.png",
+  "bobi-wine-portrait-tshirt": "/uploads/products/bobi-wine-portrait-tshirt.png",
 };
 
 async function seedMissingProductImages() {
@@ -253,6 +255,40 @@ async function seedMissingProductImages() {
   }
   if (updated > 0) {
     console.log(`Updated images for ${updated} products.`);
+  }
+
+  const existingSlugs = new Set(allProducts.map(p => p.slug));
+  const newProducts = [
+    {
+      name: "Bobi Wine Fist T-Shirt",
+      slug: "bobi-wine-tshirt",
+      description: "Bold red and black graphic tee featuring Bobi Wine with raised fist and NUP Uganda branding. A powerful statement of People Power.",
+      price: "29.99",
+      category: "Apparel",
+      imageUrl: "/uploads/products/bobi-wine-tshirt.png",
+      inStock: true,
+      featured: true,
+      sizes: JSON.stringify(["S", "M", "L", "XL", "2XL", "3XL"]),
+      colors: JSON.stringify(["Black", "White", "Red"]),
+    },
+    {
+      name: "Bobi Wine Portrait T-Shirt",
+      slug: "bobi-wine-portrait-tshirt",
+      description: "Striking silhouette design of Bobi Wine with Uganda flag colors and People Power fist. A bold artistic statement for freedom.",
+      price: "29.99",
+      category: "Apparel",
+      imageUrl: "/uploads/products/bobi-wine-portrait-tshirt.png",
+      inStock: true,
+      featured: true,
+      sizes: JSON.stringify(["S", "M", "L", "XL", "2XL", "3XL"]),
+      colors: JSON.stringify(["Black", "White", "Navy"]),
+    },
+  ];
+  for (const prod of newProducts) {
+    if (!existingSlugs.has(prod.slug)) {
+      await storage.createProduct(prod);
+      console.log(`  Added new product: ${prod.name}`);
+    }
   }
 }
 
@@ -534,6 +570,30 @@ export async function seedDatabase() {
         imageUrl: "/uploads/products/democracy-mug.png",
         inStock: true,
         featured: false,
+      },
+      {
+        name: "Bobi Wine Fist T-Shirt",
+        slug: "bobi-wine-tshirt",
+        description: "Bold red and black graphic tee featuring Bobi Wine with raised fist and NUP Uganda branding. A powerful statement of People Power.",
+        price: "29.99",
+        category: "Apparel",
+        imageUrl: "/uploads/products/bobi-wine-tshirt.png",
+        inStock: true,
+        featured: true,
+        sizes: JSON.stringify(["S", "M", "L", "XL", "2XL", "3XL"]),
+        colors: JSON.stringify(["Black", "White", "Red"]),
+      },
+      {
+        name: "Bobi Wine Portrait T-Shirt",
+        slug: "bobi-wine-portrait-tshirt",
+        description: "Striking silhouette design of Bobi Wine with Uganda flag colors and People Power fist. A bold artistic statement for freedom.",
+        price: "29.99",
+        category: "Apparel",
+        imageUrl: "/uploads/products/bobi-wine-portrait-tshirt.png",
+        inStock: true,
+        featured: true,
+        sizes: JSON.stringify(["S", "M", "L", "XL", "2XL", "3XL"]),
+        colors: JSON.stringify(["Black", "White", "Navy"]),
       },
     ];
 
