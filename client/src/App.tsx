@@ -26,6 +26,7 @@ import Songs from "@/pages/Songs";
 import EventsAdmin from "@/pages/EventsAdmin";
 import MembershipAdmin from "@/pages/MembershipAdmin";
 import ChaptersAdmin from "@/pages/ChaptersAdmin";
+import StoreAdmin from "@/pages/StoreAdmin";
 import MembershipTiers from "@/pages/MembershipTiers";
 import VirtualEvents from "@/pages/VirtualEvents";
 import VirtualEventDetail from "@/pages/VirtualEventDetail";
@@ -60,6 +61,7 @@ function Router() {
       <Route path="/admin/events" component={EventsAdmin} />
       <Route path="/admin/membership" component={MembershipAdmin} />
       <Route path="/admin/chapters" component={ChaptersAdmin} />
+      <Route path="/admin/store" component={StoreAdmin} />
       <Route path="/membership-tiers" component={MembershipTiers} />
       <Route path="/events" component={VirtualEvents} />
       <Route path="/events/:slug" component={VirtualEventDetail} />

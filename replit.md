@@ -184,6 +184,7 @@ shared/
 
 ## Admin Pages
 - `/admin/chapters` — Chapter CMS: create/edit/delete chapters, assign to regions, manage leadership teams
+- `/admin/store` — Store product management: add/edit/delete products, upload images, toggle stock/featured
 - `/admin/printful` — Printful integration management
 - `/admin/songs` — Revolutionary songs upload and management
 - `/admin/events` — Create/manage virtual events, view Stripe & email config status, toggle active/featured

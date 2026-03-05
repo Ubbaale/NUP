@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema } from "@shared/schema";
+import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -46,6 +46,30 @@ const coverUpload = multer({
       cb(null, uniqueSuffix + path.extname(file.originalname));
     },
   }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+const productImageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", "products");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files (JPG, PNG, WebP, GIF) are allowed"));
+    }
+  },
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
@@ -296,6 +320,49 @@ export async function registerRoutes(
       res.json(product);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch product" });
+    }
+  });
+
+  app.post("/api/products", async (req, res) => {
+    try {
+      const validatedData = insertProductSchema.parse(req.body);
+      const product = await storage.createProduct(validatedData);
+      res.status(201).json(product);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create product" });
+    }
+  });
+
+  app.patch("/api/products/:id", async (req, res) => {
+    try {
+      const product = await storage.updateProduct(req.params.id, req.body);
+      if (!product) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+      res.json(product);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update product" });
+    }
+  });
+
+  app.delete("/api/products/:id", async (req, res) => {
+    try {
+      await storage.deleteProduct(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete product" });
+    }
+  });
+
+  app.post("/api/upload/product-image", productImageUpload.single("image"), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+      const imageUrl = `/uploads/products/${req.file.filename}`;
+      res.json({ imageUrl });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to upload image" });
     }
   });
 

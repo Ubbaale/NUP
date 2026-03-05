@@ -39,6 +39,7 @@ const moreItems = [
   { href: "/admin/membership", label: "Admin: Members", icon: Settings },
   { href: "/admin/songs", label: "Admin: Songs", icon: Settings },
   { href: "/admin/chapters", label: "Admin: Chapters", icon: Settings },
+  { href: "/admin/store", label: "Admin: Store", icon: Settings },
   { href: "/admin/printful", label: "Admin: Printful", icon: Settings },
 ];
 
