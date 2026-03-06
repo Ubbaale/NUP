@@ -7,6 +7,7 @@ import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
 
 const primaryNav = [
   { href: "/", label: "Home" },
+  { href: "/about", label: "About Us" },
   { href: "/regions", label: "Regions" },
   { href: "/conferences/convention-2026", label: "Convention" },
   { href: "/events", label: "Events" },

@@ -8,6 +8,7 @@ import {
   Calendar,
   Newspaper,
   BookOpen,
+  Info,
   Target,
   Gavel,
   Crown,
@@ -25,6 +26,7 @@ const bottomTabs = [
 ];
 
 const moreItems = [
+  { href: "/about", label: "About Us", icon: Info },
   { href: "/songs", label: "Songs", icon: Music },
   { href: "/campaigns", label: "Campaigns", icon: Target },
   { href: "/conferences", label: "Conferences", icon: Calendar },

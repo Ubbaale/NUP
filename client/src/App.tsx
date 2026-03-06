@@ -35,6 +35,7 @@ import CampaignDetail from "@/pages/CampaignDetail";
 import Auctions from "@/pages/Auctions";
 import AuctionDetail from "@/pages/AuctionDetail";
 import ProductDetail from "@/pages/ProductDetail";
+import AboutUs from "@/pages/AboutUs";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/campaigns/:slug" component={CampaignDetail} />
       <Route path="/auctions" component={Auctions} />
       <Route path="/auctions/:slug" component={AuctionDetail} />
+      <Route path="/about" component={AboutUs} />
       <Route component={NotFound} />
     </Switch>
   );
