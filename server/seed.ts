@@ -373,6 +373,17 @@ export async function seedDatabase() {
         coordinates: JSON.stringify({ lat: 24.4539, lng: 54.3773 }),
       },
       {
+        name: "South Africa",
+        slug: "south-africa",
+        description: "NUP Diaspora presence in South Africa, connecting Ugandans across the Rainbow Nation.",
+        leaderName: "Jajja Ibu",
+        leaderTitle: "South Africa Regional Coordinator",
+        leaderBio: "Jajja Ibu coordinates NUP diaspora activities across South Africa.",
+        contactEmail: "southafrica@diasporanup.org",
+        contactPhone: "",
+        coordinates: JSON.stringify({ lat: -30.5595, lng: 22.9375 }),
+      },
+      {
         name: "Australia",
         slug: "australia",
         description: "Australian NUP network spanning Sydney, Melbourne, Perth and other major cities.",

@@ -24,7 +24,7 @@ const regionMarkers: Record<string, { coordinates: [number, number]; label: stri
   "asia": { coordinates: [100.6197, 34.0479], label: "Asia" },
   "gulf-uae": { coordinates: [54.3773, 24.4539], label: "Gulf-UAE" },
   "australia": { coordinates: [133.7751, -25.2744], label: "Australia" },
-  "africa": { coordinates: [17.8, 0], label: "Africa" },
+  "south-africa": { coordinates: [22.9375, -30.5595], label: "South Africa" },
 };
 
 const ugandaCoordinates: [number, number] = [32.2903, 1.3733];
@@ -38,11 +38,11 @@ export function WorldMap({ regions }: WorldMapProps) {
         projection="geoMercator"
         projectionConfig={{
           scale: 120,
-          center: [10, 30],
+          center: [20, 20],
         }}
         style={{ width: "100%", height: "100%" }}
       >
-        <ZoomableGroup zoom={1} center={[10, 30]}>
+        <ZoomableGroup zoom={1} center={[20, 20]}>
           <Geographies geography={geoUrl}>
             {({ geographies }) =>
               geographies.map((geo) => (
