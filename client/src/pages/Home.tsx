@@ -25,14 +25,26 @@ import bobiCrowd2 from "@assets/482020332_1247763793376089_5532648801704771009_n
 import bobiRally from "@assets/482270132_1250411063111362_8964145687773853448_n_1771985183076.jpg";
 import bobiKabale from "@assets/Bobi-Wine-in-Kabale_1771985183076.jpeg";
 import bobiProtest from "@assets/bobi-wine-leads-protest-_1771985183077.jpg";
+import nupCanadaEngagement from "@assets/nup-canada-engagement.jpg";
+import nupCanadaOutreach from "@assets/nup-canada-outreach.jpg";
+import nupDiasporaCanada from "@assets/nup-diaspora-canada.jpg";
+import nupAboutUsGroup from "@assets/nup-about-us-group.webp";
+import nupInitiatives from "@assets/nup-initiatives.jpg";
+import nupGetInvolved from "@assets/nup-get-involved.jpg";
 
 const campaignImages = [
   bobiCrowd1,
+  nupCanadaEngagement,
   bobiSpeech,
+  nupDiasporaCanada,
   bobiCrowd2,
+  nupCanadaOutreach,
   bobiRally,
+  nupAboutUsGroup,
   bobiKabale,
+  nupInitiatives,
   bobiProtest,
+  nupGetInvolved,
 ];
 
 export default function Home() {
