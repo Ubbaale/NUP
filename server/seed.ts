@@ -292,11 +292,119 @@ async function seedMissingProductImages() {
   }
 }
 
+const ALL_REGIONS_DATA = [
+  {
+    name: "North America",
+    slug: "north-america",
+    description: "NUP chapters across the United States, connecting Ugandans in the Americas for democracy and change.",
+    leaderName: "Daniel Kawuma",
+    leaderTitle: "North America Regional Coordinator",
+    leaderBio: "Daniel Kawuma leads the NUP diaspora movement across North America.",
+    contactEmail: "northamerica@diasporanup.org",
+    contactPhone: "+1 (651) 278-6724",
+    coordinates: JSON.stringify({ lat: 37.0902, lng: -95.7129 }),
+  },
+  {
+    name: "Europe",
+    slug: "europe",
+    description: "European chapters spanning Germany, France, Netherlands, and beyond, united for a free Uganda.",
+    leaderName: "Robert Kitunzi",
+    leaderTitle: "Europe Regional Coordinator",
+    leaderBio: "Robert Kitunzi coordinates NUP activities across European capitals.",
+    contactEmail: "europe@diasporanup.org",
+    contactPhone: "+49 176 1234 5678",
+    coordinates: JSON.stringify({ lat: 51.1657, lng: 10.4515 }),
+  },
+  {
+    name: "United Kingdom",
+    slug: "uk",
+    description: "Strong NUP presence in the UK with chapters in London, Manchester, Birmingham and more.",
+    leaderName: "Peter Ekakoru",
+    leaderTitle: "UK Regional Coordinator",
+    leaderBio: "Peter Ekakoru leads community organizing efforts across the United Kingdom.",
+    contactEmail: "uk@diasporanup.org",
+    contactPhone: "+44 20 7946 0958",
+    coordinates: JSON.stringify({ lat: 55.3781, lng: -3.4360 }),
+  },
+  {
+    name: "Canada",
+    slug: "canada",
+    description: "Canadian NUP chapters in Toronto, Vancouver, Calgary and other major cities.",
+    leaderName: "Grace Nabatanzi",
+    leaderTitle: "Canada Regional Coordinator",
+    leaderBio: "Grace Nabatanzi connects Ugandan communities across Canada's provinces.",
+    contactEmail: "canada@diasporanup.org",
+    contactPhone: "+1 (416) 555-0123",
+    coordinates: JSON.stringify({ lat: 56.1304, lng: -106.3468 }),
+  },
+  {
+    name: "Asia",
+    slug: "asia",
+    description: "Growing NUP presence in Asia, connecting Ugandan diaspora in India and beyond.",
+    leaderName: "Elizabeth Nanteza Lubwama",
+    leaderTitle: "Asia Regional Coordinator",
+    leaderBio: "Elizabeth Nanteza Lubwama coordinates diaspora activities across the Asian continent.",
+    contactEmail: "asia@diasporanup.org",
+    contactPhone: "+971 4 555 0123",
+    coordinates: JSON.stringify({ lat: 34.0479, lng: 100.6197 }),
+  },
+  {
+    name: "Gulf-UAE",
+    slug: "gulf-uae",
+    description: "NUP Diaspora presence in the Gulf region and United Arab Emirates, connecting Ugandans across the Middle East.",
+    leaderName: "Patricia Mugisha",
+    leaderTitle: "Gulf-UAE Regional Coordinator",
+    leaderBio: "Patricia Mugisha coordinates NUP diaspora activities across the Gulf states and United Arab Emirates.",
+    contactEmail: "gulf@diasporanup.org",
+    contactPhone: "+971 55 733 7826",
+    coordinates: JSON.stringify({ lat: 24.4539, lng: 54.3773 }),
+  },
+  {
+    name: "South Africa",
+    slug: "south-africa",
+    description: "NUP Diaspora presence in South Africa, connecting Ugandans across the Rainbow Nation.",
+    leaderName: "Jajja Ibu",
+    leaderTitle: "South Africa Regional Coordinator",
+    leaderBio: "Jajja Ibu coordinates NUP diaspora activities across South Africa.",
+    contactEmail: "southafrica@diasporanup.org",
+    contactPhone: "",
+    coordinates: JSON.stringify({ lat: -30.5595, lng: 22.9375 }),
+  },
+  {
+    name: "Australia",
+    slug: "australia",
+    description: "Australian NUP network spanning Sydney, Melbourne, Perth and other major cities.",
+    leaderName: "Isaac Kasirye",
+    leaderTitle: "Australia Regional Coordinator",
+    leaderBio: "Isaac Kasirye leads the growing Ugandan community in Australia.",
+    contactEmail: "australia@diasporanup.org",
+    contactPhone: "+61 2 9555 0123",
+    coordinates: JSON.stringify({ lat: -25.2744, lng: 133.7751 }),
+  },
+];
+
+async function seedMissingRegions() {
+  const existingRegions = await storage.getAllRegions();
+  const existingSlugs = new Set(existingRegions.map(r => r.slug));
+  let added = 0;
+  for (const regionData of ALL_REGIONS_DATA) {
+    if (!existingSlugs.has(regionData.slug)) {
+      await storage.createRegion(regionData);
+      added++;
+      console.log(`  Added missing region: ${regionData.name}`);
+    }
+  }
+  if (added > 0) {
+    console.log(`Added ${added} missing regions.`);
+  }
+}
+
 export async function seedDatabase() {
   try {
     const existingRegions = await storage.getAllRegions();
     if (existingRegions.length > 0) {
-      await seedMissingChapters(existingRegions);
+      await seedMissingRegions();
+      await seedMissingChapters(await storage.getAllRegions());
       await seedMissingProductImages();
       console.log("Database already seeded, skipping...");
       return;
@@ -305,99 +413,8 @@ export async function seedDatabase() {
     console.log("Seeding database with NUP data...");
 
     // Seed Regions
-    const regionsData = [
-      {
-        name: "North America",
-        slug: "north-america",
-        description: "NUP chapters across the United States, connecting Ugandans in the Americas for democracy and change.",
-        leaderName: "Daniel Kawuma",
-        leaderTitle: "North America Regional Coordinator",
-        leaderBio: "Daniel Kawuma leads the NUP diaspora movement across North America.",
-        contactEmail: "northamerica@diasporanup.org",
-        contactPhone: "+1 (651) 278-6724",
-        coordinates: JSON.stringify({ lat: 37.0902, lng: -95.7129 }),
-      },
-      {
-        name: "Europe",
-        slug: "europe",
-        description: "European chapters spanning Germany, France, Netherlands, and beyond, united for a free Uganda.",
-        leaderName: "Robert Kitunzi",
-        leaderTitle: "Europe Regional Coordinator",
-        leaderBio: "Robert Kitunzi coordinates NUP activities across European capitals.",
-        contactEmail: "europe@diasporanup.org",
-        contactPhone: "+49 176 1234 5678",
-        coordinates: JSON.stringify({ lat: 51.1657, lng: 10.4515 }),
-      },
-      {
-        name: "United Kingdom",
-        slug: "uk",
-        description: "Strong NUP presence in the UK with chapters in London, Manchester, Birmingham and more.",
-        leaderName: "Peter Ekakoru",
-        leaderTitle: "UK Regional Coordinator",
-        leaderBio: "Peter Ekakoru leads community organizing efforts across the United Kingdom.",
-        contactEmail: "uk@diasporanup.org",
-        contactPhone: "+44 20 7946 0958",
-        coordinates: JSON.stringify({ lat: 55.3781, lng: -3.4360 }),
-      },
-      {
-        name: "Canada",
-        slug: "canada",
-        description: "Active NUP community in Canada from Toronto to Vancouver, working for democratic change.",
-        leaderName: "Brenda Nakato",
-        leaderTitle: "Canada Regional Coordinator",
-        leaderBio: "Brenda Nakato has been instrumental in building NUP's Canadian network.",
-        contactEmail: "canada@diasporanup.org",
-        contactPhone: "+1 (416) 555-0123",
-        coordinates: JSON.stringify({ lat: 56.1304, lng: -106.3468 }),
-      },
-      {
-        name: "Asia",
-        slug: "asia",
-        description: "Growing NUP presence in Asia, connecting Ugandan diaspora in UAE, India, and beyond.",
-        leaderName: "Elizabeth Nanteza Lubwama",
-        leaderTitle: "Asia Regional Coordinator",
-        leaderBio: "Elizabeth Nanteza Lubwama coordinates diaspora activities across the Asian continent.",
-        contactEmail: "asia@diasporanup.org",
-        contactPhone: "+971 4 555 0123",
-        coordinates: JSON.stringify({ lat: 34.0479, lng: 100.6197 }),
-      },
-      {
-        name: "Gulf-UAE",
-        slug: "gulf-uae",
-        description: "NUP Diaspora presence in the Gulf region and United Arab Emirates, connecting Ugandans across the Middle East.",
-        leaderName: "Patricia Mugisha",
-        leaderTitle: "Gulf-UAE Regional Coordinator",
-        leaderBio: "Patricia Mugisha coordinates NUP diaspora activities across the Gulf states and United Arab Emirates.",
-        contactEmail: "gulf@diasporanup.org",
-        contactPhone: "+971 55 733 7826",
-        coordinates: JSON.stringify({ lat: 24.4539, lng: 54.3773 }),
-      },
-      {
-        name: "South Africa",
-        slug: "south-africa",
-        description: "NUP Diaspora presence in South Africa, connecting Ugandans across the Rainbow Nation.",
-        leaderName: "Jajja Ibu",
-        leaderTitle: "South Africa Regional Coordinator",
-        leaderBio: "Jajja Ibu coordinates NUP diaspora activities across South Africa.",
-        contactEmail: "southafrica@diasporanup.org",
-        contactPhone: "",
-        coordinates: JSON.stringify({ lat: -30.5595, lng: 22.9375 }),
-      },
-      {
-        name: "Australia",
-        slug: "australia",
-        description: "Australian NUP network spanning Sydney, Melbourne, Perth and other major cities.",
-        leaderName: "Isaac Kasirye",
-        leaderTitle: "Australia Regional Coordinator",
-        leaderBio: "Isaac Kasirye leads the growing Ugandan community in Australia.",
-        contactEmail: "australia@diasporanup.org",
-        contactPhone: "+61 2 9555 0123",
-        coordinates: JSON.stringify({ lat: -25.2744, lng: 133.7751 }),
-      },
-    ];
-
     const createdRegions: { [key: string]: any } = {};
-    for (const regionData of regionsData) {
+    for (const regionData of ALL_REGIONS_DATA) {
       const region = await storage.createRegion(regionData);
       createdRegions[region.slug] = region;
     }
