@@ -27,7 +27,6 @@ import bobiKabale from "@assets/Bobi-Wine-in-Kabale_1771985183076.jpeg";
 import bobiProtest from "@assets/bobi-wine-leads-protest-_1771985183077.jpg";
 import nupCanadaEngagement from "@assets/nup-canada-engagement.jpg";
 import nupCanadaOutreach from "@assets/nup-canada-outreach.jpg";
-import nupDiasporaCanada from "@assets/nup-diaspora-canada.jpg";
 import nupAboutUsGroup from "@assets/nup-about-us-group.webp";
 import nupInitiatives from "@assets/nup-initiatives.jpg";
 import nupGetInvolved from "@assets/nup-get-involved.jpg";
@@ -36,8 +35,6 @@ const campaignImages = [
   bobiCrowd1,
   nupCanadaEngagement,
   bobiSpeech,
-  nupDiasporaCanada,
-  bobiCrowd2,
   nupCanadaOutreach,
   bobiRally,
   nupAboutUsGroup,
