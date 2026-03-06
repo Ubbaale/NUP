@@ -29,7 +29,7 @@ import {
   users
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, lte } from "drizzle-orm";
+import { eq, desc, asc, and, or, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 function generateMembershipId(): string {
@@ -267,11 +267,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChaptersByRegion(regionId: string): Promise<Chapter[]> {
-    return db.select().from(chapters).where(eq(chapters.regionId, regionId));
+    return db.select().from(chapters).where(eq(chapters.regionId, regionId)).orderBy(asc(chapters.name));
   }
 
   async getAllChapters(): Promise<Chapter[]> {
-    return db.select().from(chapters);
+    return db.select().from(chapters).orderBy(asc(chapters.name));
   }
 
   async createChapter(insertChapter: InsertChapter): Promise<Chapter> {
