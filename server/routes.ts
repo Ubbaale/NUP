@@ -1683,5 +1683,23 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/manifesto/download", (req, res) => {
+    const filePath = path.join(process.cwd(), "uploads", "documents", "NUP-Manifesto-2026-2031.pdf");
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "Manifesto file not found" });
+    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="NUP-Manifesto-2026-2031.pdf"');
+    const stream = fs.createReadStream(filePath);
+    stream.on("error", () => {
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Failed to read manifesto file" });
+      } else {
+        res.end();
+      }
+    });
+    stream.pipe(res);
+  });
+
   return httpServer;
 }

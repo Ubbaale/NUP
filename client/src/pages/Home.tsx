@@ -13,7 +13,7 @@ import {
   Globe2, Users, Heart, Calendar, ArrowRight, 
   Newspaper, ShoppingBag, MapPin, ChevronRight,
   Shield, Handshake, Award, UsersRound, Flag,
-  Ship, Hotel, ExternalLink, Clock
+  Ship, Hotel, ExternalLink, Clock, FileText, Download
 } from "lucide-react";
 import type { Region, NewsItem, Conference } from "@shared/schema";
 
@@ -200,6 +200,65 @@ export default function Home() {
                 </Card>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-muted/30" data-testid="section-manifesto">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <Badge variant="outline" className="mb-4">2026–2031</Badge>
+              <h2 className="text-3xl font-bold mb-4">NUP Manifesto</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Our blueprint for building A New Uganda Now — a comprehensive plan addressing democracy, jobs, healthcare, education, and more.
+              </p>
+            </div>
+
+            <Card className="overflow-hidden">
+              <div className="grid md:grid-cols-2 gap-0">
+                <div className="bg-primary p-8 md:p-10 flex flex-col justify-center text-primary-foreground">
+                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-6">
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">A New Uganda Now!</h3>
+                  <p className="text-primary-foreground/80 mb-6 text-sm leading-relaxed">
+                    This Manifesto is our solemn contract with the people of Uganda — 11 priority areas covering freedom, anti-corruption, national unity, public services, job creation, agriculture, land rights, governance, diaspora empowerment, climate resilience, and technology.
+                  </p>
+                  <Button size="lg" variant="secondary" className="w-full sm:w-auto font-bold" asChild>
+                    <a href="/api/manifesto/download" download aria-label="Download NUP Manifesto 2026-2031 PDF" data-testid="button-download-manifesto">
+                      <Download className="w-5 h-5 mr-2" />
+                      Download Manifesto (PDF)
+                    </a>
+                  </Button>
+                </div>
+                <div className="p-8 md:p-10 bg-card">
+                  <h4 className="font-bold text-lg mb-4">Key Priorities</h4>
+                  <ul className="space-y-3 text-sm">
+                    {[
+                      "Restore Freedom, Constitutionalism & Human Rights",
+                      "End Corruption & Wasteful Government Expenditure",
+                      "Consolidate National Unity & Rebuild Communities",
+                      "Guarantee Quality Public Services for All",
+                      "Create 10 Million New Jobs by 2032",
+                      "Public School Feeding & Food Security",
+                      "Stop Land Grabbing & Secure Land Rights",
+                      "Empower Regional & Local Governance",
+                      "Position the Diaspora as a Strategic Asset",
+                      "Sustainable Natural Resources & Climate Resilience",
+                      "Transform Uganda into a Tech-Driven Economy",
+                    ].map((priority, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center mt-0.5">
+                          {i + 1}
+                        </span>
+                        <span className="text-muted-foreground">{priority}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
