@@ -29,6 +29,7 @@ import nupCanadaEngagement from "@assets/nup-canada-engagement.jpg";
 import nupCanadaOutreach from "@assets/nup-canada-outreach.jpg";
 import nupAboutUsGroup from "@assets/nup-about-us-group.webp";
 import nupInitiatives from "@assets/nup-initiatives.jpg";
+import nupExecutiveTeam from "@assets/Executive-Team-Members-1024x683_1773023680694.jpg";
 import nupGetInvolved from "@assets/nup-get-involved.jpg";
 
 const campaignImages = [
@@ -39,7 +40,7 @@ const campaignImages = [
   bobiRally,
   nupAboutUsGroup,
   bobiKabale,
-  nupInitiatives,
+  nupExecutiveTeam,
   bobiProtest,
   nupGetInvolved,
 ];
