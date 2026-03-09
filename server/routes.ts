@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema } from "@shared/schema";
+import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -464,6 +464,149 @@ export async function registerRoutes(
       res.json(member);
     } catch (error) {
       res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  app.get("/api/members/stats", async (req, res) => {
+    try {
+      const totalCount = await storage.getMemberCount();
+      const byRegion = await storage.getMemberCountByRegion();
+      const allRegions = await storage.getAllRegions();
+      const regionMap = Object.fromEntries(allRegions.map(r => [r.id, r.name]));
+      const regionStats = byRegion.map(item => ({
+        regionId: item.regionId,
+        regionName: item.regionId ? regionMap[item.regionId] || "Unknown" : "Unassigned",
+        count: item.count,
+      }));
+      res.json({ totalCount, byRegion: regionStats });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch member stats" });
+    }
+  });
+
+  app.get("/api/members/export", async (req, res) => {
+    try {
+      const regionId = req.query.regionId as string | undefined;
+      let memberList: Member[];
+      if (regionId) {
+        memberList = await storage.getMembersByRegion(regionId);
+      } else {
+        memberList = await storage.getAllMembers();
+      }
+      const allRegions = await storage.getAllRegions();
+      const allChapters = await storage.getAllChapters();
+      const regionMap = Object.fromEntries(allRegions.map(r => [r.id, r.name]));
+      const chapterMap = Object.fromEntries(allChapters.map(c => [c.id, c.name]));
+
+      const headers = ["Membership ID", "First Name", "Last Name", "Email", "Phone", "Country", "City", "Region", "Chapter", "Membership Type", "Card Number", "Card Ordered", "Card Payment Status", "Joined At"];
+      const rows = memberList.map(m => [
+        m.membershipId,
+        m.firstName,
+        m.lastName,
+        m.email,
+        m.phone || "",
+        m.country,
+        m.city || "",
+        m.regionId ? regionMap[m.regionId] || "" : "",
+        m.chapterId ? chapterMap[m.chapterId] || "" : "",
+        m.membershipType,
+        m.cardNumber || "",
+        m.cardOrdered ? "Yes" : "No",
+        m.cardPaymentStatus || "",
+        m.joinedAt ? new Date(m.joinedAt).toISOString() : "",
+      ]);
+
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", "attachment; filename=members-export.csv");
+      res.send(csvContent);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to export members" });
+    }
+  });
+
+  app.get("/api/members", async (req, res) => {
+    try {
+      const regionId = req.query.regionId as string | undefined;
+      const search = req.query.search as string | undefined;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      let memberList: Member[];
+      if (search) {
+        memberList = await storage.searchMembers(search, regionId);
+      } else if (regionId) {
+        memberList = await storage.getMembersByRegion(regionId);
+      } else {
+        memberList = await storage.getAllMembers();
+      }
+
+      const total = memberList.length;
+      const totalPages = Math.ceil(total / limit);
+      const offset = (page - 1) * limit;
+      const paginatedMembers = memberList.slice(offset, offset + limit);
+
+      res.json({
+        members: paginatedMembers,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch members" });
+    }
+  });
+
+  app.post("/api/members/:id/order-card", async (req, res) => {
+    try {
+      const member = await storage.getMember(req.params.id);
+      if (!member) {
+        return res.status(404).json({ error: "Member not found" });
+      }
+      if (member.cardOrdered) {
+        return res.status(400).json({ error: "Card already ordered" });
+      }
+
+      const { shippingName, shippingAddress, shippingCity, shippingState, shippingZip, shippingCountry } = req.body;
+      if (!shippingName || !shippingAddress || !shippingCity || !shippingCountry) {
+        return res.status(400).json({ error: "Shipping address is required (name, address, city, country)" });
+      }
+
+      const paymentResult = await stripe.createOrderPaymentIntent({
+        amount: 50,
+        email: member.email,
+        fullName: `${member.firstName} ${member.lastName}`,
+        orderId: `card-${member.id}`,
+      });
+
+      const updatedMember = await storage.updateMember(member.id, {
+        cardOrdered: true,
+        cardOrderedAt: new Date(),
+        cardPaymentStatus: paymentResult ? "pending" : "completed",
+        cardShippingName: shippingName,
+        cardShippingAddress: shippingAddress,
+        cardShippingCity: shippingCity,
+        cardShippingState: shippingState || null,
+        cardShippingZip: shippingZip || null,
+        cardShippingCountry: shippingCountry,
+      });
+
+      res.json({
+        member: updatedMember,
+        payment: paymentResult ? {
+          clientSecret: paymentResult.clientSecret,
+          paymentIntentId: paymentResult.paymentIntentId,
+          amount: 50,
+        } : null,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to order card" });
     }
   });
 

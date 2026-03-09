@@ -39,6 +39,7 @@ import AboutUs from "@/pages/AboutUs";
 import AdminDashboard from "@/pages/AdminDashboard";
 import RegionAdmin from "@/pages/RegionAdmin";
 import RegionDetailAdmin from "@/pages/RegionDetailAdmin";
+import MembersAdmin from "@/pages/MembersAdmin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -77,6 +78,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/regions" component={RegionAdmin} />
       <Route path="/admin/regions/:slug" component={RegionDetailAdmin} />
+      <Route path="/admin/members" component={MembersAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

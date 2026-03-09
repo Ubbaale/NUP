@@ -11,6 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Users,
   Search,
@@ -26,6 +29,7 @@ import {
   Phone,
   Globe2,
   Building,
+  CreditCard,
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -77,6 +81,7 @@ const registrationSchema = z.object({
   regionId: z.string().optional(),
   chapterId: z.string().optional(),
   membershipType: z.string().default("regular"),
+  cardNumber: z.string().optional(),
 });
 
 type RegistrationData = z.infer<typeof registrationSchema>;
@@ -88,6 +93,9 @@ export default function Membership() {
   const [searchError, setSearchError] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [registeredMember, setRegisteredMember] = useState<Member | null>(null);
+  const [hasExistingCard, setHasExistingCard] = useState(false);
+  const [cardOrderMember, setCardOrderMember] = useState<Member | null>(null);
+  const [cardOrderSuccess, setCardOrderSuccess] = useState(false);
 
   const { data: regions } = useQuery<Region[]>({
     queryKey: ["/api/regions"],
@@ -110,6 +118,7 @@ export default function Membership() {
       regionId: "",
       chapterId: "",
       membershipType: "regular",
+      cardNumber: "",
     },
   });
 
@@ -125,6 +134,7 @@ export default function Membership() {
         regionId: data.regionId || undefined,
         chapterId: data.chapterId || undefined,
         dateOfBirth: data.dateOfBirth || undefined,
+        cardNumber: data.cardNumber || undefined,
       };
       const res = await apiRequest("POST", "/api/members", payload);
       return res.json();
@@ -168,6 +178,61 @@ export default function Membership() {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const cardOrderSchema = z.object({
+    shippingName: z.string().min(2, "Full name required"),
+    shippingAddress: z.string().min(5, "Address required"),
+    shippingCity: z.string().min(2, "City required"),
+    shippingState: z.string().optional(),
+    shippingZip: z.string().min(3, "Zip/postal code required"),
+    shippingCountry: z.string().min(2, "Country required"),
+  });
+
+  const cardOrderForm = useForm<z.infer<typeof cardOrderSchema>>({
+    resolver: zodResolver(cardOrderSchema),
+    defaultValues: {
+      shippingName: "",
+      shippingAddress: "",
+      shippingCity: "",
+      shippingState: "",
+      shippingZip: "",
+      shippingCountry: "",
+    },
+  });
+
+  const cardOrderMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof cardOrderSchema>) => {
+      if (!cardOrderMember) throw new Error("No member selected");
+      const res = await apiRequest("POST", `/api/members/${cardOrderMember.id}/order-card`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      setCardOrderSuccess(true);
+      if (registeredMember && cardOrderMember && registeredMember.id === cardOrderMember.id) {
+        setRegisteredMember({ ...registeredMember, cardOrdered: true });
+      }
+      if (searchResult && cardOrderMember && searchResult.id === cardOrderMember.id) {
+        setSearchResult({ ...searchResult, cardOrdered: true });
+      }
+      cardOrderForm.reset();
+    },
+    onError: (err: any) => {
+      toast({ title: "Card Order Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const openCardOrder = (member: Member) => {
+    setCardOrderMember(member);
+    setCardOrderSuccess(false);
+    cardOrderForm.reset({
+      shippingName: `${member.firstName} ${member.lastName}`,
+      shippingAddress: "",
+      shippingCity: member.city || "",
+      shippingState: "",
+      shippingZip: "",
+      shippingCountry: member.country || "",
+    });
   };
 
   const copyToClipboard = (text: string) => {
@@ -353,6 +418,33 @@ export default function Membership() {
                   </div>
 
                   <MemberCard member={registeredMember} showEmail />
+
+                  {!registeredMember.cardOrdered && (
+                    <Card className="border-primary/20">
+                      <CardContent className="pt-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                            <CreditCard className="w-6 h-6 text-primary" />
+                          </div>
+                          <div className="flex-1 space-y-3">
+                            <div>
+                              <h3 className="font-semibold text-lg">Order Physical Membership Card</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Get an official NUP Diaspora physical membership card delivered to your address.
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 flex-wrap">
+                              <Badge variant="secondary">$50.00</Badge>
+                              <Button onClick={() => openCardOrder(registeredMember)} data-testid="button-order-card">
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Order Card
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
                     <Shield className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
@@ -587,6 +679,54 @@ export default function Membership() {
                           )}
                         />
 
+                        <Separator />
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="space-y-0.5">
+                              <Label htmlFor="existing-card-toggle" className="text-sm font-medium">I have an existing membership card</Label>
+                              <p className="text-xs text-muted-foreground">
+                                If you already have a physical NUP membership card, enter your card number below
+                              </p>
+                            </div>
+                            <Switch
+                              id="existing-card-toggle"
+                              checked={hasExistingCard}
+                              onCheckedChange={(checked) => {
+                                setHasExistingCard(checked);
+                                if (!checked) {
+                                  form.setValue("cardNumber", "");
+                                }
+                              }}
+                              data-testid="switch-existing-card"
+                            />
+                          </div>
+
+                          {hasExistingCard && (
+                            <FormField
+                              control={form.control}
+                              name="cardNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Card Number</FormLabel>
+                                  <FormControl>
+                                    <div className="relative">
+                                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                      <Input
+                                        placeholder="Enter your card number"
+                                        className="pl-10"
+                                        {...field}
+                                        data-testid="input-card-number"
+                                      />
+                                    </div>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+
                         <Button
                           type="submit"
                           className="w-full"
@@ -640,7 +780,21 @@ export default function Membership() {
                     )}
 
                     {searchResult && (
-                      <MemberCard member={searchResult} showEmail />
+                      <div className="space-y-4">
+                        <MemberCard member={searchResult} showEmail />
+                        {!searchResult.cardOrdered && (
+                          <Button variant="outline" className="w-full" onClick={() => openCardOrder(searchResult)} data-testid="button-order-card-search">
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Order Physical Membership Card — $50.00
+                          </Button>
+                        )}
+                        {searchResult.cardOrdered && (
+                          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg text-sm">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="text-green-800 dark:text-green-200">Physical membership card ordered</span>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-md">
@@ -657,6 +811,103 @@ export default function Membership() {
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={!!cardOrderMember} onOpenChange={(open) => { if (!open) { setCardOrderMember(null); setCardOrderSuccess(false); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              <CreditCard className="w-5 h-5 inline mr-2" />
+              Order Physical Membership Card
+            </DialogTitle>
+            <DialogDescription>
+              Official NUP Diaspora membership card — $50.00
+            </DialogDescription>
+          </DialogHeader>
+
+          {cardOrderSuccess ? (
+            <div className="text-center py-6 space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold" data-testid="text-card-order-success">Card Order Placed!</h3>
+              <p className="text-muted-foreground text-sm">
+                Your physical membership card for <strong>{cardOrderMember?.firstName} {cardOrderMember?.lastName}</strong> has been ordered.
+                You will receive it at the shipping address provided.
+              </p>
+              <Button onClick={() => { setCardOrderMember(null); setCardOrderSuccess(false); }} className="w-full" data-testid="button-close-card-order">
+                Close
+              </Button>
+            </div>
+          ) : (
+            <Form {...cardOrderForm}>
+              <form onSubmit={cardOrderForm.handleSubmit((data) => cardOrderMutation.mutate(data))} className="space-y-4">
+                <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                  <p>Ordering for: <strong>{cardOrderMember?.firstName} {cardOrderMember?.lastName}</strong></p>
+                  <p className="text-muted-foreground">ID: {cardOrderMember?.membershipId}</p>
+                </div>
+
+                <FormField control={cardOrderForm.control} name="shippingName" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name (as on card)</FormLabel>
+                    <FormControl><Input {...field} data-testid="input-card-shipping-name" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={cardOrderForm.control} name="shippingAddress" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Street Address</FormLabel>
+                    <FormControl><Input {...field} placeholder="123 Main St, Apt 4" data-testid="input-card-shipping-address" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={cardOrderForm.control} name="shippingCity" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl><Input {...field} data-testid="input-card-shipping-city" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={cardOrderForm.control} name="shippingState" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>State/Province</FormLabel>
+                      <FormControl><Input {...field} data-testid="input-card-shipping-state" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField control={cardOrderForm.control} name="shippingZip" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Zip / Postal Code</FormLabel>
+                      <FormControl><Input {...field} data-testid="input-card-shipping-zip" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={cardOrderForm.control} name="shippingCountry" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl><Input {...field} data-testid="input-card-shipping-country" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Physical Membership Card</span>
+                  <span className="font-bold text-lg">$50.00</span>
+                </div>
+
+                <Button type="submit" className="w-full" disabled={cardOrderMutation.isPending} data-testid="button-submit-card-order">
+                  {cardOrderMutation.isPending ? "Processing..." : "Place Order — $50.00"}
+                </Button>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -79,7 +79,7 @@ shared/
 ```
 
 ## Database Schema
-- **members** - Registered NUP members with auto-generated membership IDs
+- **members** - Registered NUP members with auto-generated membership IDs, optional cardNumber for existing card holders, card order tracking (cardOrdered, cardOrderedAt, cardPaymentStatus, cardShipping* fields)
 - **regions** - 6 global regions with coordinators
 - **chapters** - Local chapters within regions (with iconEmoji for landmark icons)
 - **chapterLeaders** - Leadership team members per chapter (name, title, bio, email, displayOrder)
@@ -195,6 +195,7 @@ shared/
 - `/admin/songs` — Revolutionary songs upload and management
 - `/admin/events` — Create/manage virtual events, view Stripe & email config status, toggle active/featured
 - `/admin/membership` — Membership subscription dashboard with stats, search/filter, award status management, shipping details view
+- `/admin/members` — Member Directory: searchable, filterable, paginated list of all registered members with CSV export and stats dashboard
 
 ## PWA (Progressive Web App)
 - **Manifest**: `client/public/manifest.json` — app name, icons, theme color, standalone display mode

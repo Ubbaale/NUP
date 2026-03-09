@@ -17,11 +17,21 @@ export const members = pgTable("members", {
   regionId: varchar("region_id"),
   chapterId: varchar("chapter_id"),
   membershipType: text("membership_type").notNull().default("regular"),
+  cardNumber: text("card_number"),
+  cardOrdered: boolean("card_ordered").notNull().default(false),
+  cardOrderedAt: timestamp("card_ordered_at"),
+  cardPaymentStatus: text("card_payment_status"),
+  cardShippingName: text("card_shipping_name"),
+  cardShippingAddress: text("card_shipping_address"),
+  cardShippingCity: text("card_shipping_city"),
+  cardShippingState: text("card_shipping_state"),
+  cardShippingZip: text("card_shipping_zip"),
+  cardShippingCountry: text("card_shipping_country"),
   isActive: boolean("is_active").notNull().default(true),
   joinedAt: timestamp("joined_at").defaultNow(),
 });
 
-export const insertMemberSchema = createInsertSchema(members).omit({ id: true, membershipId: true, joinedAt: true });
+export const insertMemberSchema = createInsertSchema(members).omit({ id: true, membershipId: true, joinedAt: true, cardOrdered: true, cardOrderedAt: true, cardPaymentStatus: true, cardShippingName: true, cardShippingAddress: true, cardShippingCity: true, cardShippingState: true, cardShippingZip: true, cardShippingCountry: true });
 export type InsertMember = z.infer<typeof insertMemberSchema>;
 export type Member = typeof members.$inferSelect;
 

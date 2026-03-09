@@ -29,7 +29,7 @@ import {
   users
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, or, lte } from "drizzle-orm";
+import { eq, desc, asc, and, or, lte, ilike, sql, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 function generateMembershipId(): string {
@@ -50,7 +50,12 @@ export interface IStorage {
   getMemberByEmail(email: string): Promise<Member | undefined>;
   getMemberByMembershipId(membershipId: string): Promise<Member | undefined>;
   createMember(member: InsertMember): Promise<Member>;
+  updateMember(id: string, data: Partial<Member>): Promise<Member | undefined>;
   getAllMembers(): Promise<Member[]>;
+  getMembersByRegion(regionId: string): Promise<Member[]>;
+  searchMembers(query: string, regionId?: string): Promise<Member[]>;
+  getMemberCount(regionId?: string): Promise<number>;
+  getMemberCountByRegion(): Promise<{ regionId: string | null; count: number }[]>;
   
   // Regions
   getRegion(id: string): Promise<Region | undefined>;
@@ -232,8 +237,46 @@ export class DatabaseStorage implements IStorage {
     return member;
   }
 
+  async updateMember(id: string, data: Partial<Member>): Promise<Member | undefined> {
+    const [member] = await db.update(members).set(data).where(eq(members.id, id)).returning();
+    return member;
+  }
+
   async getAllMembers(): Promise<Member[]> {
-    return db.select().from(members);
+    return db.select().from(members).orderBy(desc(members.joinedAt));
+  }
+
+  async getMembersByRegion(regionId: string): Promise<Member[]> {
+    return db.select().from(members).where(eq(members.regionId, regionId)).orderBy(desc(members.joinedAt));
+  }
+
+  async searchMembers(query: string, regionId?: string): Promise<Member[]> {
+    const searchPattern = `%${query}%`;
+    const searchConditions = or(
+      ilike(members.firstName, searchPattern),
+      ilike(members.lastName, searchPattern),
+      ilike(members.email, searchPattern),
+      ilike(members.membershipId, searchPattern),
+      ilike(members.city, searchPattern),
+    );
+    const conditions = regionId
+      ? and(searchConditions, eq(members.regionId, regionId))
+      : searchConditions;
+    return db.select().from(members).where(conditions!).orderBy(desc(members.joinedAt));
+  }
+
+  async getMemberCount(regionId?: string): Promise<number> {
+    const condition = regionId ? eq(members.regionId, regionId) : undefined;
+    const [result] = await db.select({ count: count() }).from(members).where(condition);
+    return result?.count ?? 0;
+  }
+
+  async getMemberCountByRegion(): Promise<{ regionId: string | null; count: number }[]> {
+    const result = await db
+      .select({ regionId: members.regionId, count: count() })
+      .from(members)
+      .groupBy(members.regionId);
+    return result;
   }
 
   // Regions

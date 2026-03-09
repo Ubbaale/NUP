@@ -9,6 +9,7 @@ import {
   Printer,
   Globe2,
   LayoutDashboard,
+  IdCard,
 } from "lucide-react";
 
 const adminSections = [
@@ -53,6 +54,12 @@ const adminSections = [
     description: "Manage regions, chapters, and regional leadership",
     href: "/admin/regions",
     icon: Globe2,
+  },
+  {
+    title: "Member Directory",
+    description: "View, search, filter, and export all registered members",
+    href: "/admin/members",
+    icon: IdCard,
   },
 ];
 
