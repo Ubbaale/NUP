@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect, useCallback } from "react";
-import { Heart, Users, Globe, Shield, BookOpen, Scale, Megaphone, HandHeart, ArrowRight, Eye, Target, Award, ChevronLeft, ChevronRight, Gavel, AlertTriangle, Swords, ExternalLink } from "lucide-react";
+import { Heart, Users, Globe, Shield, BookOpen, Scale, Megaphone, HandHeart, ArrowRight, Eye, Target, Award, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import aboutGroupPhoto from "@assets/nup-about-us-group.webp";
 import congressMeetingPhoto from "@assets/nup-congressman-meeks.webp";
 import initiativesPhoto from "@assets/nup-initiatives.jpg";
@@ -150,93 +150,178 @@ function WhatWeDoSection() {
   );
 }
 
-const impactAreas = [
+const nupActions = [
   {
-    icon: AlertTriangle,
+    title: "Engagement with U.S. Congress",
+    description: "At the National Unity Platform Diaspora Inc., we place a strong emphasis on engaging with members of Congress. On September 21, 2023, our diaspora leadership, which includes prominent figures such as Milton Alimadi, Dr. Daniel Kawuma, NUP President Hon. Robert Ssentamu Kyagulanyi, and Civil Rights Icon Dr. Ron Daniels, had the privilege of convening a meeting at the office of Congressman Gregory Meeks in Washington, D.C.",
+  },
+  {
+    title: "Congressman Gregory Meeks: A Key Player",
+    description: "Congressman Gregory Meeks holds a significant role as the Ranking Member of the House Foreign Affairs Committee and is a senior member of the House Committee on Financial Services, with positions on the Subcommittee on Capital Markets and the Subcommittee on Financial Institutions and Monetary Policy. Additionally, he is a distinguished member of the Congressional Black Caucus (CBC).",
+  },
+  {
+    title: "A Shared Vision",
+    description: "In our collective efforts to advocate for democracy and empowerment in Africa, we believe that establishing a strong bond with the African American community and its leadership is of utmost importance. This connection is a powerful tool in influencing U.S. foreign policy, particularly concerning Uganda and the broader African continent.",
+  },
+  {
+    title: "Solidarity with Civil Rights Advocacy",
+    description: "The meeting commenced with a reflection on the historical significance of the African American community's involvement in Africa's decolonization and their unwavering struggle against discrimination and apartheid. We stand in solidarity with their ongoing civil rights endeavors in the United States.",
+  },
+];
+
+const keyDiscussions = [
+  {
+    title: "Congressional Action",
+    description: "We called for congressional hearings on Uganda to address human rights issues, conflicts in Eastern Congo and Sudan, the refugee crisis, and President Museveni's involvement in regional conflicts. Moreover, we stressed the need for congressional scrutiny of military aid to ensure it does not contribute to the oppression of Ugandan citizens.",
+  },
+  {
+    title: "Museveni's Utilization of Ugandan Troops",
+    description: "Concerns were raised regarding President Museveni's strategy of using Ugandan troops as mercenaries under the pretext of fighting terrorism. This approach has been employed to suppress the voices of human rights advocates in the name of national security.",
+  },
+  {
     title: "Human Rights Violations",
     description: "The systematic violation of human rights, including the erosion of civil liberties, pervasive corruption in foreign aid and loans, and recurring instances of election violence and manipulation, was identified as a matter of grave concern. Such violations severely undermine democracy, the rule of law, and the fundamental rights of the Ugandan populace.",
   },
   {
-    icon: Gavel,
-    title: "Political Prisoners & Military Trials",
-    description: "We highlighted the issue of unjust detentions in Uganda without trial, including the case of political prisoners like Olivia Lutaaya. The practice of trying civilians in military courts was strongly condemned as a fundamental violation of due process and human rights.",
+    title: "Political Prisoners and Military Trials",
+    description: "We highlighted the issue of unjust detentions in Uganda without trial, including the case of political prisoners like Olivia Lutaaya. The practice of trying civilians in military courts was strongly condemned.",
   },
   {
-    icon: Swords,
     title: "Uganda's Role in Regional Conflicts",
-    description: "We raised serious concerns about President Museveni's use of Ugandan troops as mercenaries under the guise of fighting terrorism to suppress human rights advocates. We advocate for holding those responsible for regional instability accountable and not rewarding those who fuel these conflicts.",
+    description: "There was a unanimous consensus on the importance of holding those responsible for regional instability accountable and not rewarding President Museveni for his role in regional conflicts.",
   },
 ];
 
+function AccordionItem({ item, isExpanded, onToggle, testId }: { item: { title: string; description: string }; isExpanded: boolean; onToggle: () => void; testId: string }) {
+  return (
+    <div
+      className={`border-b border-border last:border-b-0 cursor-pointer transition-colors ${isExpanded ? "bg-muted/30" : "hover:bg-muted/20"}`}
+      onClick={onToggle}
+      data-testid={testId}
+    >
+      <div className="flex items-center gap-3 px-4 py-4">
+        <ChevronRight className={`w-4 h-4 text-red-600 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+        <h4 className="font-bold text-base">{item.title}</h4>
+      </div>
+      {isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          transition={{ duration: 0.3 }}
+          className="px-4 pb-4 pl-11"
+        >
+          <p className="text-muted-foreground leading-relaxed text-sm">{item.description}</p>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
 function OurImpactSection() {
-  const [expandedItem, setExpandedItem] = useState<number | null>(null);
+  const [expandedAction, setExpandedAction] = useState<number | null>(null);
+  const [expandedDiscussion, setExpandedDiscussion] = useState<number | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [congressMeetingPhoto, eventPhoto, initiativesPhoto];
+  const slideCaptions = [
+    "NUP delegation meeting with Congressman Gregory Meeks, Washington D.C.",
+    "NUP Diaspora community engagement and advocacy",
+    "Building bridges for democratic change across the globe",
+  ];
+
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
+
+  useEffect(() => {
+    const timer = setInterval(nextSlide, 5000);
+    return () => clearInterval(timer);
+  }, [nextSlide]);
 
   return (
     <section className="py-16 md:py-20 bg-background">
       <div className="container mx-auto px-4 max-w-6xl">
-        <motion.div {...fadeIn} className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-impact-heading">Our Impact</h2>
-          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-            We call for congressional hearings on human rights, regional conflicts, the refugee crisis, and scrutiny of military aid in Uganda. Uncover the stories and causes that bear the marks of our advocacy.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <motion.div {...fadeIn} transition={{ delay: 0.2 }} className="order-2 lg:order-1">
-            <img
-              src={eventPhoto}
-              alt="NUP Diaspora impact and community advocacy"
-              className="rounded-2xl shadow-2xl w-full object-cover aspect-[4/3] mb-6"
-              data-testid="img-impact"
-            />
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              Through the collective power of our diaspora community, we have amplified the voices of the voiceless, supported families in need, and built bridges between Ugandans worldwide and their homeland.
-            </p>
+        <div className="mb-16">
+          <motion.div {...fadeIn} className="mb-2">
+            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">NUP Actions</p>
           </motion.div>
-          <motion.div {...fadeIn} className="order-1 lg:order-2 space-y-4">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                <Shield className="w-6 h-6 text-red-600" />
+          <motion.div {...fadeIn} className="mb-1">
+            <h2 className="text-3xl md:text-4xl font-bold" data-testid="text-impact-heading">What we do</h2>
+            <Separator className="w-16 h-1 bg-red-600 mt-3 mb-8 rounded-full" />
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <motion.div {...fadeIn}>
+              <div className="border border-border rounded-xl overflow-hidden">
+                {nupActions.map((item, idx) => (
+                  <AccordionItem
+                    key={item.title}
+                    item={item}
+                    isExpanded={expandedAction === idx}
+                    onToggle={() => setExpandedAction(expandedAction === idx ? null : idx)}
+                    testId={`card-action-${idx}`}
+                  />
+                ))}
               </div>
-              <h3 className="text-2xl font-bold">Congressional Action</h3>
-            </div>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              We raised critical concerns about Museveni's utilization of Ugandan troops as mercenaries under the guise of fighting terrorism to suppress human rights advocates. Our advocacy focuses on the following key areas:
-            </p>
-            {impactAreas.map((area, idx) => (
-              <Card
-                key={area.title}
-                className={`cursor-pointer transition-all hover:shadow-md border-l-4 ${expandedItem === idx ? "border-l-red-600 shadow-md" : "border-l-transparent"}`}
-                onClick={() => setExpandedItem(expandedItem === idx ? null : idx)}
-                data-testid={`card-impact-${idx}`}
+            </motion.div>
+            <motion.div {...fadeIn} transition={{ delay: 0.2 }} className="hidden lg:block" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          <motion.div {...fadeIn}>
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-[4/3] group" data-testid="slideshow-impact">
+              {slides.map((slide, idx) => (
+                <div
+                  key={idx}
+                  className="absolute inset-0 transition-opacity duration-700"
+                  style={{ opacity: currentSlide === idx ? 1 : 0 }}
+                >
+                  <img
+                    src={slide}
+                    alt={slideCaptions[idx]}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label="Previous slide"
+                data-testid="button-impact-slide-prev"
               >
-                <CardContent className="pt-5 pb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                      <area.icon className="w-5 h-5 text-red-600" />
-                    </div>
-                    <h4 className="font-bold text-lg flex-1">{area.title}</h4>
-                    <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${expandedItem === idx ? "rotate-90" : ""}`} />
-                  </div>
-                  {expandedItem === idx && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Separator className="my-4" />
-                      <p className="text-muted-foreground leading-relaxed">{area.description}</p>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-            <div className="pt-4">
-              <a href="https://diasporanup.org/index.php/about-us/" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="gap-2 w-full" data-testid="button-learn-more-impact">
-                  Read More on diasporanup.org <ExternalLink className="w-4 h-4" />
-                </Button>
-              </a>
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label="Next slide"
+                data-testid="button-impact-slide-next"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </motion.div>
+
+          <motion.div {...fadeIn} transition={{ delay: 0.2 }}>
+            <h3 className="text-2xl md:text-3xl font-bold mb-3" data-testid="text-key-discussions">Key Discussions</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              During the meeting, the following crucial points were discussed:
+            </p>
+            <div className="border border-border rounded-xl overflow-hidden">
+              {keyDiscussions.map((item, idx) => (
+                <AccordionItem
+                  key={item.title}
+                  item={item}
+                  isExpanded={expandedDiscussion === idx}
+                  onToggle={() => setExpandedDiscussion(expandedDiscussion === idx ? null : idx)}
+                  testId={`card-discussion-${idx}`}
+                />
+              ))}
             </div>
           </motion.div>
         </div>
