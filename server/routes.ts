@@ -414,7 +414,30 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Email already registered" });
       }
       
+      if (validatedData.regionId) {
+        const region = await storage.getRegion(validatedData.regionId);
+        if (!region) {
+          return res.status(400).json({ error: "Invalid region selected" });
+        }
+      }
+      if (validatedData.chapterId) {
+        const chapters = validatedData.regionId 
+          ? await storage.getChaptersByRegion(validatedData.regionId)
+          : [];
+        const validChapter = chapters.find(c => c.id === validatedData.chapterId);
+        if (!validChapter) {
+          return res.status(400).json({ error: "Invalid chapter for selected region" });
+        }
+      }
+      
       const member = await storage.createMember(validatedData);
+      
+      email.sendMemberRegistration({
+        email: member.email,
+        fullName: `${member.firstName} ${member.lastName}`,
+        membershipId: member.membershipId,
+      }).catch(() => {});
+      
       res.status(201).json(member);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to create member" });
