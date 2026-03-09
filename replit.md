@@ -115,6 +115,7 @@ shared/
 - `POST /api/chapters/:id/leaders` - Add leader (admin)
 - `PATCH /api/chapter-leaders/:id` - Update leader (admin)
 - `DELETE /api/chapter-leaders/:id` - Remove leader (admin)
+- `PATCH /api/regions/:id` - Update region info (admin)
 - `GET /api/conferences` - All conferences (convention-2026 has dedicated rich page)
 - `GET /api/conferences/:slug` - Single conference detail
 - `GET /api/products` - All products
@@ -184,6 +185,9 @@ shared/
 - All emails use NUP red branding and "People Power" messaging
 
 ## Admin Pages
+- `/admin` — Admin Dashboard: central hub with cards linking to all admin sections
+- `/admin/regions` — Region management: view all regions, click to manage
+- `/admin/regions/:slug` — Per-region admin: edit region info, manage chapters within region, chapter leadership teams
 - `/admin/chapters` — Chapter CMS: create/edit/delete chapters, assign to regions, manage leadership teams
 - `/admin/store` — Store product management: add/edit/delete products, upload images, toggle stock/featured
 - `/admin/printful` — Printful integration management

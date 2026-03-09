@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema } from "@shared/schema";
+import { insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -145,6 +145,19 @@ export async function registerRoutes(
       res.json(region);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch region" });
+    }
+  });
+
+  app.patch("/api/regions/:id", async (req, res) => {
+    try {
+      const allowed = insertRegionSchema.partial().parse(req.body);
+      const region = await storage.updateRegion(req.params.id, allowed);
+      if (!region) {
+        return res.status(404).json({ error: "Region not found" });
+      }
+      res.json(region);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update region" });
     }
   });
 

@@ -36,6 +36,9 @@ import Auctions from "@/pages/Auctions";
 import AuctionDetail from "@/pages/AuctionDetail";
 import ProductDetail from "@/pages/ProductDetail";
 import AboutUs from "@/pages/AboutUs";
+import AdminDashboard from "@/pages/AdminDashboard";
+import RegionAdmin from "@/pages/RegionAdmin";
+import RegionDetailAdmin from "@/pages/RegionDetailAdmin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -71,6 +74,9 @@ function Router() {
       <Route path="/auctions" component={Auctions} />
       <Route path="/auctions/:slug" component={AuctionDetail} />
       <Route path="/about" component={AboutUs} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/regions" component={RegionAdmin} />
+      <Route path="/admin/regions/:slug" component={RegionDetailAdmin} />
       <Route component={NotFound} />
     </Switch>
   );

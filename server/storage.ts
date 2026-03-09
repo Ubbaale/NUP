@@ -57,6 +57,7 @@ export interface IStorage {
   getRegionBySlug(slug: string): Promise<Region | undefined>;
   getAllRegions(): Promise<Region[]>;
   createRegion(region: InsertRegion): Promise<Region>;
+  updateRegion(id: string, data: Partial<InsertRegion>): Promise<Region | undefined>;
   
   // Chapters
   getChapter(id: string): Promise<Chapter | undefined>;
@@ -252,6 +253,11 @@ export class DatabaseStorage implements IStorage {
 
   async createRegion(insertRegion: InsertRegion): Promise<Region> {
     const [region] = await db.insert(regions).values(insertRegion).returning();
+    return region;
+  }
+
+  async updateRegion(id: string, data: Partial<InsertRegion>): Promise<Region | undefined> {
+    const [region] = await db.update(regions).set(data).where(eq(regions.id, id)).returning();
     return region;
   }
 

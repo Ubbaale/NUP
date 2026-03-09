@@ -43,6 +43,7 @@ const moreItems = [
   { href: "/admin/chapters", label: "Admin: Chapters", icon: Settings },
   { href: "/admin/store", label: "Admin: Store", icon: Settings },
   { href: "/admin/printful", label: "Admin: Printful", icon: Settings },
+  { href: "/admin", label: "Admin", icon: Settings },
 ];
 
 export function MobileNav() {
