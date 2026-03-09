@@ -399,6 +399,36 @@ async function seedMissingRegions() {
   }
 }
 
+const CHAPTER_LANDMARK_IMAGES: Record<string, string> = {
+  "nup-boston": "/images/chapters/boston-landmark.jpg",
+  "nup-california": "/images/chapters/la-landmark.jpg",
+  "nup-chicago": "/images/chapters/chicago-landmark.jpg",
+  "nup-colorado": "/images/chapters/denver-landmark.jpg",
+  "nup-dmv": "/images/chapters/dc-landmark.jpg",
+  "nup-georgia": "/images/chapters/atlanta-landmark.jpg",
+  "nup-michigan": "/images/chapters/detroit-landmark.jpg",
+  "nup-minnesota": "/images/chapters/minneapolis-landmark.jpg",
+  "nup-nyctni": "/images/chapters/nyc-landmark.jpg",
+  "nup-carolinas": "/images/chapters/charlotte-landmark.jpg",
+  "nup-ohio": "/images/chapters/columbus-landmark.jpg",
+  "nup-texas-ok": "/images/chapters/houston-landmark.jpg",
+  "nup-washington-state": "/images/chapters/seattle-landmark.jpg",
+};
+
+async function seedChapterImages() {
+  let updated = 0;
+  for (const [slug, imageUrl] of Object.entries(CHAPTER_LANDMARK_IMAGES)) {
+    const chapter = await storage.getChapterBySlug(slug);
+    if (chapter && !chapter.imageUrl) {
+      await storage.updateChapter(chapter.id, { imageUrl });
+      updated++;
+    }
+  }
+  if (updated > 0) {
+    console.log(`  Updated ${updated} chapters with landmark images.`);
+  }
+}
+
 export async function seedDatabase() {
   try {
     const existingRegions = await storage.getAllRegions();
@@ -406,6 +436,7 @@ export async function seedDatabase() {
       await seedMissingRegions();
       await seedMissingChapters(await storage.getAllRegions());
       await seedMissingProductImages();
+      await seedChapterImages();
       console.log("Database already seeded, skipping...");
       return;
     }

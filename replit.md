@@ -83,6 +83,7 @@ shared/
 - **regions** - 6 global regions with coordinators
 - **chapters** - Local chapters within regions (with iconEmoji for landmark icons)
 - **chapterLeaders** - Leadership team members per chapter (name, title, bio, email, displayOrder)
+  - Chapters have `imageUrl` field for landmark background photos (e.g., Statue of Liberty for NYC, Capitol Building for DC)
 - **activities** - Chapter events and activities
 - **conferences** - Annual conventions (upcoming and archived)
 - **products** - Store merchandise

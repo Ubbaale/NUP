@@ -1,5 +1,5 @@
 import type { Chapter } from "@shared/schema";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Mail, Phone, Calendar } from "lucide-react";
@@ -12,31 +12,65 @@ interface ChapterCardProps {
 
 export function ChapterCard({ chapter }: ChapterCardProps) {
   return (
-    <Card className="hover-elevate" data-testid={`chapter-card-${chapter.id}`}>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-3">
-            {chapter.logoUrl ? (
-              <img src={chapter.logoUrl} alt={`${chapter.name} logo`} className="w-10 h-10 object-contain rounded flex-shrink-0 mt-0.5" data-testid={`img-chapter-logo-${chapter.id}`} />
-            ) : chapter.iconEmoji ? (
-              <span className="text-3xl leading-none mt-0.5" data-testid={`icon-chapter-${chapter.id}`}>{chapter.iconEmoji}</span>
-            ) : null}
-            <div>
-              <h3 className="font-bold text-lg">{chapter.name}</h3>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                {chapter.city}, {chapter.country}
-              </p>
+    <Card className="hover-elevate overflow-hidden" data-testid={`chapter-card-${chapter.id}`}>
+      {chapter.imageUrl && (
+        <div className="relative h-40 overflow-hidden">
+          <img
+            src={chapter.imageUrl}
+            alt={`${chapter.city} landmark`}
+            className="w-full h-full object-cover"
+            data-testid={`img-chapter-landmark-${chapter.id}`}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-2">
+            <div className="flex items-center gap-2">
+              {chapter.iconEmoji && (
+                <span className="text-2xl drop-shadow-lg" data-testid={`icon-chapter-${chapter.id}`}>{chapter.iconEmoji}</span>
+              )}
+              <div>
+                <h3 className="font-bold text-lg leading-tight drop-shadow-sm">{chapter.name}</h3>
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {chapter.city}, {chapter.country}
+                </p>
+              </div>
             </div>
+            {chapter.isActive ? (
+              <Badge variant="default" className="shrink-0">Active</Badge>
+            ) : (
+              <Badge variant="secondary" className="shrink-0">Inactive</Badge>
+            )}
           </div>
-          {chapter.isActive ? (
-            <Badge variant="default">Active</Badge>
-          ) : (
-            <Badge variant="secondary">Inactive</Badge>
-          )}
         </div>
-      </CardHeader>
-      <CardContent className="pt-0">
+      )}
+
+      {!chapter.imageUrl && (
+        <div className="px-6 pt-6 pb-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-3">
+              {chapter.logoUrl ? (
+                <img src={chapter.logoUrl} alt={`${chapter.name} logo`} className="w-10 h-10 object-contain rounded flex-shrink-0 mt-0.5" data-testid={`img-chapter-logo-${chapter.id}`} />
+              ) : chapter.iconEmoji ? (
+                <span className="text-3xl leading-none mt-0.5" data-testid={`icon-chapter-${chapter.id}`}>{chapter.iconEmoji}</span>
+              ) : null}
+              <div>
+                <h3 className="font-bold text-lg">{chapter.name}</h3>
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {chapter.city}, {chapter.country}
+                </p>
+              </div>
+            </div>
+            {chapter.isActive ? (
+              <Badge variant="default">Active</Badge>
+            ) : (
+              <Badge variant="secondary">Inactive</Badge>
+            )}
+          </div>
+        </div>
+      )}
+
+      <CardContent className={chapter.imageUrl ? "pt-3" : "pt-0"}>
         {chapter.description && (
           <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{chapter.description}</p>
         )}

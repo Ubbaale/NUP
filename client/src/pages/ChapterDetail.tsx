@@ -53,8 +53,19 @@ export default function ChapterDetail() {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen">
+      {chapter.imageUrl && (
+        <div className="relative h-56 md:h-72 overflow-hidden">
+          <img
+            src={chapter.imageUrl}
+            alt={`${chapter.city} landmark`}
+            className="w-full h-full object-cover"
+            data-testid="img-chapter-banner"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        </div>
+      )}
+      <div className={`container mx-auto px-4 ${chapter.imageUrl ? '-mt-20 relative z-10' : 'py-8'}`}>
         <Link href="/regions">
           <Button variant="ghost" className="mb-6" data-testid="button-back-to-regions">
             <ArrowLeft className="w-4 h-4 mr-2" />
