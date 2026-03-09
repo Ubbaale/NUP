@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Heart, Users, Globe, Shield, BookOpen, Scale, Megaphone, HandHeart, Eye, Target, Award, ChevronRight, ExternalLink } from "lucide-react";
-import stateDeptBg from "@assets/stock_images/dc-state-department.jpg";
+import lincolnMemorialBg from "@assets/stock_images/lincoln-memorial-dc.jpg";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -87,7 +87,7 @@ export default function AboutUs() {
   return (
     <div className="min-h-screen">
       <section className="relative py-28 md:py-40 overflow-hidden">
-        <div className="absolute inset-0" style={{ backgroundImage: `url(${stateDeptBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="absolute inset-0" style={{ backgroundImage: `url(${lincolnMemorialBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
         <div className="container mx-auto px-4 relative z-10 text-center">
           <motion.div {...fadeIn}>
