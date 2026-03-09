@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Heart, Users, Globe, Shield, BookOpen, Scale, Megaphone, HandHeart, Eye, Target, Award, ChevronRight } from "lucide-react";
 import lincolnMemorialBg from "@assets/stock_images/lincoln-memorial-dc.jpg";
+import capitolBg from "@assets/istockphoto-1632197496-612x612_1773032358389.jpg";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -156,8 +157,10 @@ export default function AboutUs() {
         </div>
       </section>
 
-      <section className="py-16 md:py-20 bg-background">
-        <div className="container mx-auto px-4 max-w-5xl">
+      <section className="relative py-16 md:py-20 overflow-hidden">
+        <div className="absolute inset-0" style={{ backgroundImage: `url(${capitolBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="absolute inset-0 bg-white/85 dark:bg-black/85" />
+        <div className="container mx-auto px-4 max-w-5xl relative z-10">
           <motion.div {...fadeIn} className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">What We Stand For</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
