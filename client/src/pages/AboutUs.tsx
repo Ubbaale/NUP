@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Users, Globe, Shield, BookOpen, Scale, Megaphone, HandHeart, Eye, Target, Award, ChevronRight, ExternalLink } from "lucide-react";
+import { Heart, Users, Globe, Shield, BookOpen, Scale, Megaphone, HandHeart, Eye, Target, Award, ChevronRight } from "lucide-react";
 import lincolnMemorialBg from "@assets/stock_images/lincoln-memorial-dc.jpg";
 
 const fadeIn = {
@@ -236,13 +236,6 @@ export default function AboutUs() {
                     testId={`card-discussion-${idx}`}
                   />
                 ))}
-              </div>
-              <div className="mt-4">
-                <a href="https://diasporanup.org/index.php/about-us/" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="gap-2" data-testid="button-learn-more-nup">
-                    Learn More at diasporanup.org <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </a>
               </div>
             </motion.div>
           </div>
