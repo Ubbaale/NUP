@@ -31,6 +31,7 @@ import nupAboutUsGroup from "@assets/nup-about-us-group.webp";
 import nupInitiatives from "@assets/nup-initiatives.jpg";
 import nupExecutiveTeam from "@assets/Executive-Team-Members-1024x683_1773023680694.jpg";
 import nupGetInvolved from "@assets/nup-get-involved.jpg";
+import bobiWinePresidentImg from "@assets/Screenshot_2025-08-24_225138_1773034002651.png";
 
 const campaignImages = [
   bobiCrowd1,
@@ -204,20 +205,29 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 bg-muted/30" data-testid="section-manifesto">
-        <div className="container mx-auto px-4">
+      <section className="relative py-20 overflow-hidden" data-testid="section-manifesto">
+        <div className="absolute inset-0">
+          <img
+            src={bobiWinePresidentImg}
+            alt="Kyagulanyi Ssentamu Robert - Bobi Wine"
+            className="w-full h-full object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/75 to-black/60" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
-              <Badge variant="outline" className="mb-4">2026–2031</Badge>
-              <h2 className="text-3xl font-bold mb-4">NUP Manifesto</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <Badge className="mb-4 bg-white/20 text-white border-white/30">2026–2031</Badge>
+              <h2 className="text-3xl font-bold mb-4 text-white">NUP Manifesto</h2>
+              <p className="text-white/80 max-w-2xl mx-auto">
                 Our blueprint for building A New Uganda Now — a comprehensive plan addressing democracy, jobs, healthcare, education, and more.
               </p>
             </div>
 
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden bg-white/10 backdrop-blur-sm border-white/20">
               <div className="grid md:grid-cols-2 gap-0">
-                <div className="bg-primary p-8 md:p-10 flex flex-col justify-center text-primary-foreground">
+                <div className="bg-primary/90 p-8 md:p-10 flex flex-col justify-center text-primary-foreground">
                   <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-6">
                     <FileText className="w-8 h-8" />
                   </div>
@@ -232,8 +242,8 @@ export default function Home() {
                     </a>
                   </Button>
                 </div>
-                <div className="p-8 md:p-10 bg-card">
-                  <h4 className="font-bold text-lg mb-4">Key Priorities</h4>
+                <div className="p-8 md:p-10 bg-black/40 backdrop-blur-sm">
+                  <h4 className="font-bold text-lg mb-4 text-white">Key Priorities</h4>
                   <ul className="space-y-3 text-sm">
                     {[
                       "Restore Freedom, Constitutionalism & Human Rights",
@@ -249,10 +259,10 @@ export default function Home() {
                       "Transform Uganda into a Tech-Driven Economy",
                     ].map((priority, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center mt-0.5">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-white text-xs font-bold flex items-center justify-center mt-0.5">
                           {i + 1}
                         </span>
-                        <span className="text-muted-foreground">{priority}</span>
+                        <span className="text-white/80">{priority}</span>
                       </li>
                     ))}
                   </ul>
