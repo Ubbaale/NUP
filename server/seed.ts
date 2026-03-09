@@ -623,7 +623,7 @@ export async function seedDatabase() {
         name: "NUP Hoodie",
         slug: "nup-hoodie",
         description: "Warm fleece hoodie with NUP logo on front and People Power on back.",
-        price: "50.00",
+        price: "80.00",
         category: "Apparel",
         sizes: JSON.stringify(["S", "M", "L", "XL", "XXL"]),
         colors: JSON.stringify(["Red", "Black"]),
