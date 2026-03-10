@@ -663,6 +663,16 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/news/refresh", async (req, res) => {
+    try {
+      const { fetchNewsFromRSS } = await import("./newsFetcher");
+      const count = await fetchNewsFromRSS();
+      res.json({ message: `Fetched ${count} new articles`, count });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to refresh news" });
+    }
+  });
+
   // ===== ORDERS =====
   app.post("/api/orders", async (req, res) => {
     try {

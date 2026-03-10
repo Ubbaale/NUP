@@ -1,15 +1,41 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewsCard } from "@/components/NewsCard";
 import { Newspaper, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { NewsItem } from "@shared/schema";
 
 export default function News() {
-  const { data: news, isLoading, refetch, isFetching } = useQuery<NewsItem[]>({
+  const { toast } = useToast();
+  const { data: news, isLoading } = useQuery<NewsItem[]>({
     queryKey: ["/api/news"],
+  });
+
+  const refreshMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/news/refresh");
+      return res.json();
+    },
+    onSuccess: (data: { count: number }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/news"] });
+      toast({
+        title: "News Refreshed",
+        description: data.count > 0
+          ? `Found ${data.count} new article${data.count !== 1 ? "s" : ""} from international sources.`
+          : "No new articles found. Check back later.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Refresh Failed",
+        description: "Could not fetch latest news. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   return (
@@ -20,16 +46,16 @@ export default function News() {
           <h1 className="text-4xl font-bold mb-4">News from Uganda</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
             Stay updated with the latest news about Robert Kyagulanyi (Bobi Wine), 
-            NUP activities, and political developments from Kampala, Uganda.
+            NUP activities, and political developments from international and local sources.
           </p>
           <Button 
             variant="outline" 
-            onClick={() => refetch()} 
-            disabled={isFetching}
+            onClick={() => refreshMutation.mutate()} 
+            disabled={refreshMutation.isPending}
             data-testid="button-refresh-news"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh News
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+            {refreshMutation.isPending ? "Fetching Latest News..." : "Refresh News"}
           </Button>
         </div>
 
