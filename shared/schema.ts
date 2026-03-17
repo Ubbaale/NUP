@@ -47,7 +47,16 @@ export const regions = pgTable("regions", {
   leaderBio: text("leader_bio"),
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
-  coordinates: text("coordinates"), // JSON string for map positioning
+  coordinates: text("coordinates"),
+  accessCode: text("access_code"),
+  websiteUrl: text("website_url"),
+  facebookUrl: text("facebook_url"),
+  twitterUrl: text("twitter_url"),
+  whatsappLink: text("whatsapp_link"),
+  instagramUrl: text("instagram_url"),
+  youtubeUrl: text("youtube_url"),
+  memberCount: integer("member_count"),
+  foundedDate: text("founded_date"),
 });
 
 export const insertRegionSchema = createInsertSchema(regions).omit({ id: true });
@@ -75,6 +84,15 @@ export const chapters = pgTable("chapters", {
   meetingSchedule: text("meeting_schedule"),
   address: text("address"),
   isActive: boolean("is_active").notNull().default(true),
+  accessCode: text("access_code"),
+  websiteUrl: text("website_url"),
+  facebookUrl: text("facebook_url"),
+  twitterUrl: text("twitter_url"),
+  whatsappLink: text("whatsapp_link"),
+  instagramUrl: text("instagram_url"),
+  youtubeUrl: text("youtube_url"),
+  memberCount: integer("member_count"),
+  foundedDate: text("founded_date"),
 });
 
 export const insertChapterSchema = createInsertSchema(chapters).omit({ id: true });

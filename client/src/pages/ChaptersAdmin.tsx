@@ -81,6 +81,15 @@ const chapterFormSchema = z.object({
   meetingSchedule: z.string().optional(),
   address: z.string().optional(),
   isActive: z.boolean().default(true),
+  accessCode: z.string().optional(),
+  websiteUrl: z.string().optional(),
+  facebookUrl: z.string().optional(),
+  twitterUrl: z.string().optional(),
+  whatsappLink: z.string().optional(),
+  instagramUrl: z.string().optional(),
+  youtubeUrl: z.string().optional(),
+  memberCount: z.number().int().min(0).optional().or(z.literal("").transform(() => undefined)),
+  foundedDate: z.string().optional(),
 });
 
 type ChapterFormData = z.infer<typeof chapterFormSchema>;
@@ -239,7 +248,9 @@ export default function ChaptersAdmin() {
       name: "", slug: "", regionId: "", city: "", country: "",
       description: "", iconEmoji: "", logoUrl: "", leaderName: "", leaderTitle: "",
       leaderImage: "", leaderBio: "", contactEmail: "", contactPhone: "",
-      meetingSchedule: "", address: "", isActive: true,
+      meetingSchedule: "", address: "", isActive: true, accessCode: "",
+      websiteUrl: "", facebookUrl: "", twitterUrl: "", whatsappLink: "",
+      instagramUrl: "", youtubeUrl: "", foundedDate: "",
     },
   });
 
@@ -249,7 +260,9 @@ export default function ChaptersAdmin() {
       name: "", slug: "", regionId: "", city: "", country: "",
       description: "", iconEmoji: "", logoUrl: "", leaderName: "", leaderTitle: "",
       leaderImage: "", leaderBio: "", contactEmail: "", contactPhone: "",
-      meetingSchedule: "", address: "", isActive: true,
+      meetingSchedule: "", address: "", isActive: true, accessCode: "",
+      websiteUrl: "", facebookUrl: "", twitterUrl: "", whatsappLink: "",
+      instagramUrl: "", youtubeUrl: "", foundedDate: "",
     },
   });
 
@@ -373,6 +386,15 @@ export default function ChaptersAdmin() {
       meetingSchedule: chapter.meetingSchedule || "",
       address: chapter.address || "",
       isActive: chapter.isActive,
+      accessCode: chapter.accessCode || "",
+      websiteUrl: chapter.websiteUrl || "",
+      facebookUrl: chapter.facebookUrl || "",
+      twitterUrl: chapter.twitterUrl || "",
+      whatsappLink: chapter.whatsappLink || "",
+      instagramUrl: chapter.instagramUrl || "",
+      youtubeUrl: chapter.youtubeUrl || "",
+      memberCount: chapter.memberCount || undefined,
+      foundedDate: chapter.foundedDate || "",
     });
   }
 
@@ -865,6 +887,101 @@ function ChapterFormComponent({
               <FormMessage />
             </FormItem>
           )} />
+        </div>
+
+        <div className="border-t pt-4 mt-4">
+          <h3 className="font-semibold mb-3">Portal Access</h3>
+          <p className="text-xs text-muted-foreground mb-3">Set an access code so the chapter coordinator can self-manage via the portal.</p>
+          <FormField control={form.control} name="accessCode" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Access Code</FormLabel>
+              <FormControl><Input placeholder="Set a unique access code" data-testid="input-chapter-access-code" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          {form.getValues("slug") && form.getValues("accessCode") && (
+            <div className="p-3 bg-muted/50 rounded-lg text-sm mt-2">
+              <p className="font-medium mb-1">Portal Link:</p>
+              <code className="text-xs break-all text-primary">{window.location.origin}/portal/chapter/{form.getValues("slug")}</code>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t pt-4 mt-4">
+          <h3 className="font-semibold mb-3">Social Media & Links</h3>
+          <FormField control={form.control} name="websiteUrl" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Website</FormLabel>
+              <FormControl><Input placeholder="https://" data-testid="input-chapter-website" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <div className="grid grid-cols-2 gap-4 mt-3">
+            <FormField control={form.control} name="facebookUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Facebook</FormLabel>
+                <FormControl><Input placeholder="https://facebook.com/..." data-testid="input-chapter-facebook" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="twitterUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>X (Twitter)</FormLabel>
+                <FormControl><Input placeholder="https://x.com/..." data-testid="input-chapter-twitter" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="instagramUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Instagram</FormLabel>
+                <FormControl><Input placeholder="https://instagram.com/..." data-testid="input-chapter-instagram" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="youtubeUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>YouTube</FormLabel>
+                <FormControl><Input placeholder="https://youtube.com/..." data-testid="input-chapter-youtube" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+          <FormField control={form.control} name="whatsappLink" render={({ field }) => (
+            <FormItem className="mt-3">
+              <FormLabel>WhatsApp Group Link</FormLabel>
+              <FormControl><Input placeholder="https://chat.whatsapp.com/..." data-testid="input-chapter-whatsapp" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+
+        <div className="border-t pt-4 mt-4">
+          <h3 className="font-semibold mb-3">Additional Info</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField control={form.control} name="memberCount" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Member Count</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    data-testid="input-chapter-member-count"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="foundedDate" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Founded Date</FormLabel>
+                <FormControl><Input type="date" data-testid="input-chapter-founded" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
         </div>
 
         <FormField control={form.control} name="isActive" render={({ field }) => (

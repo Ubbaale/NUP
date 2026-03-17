@@ -13,6 +13,15 @@ The NUP Diaspora website serves as a central hub for the National Unity Platform
 ## System Architecture
 The website features an interactive world map guiding users to regional and local chapter pages. It includes robust systems for membership management with tiered subscriptions and award fulfillment, a comprehensive e-commerce platform for merchandise, and a multi-faceted fundraising suite encompassing donations, crowdfunding campaigns, virtual events with ticketing, and auctions/raffles. Content delivery is managed through live news feeds (auto-fetched from Google News RSS every 30 minutes for NUP/Bobi Wine international coverage, via `server/newsFetcher.ts`), member blogs, and a manifesto section. The site is built with a modern tech stack utilizing React 18, TypeScript, Tailwind CSS, and a Node.js/Express backend with PostgreSQL and Drizzle ORM. Key UI/UX decisions include NUP red branding, "People Power" messaging, a professional political organization aesthetic, and PWA capabilities for a seamless mobile experience with responsive navigation adapted for different screen sizes. A unique feature is the donation-gated revolutionary songs section, providing exclusive content to supporters.
 
+## Self-Service Portals
+Chapter and region coordinators can manage their own information via self-service portals:
+- `/portal/chapter/:slug` — Chapter coordinators enter an access code to update chapter info (general details, contact, social media, leadership team)
+- `/portal/region/:slug` — Region coordinators enter an access code to update region info (general details, contact, social media)
+- Access codes are set by admins in `/admin/chapters` and `/admin/regions/:slug`
+- Access codes are **never** exposed in public API responses (stripped server-side via `stripAccessCode` helper)
+- Portal updates require the access code with each request; slug/id/regionId fields cannot be modified via portal
+- New fields added to both regions and chapters: `accessCode`, `websiteUrl`, `facebookUrl`, `twitterUrl`, `whatsappLink`, `instagramUrl`, `youtubeUrl`, `memberCount`, `foundedDate`
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Drizzle ORM**: Used for database interaction.

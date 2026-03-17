@@ -66,6 +66,15 @@ const regionFormSchema = z.object({
   leaderBio: z.string().optional(),
   contactEmail: z.string().email("Valid email required").or(z.literal("")),
   contactPhone: z.string().optional(),
+  accessCode: z.string().optional(),
+  websiteUrl: z.string().optional(),
+  facebookUrl: z.string().optional(),
+  twitterUrl: z.string().optional(),
+  whatsappLink: z.string().optional(),
+  instagramUrl: z.string().optional(),
+  youtubeUrl: z.string().optional(),
+  memberCount: z.number().int().min(0).optional().or(z.literal("").transform(() => undefined)),
+  foundedDate: z.string().optional(),
 });
 
 type RegionFormData = z.infer<typeof regionFormSchema>;
@@ -442,11 +451,20 @@ export default function RegionDetailAdmin() {
     values: region ? {
       name: region.name,
       description: region.description || "",
-      leaderName: region.leaderName,
+      leaderName: region.leaderName || "",
       leaderTitle: region.leaderTitle || "",
       leaderBio: region.leaderBio || "",
       contactEmail: region.contactEmail || "",
       contactPhone: region.contactPhone || "",
+      accessCode: region.accessCode || "",
+      websiteUrl: region.websiteUrl || "",
+      facebookUrl: region.facebookUrl || "",
+      twitterUrl: region.twitterUrl || "",
+      whatsappLink: region.whatsappLink || "",
+      instagramUrl: region.instagramUrl || "",
+      youtubeUrl: region.youtubeUrl || "",
+      memberCount: region.memberCount || undefined,
+      foundedDate: region.foundedDate || "",
     } : undefined,
   });
 
@@ -601,6 +619,95 @@ export default function RegionDetailAdmin() {
                       <FormItem>
                         <FormLabel>Contact Phone</FormLabel>
                         <FormControl><Input {...field} data-testid="input-region-phone" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <Separator />
+                  <h4 className="text-sm font-semibold">Portal Access Code</h4>
+                  <p className="text-xs text-muted-foreground">Set an access code so the regional coordinator can update their own info via the self-service portal.</p>
+                  <FormField control={regionForm.control} name="accessCode" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Access Code</FormLabel>
+                      <FormControl><Input {...field} placeholder="Set a unique access code" data-testid="input-region-access-code" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  {region.accessCode && (
+                    <div className="p-3 bg-muted/50 rounded-lg text-sm">
+                      <p className="font-medium mb-1">Portal Link:</p>
+                      <code className="text-xs break-all text-primary">{window.location.origin}/portal/region/{region.slug}</code>
+                    </div>
+                  )}
+                  <Separator />
+                  <h4 className="text-sm font-semibold">Social Media & Links</h4>
+                  <FormField control={regionForm.control} name="websiteUrl" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website</FormLabel>
+                      <FormControl><Input {...field} placeholder="https://" data-testid="input-region-website" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <FormField control={regionForm.control} name="facebookUrl" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Facebook</FormLabel>
+                        <FormControl><Input {...field} data-testid="input-region-facebook" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={regionForm.control} name="twitterUrl" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>X (Twitter)</FormLabel>
+                        <FormControl><Input {...field} data-testid="input-region-twitter" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={regionForm.control} name="instagramUrl" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instagram</FormLabel>
+                        <FormControl><Input {...field} data-testid="input-region-instagram" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={regionForm.control} name="youtubeUrl" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>YouTube</FormLabel>
+                        <FormControl><Input {...field} data-testid="input-region-youtube" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <FormField control={regionForm.control} name="whatsappLink" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WhatsApp Group Link</FormLabel>
+                      <FormControl><Input {...field} placeholder="https://chat.whatsapp.com/..." data-testid="input-region-whatsapp" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <Separator />
+                  <h4 className="text-sm font-semibold">Additional Info</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <FormField control={regionForm.control} name="memberCount" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Member Count</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : "")}
+                            data-testid="input-region-member-count"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={regionForm.control} name="foundedDate" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Founded Date</FormLabel>
+                        <FormControl><Input type="date" {...field} data-testid="input-region-founded" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />

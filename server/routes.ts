@@ -10,6 +10,15 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 
+function stripAccessCode<T extends Record<string, any>>(obj: T): Omit<T, 'accessCode'> {
+  const { accessCode, ...rest } = obj;
+  return rest;
+}
+
+function stripAccessCodes<T extends Record<string, any>>(arr: T[]): Omit<T, 'accessCode'>[] {
+  return arr.map(stripAccessCode);
+}
+
 const songUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -130,7 +139,7 @@ export async function registerRoutes(
   app.get("/api/regions", async (req, res) => {
     try {
       const regions = await storage.getAllRegions();
-      res.json(regions);
+      res.json(stripAccessCodes(regions));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch regions" });
     }
@@ -142,7 +151,7 @@ export async function registerRoutes(
       if (!region) {
         return res.status(404).json({ error: "Region not found" });
       }
-      res.json(region);
+      res.json(stripAccessCode(region));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch region" });
     }
@@ -161,6 +170,98 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/portal/region/:slug/verify", async (req, res) => {
+    try {
+      const { accessCode } = req.body;
+      if (!accessCode) {
+        return res.status(400).json({ error: "Access code is required" });
+      }
+      const region = await storage.getRegionBySlug(req.params.slug);
+      if (!region) {
+        return res.status(404).json({ error: "Region not found" });
+      }
+      if (!region.accessCode) {
+        return res.status(403).json({ error: "No access code has been set for this region. Contact an administrator." });
+      }
+      if (region.accessCode !== accessCode) {
+        return res.status(401).json({ error: "Invalid access code" });
+      }
+      const { accessCode: _, ...safeRegion } = region;
+      res.json({ verified: true, region: safeRegion });
+    } catch (error: any) {
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
+  app.patch("/api/portal/region/:slug/update", async (req, res) => {
+    try {
+      const { accessCode, ...updateData } = req.body;
+      if (!accessCode) {
+        return res.status(400).json({ error: "Access code is required" });
+      }
+      const region = await storage.getRegionBySlug(req.params.slug);
+      if (!region || !region.accessCode || region.accessCode !== accessCode) {
+        return res.status(401).json({ error: "Invalid access code" });
+      }
+      const { accessCode: _ac, slug: _s, id: _id, ...safeFields } = updateData;
+      const allowed = insertRegionSchema.partial().parse(safeFields);
+      const updated = await storage.updateRegion(region.id, allowed);
+      if (!updated) {
+        return res.status(500).json({ error: "Failed to update" });
+      }
+      const { accessCode: _uac, ...safeRegion } = updated;
+      res.json(safeRegion);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update region" });
+    }
+  });
+
+  app.post("/api/portal/chapter/:slug/verify", async (req, res) => {
+    try {
+      const { accessCode } = req.body;
+      if (!accessCode) {
+        return res.status(400).json({ error: "Access code is required" });
+      }
+      const chapter = await storage.getChapterBySlug(req.params.slug);
+      if (!chapter) {
+        return res.status(404).json({ error: "Chapter not found" });
+      }
+      if (!chapter.accessCode) {
+        return res.status(403).json({ error: "No access code has been set for this chapter. Contact an administrator." });
+      }
+      if (chapter.accessCode !== accessCode) {
+        return res.status(401).json({ error: "Invalid access code" });
+      }
+      const { accessCode: _, ...safeChapter } = chapter;
+      res.json({ verified: true, chapter: safeChapter });
+    } catch (error: any) {
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
+  app.patch("/api/portal/chapter/:slug/update", async (req, res) => {
+    try {
+      const { accessCode, ...updateData } = req.body;
+      if (!accessCode) {
+        return res.status(400).json({ error: "Access code is required" });
+      }
+      const chapter = await storage.getChapterBySlug(req.params.slug);
+      if (!chapter || !chapter.accessCode || chapter.accessCode !== accessCode) {
+        return res.status(401).json({ error: "Invalid access code" });
+      }
+      const { accessCode: _ac, slug: _s, id: _id, regionId: _r, ...safeFields } = updateData;
+      const allowed = insertChapterSchema.partial().parse(safeFields);
+      const updated = await storage.updateChapter(chapter.id, allowed);
+      if (!updated) {
+        return res.status(500).json({ error: "Failed to update" });
+      }
+      const { accessCode: _uac, ...safeChapter } = updated;
+      res.json(safeChapter);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update chapter" });
+    }
+  });
+
   app.get("/api/regions/:slug/chapters", async (req, res) => {
     try {
       const region = await storage.getRegionBySlug(req.params.slug);
@@ -168,7 +269,7 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Region not found" });
       }
       const chapters = await storage.getChaptersByRegion(region.id);
-      res.json(chapters);
+      res.json(stripAccessCodes(chapters));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch chapters" });
     }
@@ -191,7 +292,7 @@ export async function registerRoutes(
   app.get("/api/chapters", async (req, res) => {
     try {
       const chapters = await storage.getAllChapters();
-      res.json(chapters);
+      res.json(stripAccessCodes(chapters));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch chapters" });
     }
@@ -203,7 +304,7 @@ export async function registerRoutes(
       if (!chapter) {
         return res.status(404).json({ error: "Chapter not found" });
       }
-      res.json(chapter);
+      res.json(stripAccessCode(chapter));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch chapter" });
     }
