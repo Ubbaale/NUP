@@ -20,6 +20,8 @@ The admin panel (`/admin` and all `/admin/*` routes) is protected by session-bas
 - All admin API routes protected by `requireAdmin` middleware (POST/PATCH/DELETE operations + sensitive GET endpoints like `/api/members`, `/api/members/search`, `/api/members/stats`, `/api/members/export`, `/api/membership/subscriptions`)
 - Frontend uses `AdminAuthProvider` context + `AdminGuard` component to gate admin routes
 - Session regeneration on login to prevent session fixation
+- `trust proxy` set to `1` in Express for proper secure cookie handling behind Replit's TLS-terminating reverse proxy
+- `SESSION_SECRET` env var ensures session persistence across server restarts
 - Login page: `client/src/pages/AdminLogin.tsx`
 - Auth provider: `client/src/components/AdminAuthProvider.tsx`
 - Sessions expire after 24 hours
