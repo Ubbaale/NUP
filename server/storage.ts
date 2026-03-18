@@ -88,6 +88,8 @@ export interface IStorage {
   getConferenceBySlug(slug: string): Promise<Conference | undefined>;
   getAllConferences(): Promise<Conference[]>;
   createConference(conference: InsertConference): Promise<Conference>;
+  updateConference(id: string, data: Partial<Conference>): Promise<Conference | undefined>;
+  deleteConference(id: string): Promise<void>;
   
   // Products
   getProduct(id: string): Promise<Product | undefined>;
@@ -119,6 +121,8 @@ export interface IStorage {
   getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
   getAllBlogPosts(): Promise<BlogPost[]>;
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: string, data: Partial<BlogPost>): Promise<BlogPost | undefined>;
+  deleteBlogPost(id: string): Promise<void>;
   
   // News Items
   getAllNewsItems(): Promise<NewsItem[]>;
@@ -171,6 +175,7 @@ export interface IStorage {
   getCampaignBySlug(slug: string): Promise<Campaign | undefined>;
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: string, data: Partial<Campaign>): Promise<Campaign | undefined>;
+  deleteCampaign(id: string): Promise<void>;
   createCampaignDonation(donation: InsertCampaignDonation): Promise<CampaignDonation>;
   getCampaignDonations(campaignId: string): Promise<CampaignDonation[]>;
 
@@ -180,6 +185,7 @@ export interface IStorage {
   getTier(id: string): Promise<MembershipTier | undefined>;
   createTier(tier: InsertMembershipTier): Promise<MembershipTier>;
   updateTier(id: string, data: Partial<MembershipTier>): Promise<MembershipTier | undefined>;
+  deleteTier(id: string): Promise<void>;
   createMemberSubscription(sub: InsertMemberSubscription): Promise<MemberSubscription>;
   getMemberSubscriptionByEmail(email: string): Promise<MemberSubscription | undefined>;
   getAllMemberSubscriptions(): Promise<MemberSubscription[]>;
@@ -191,6 +197,7 @@ export interface IStorage {
   getAuctionItemBySlug(slug: string): Promise<AuctionItem | undefined>;
   createAuctionItem(item: InsertAuctionItem): Promise<AuctionItem>;
   updateAuctionItem(id: string, data: Partial<AuctionItem>): Promise<AuctionItem | undefined>;
+  deleteAuctionItem(id: string): Promise<void>;
   createBid(bid: InsertBid): Promise<Bid>;
   getBidsByItem(auctionItemId: string): Promise<Bid[]>;
   getHighestBid(auctionItemId: string): Promise<Bid | undefined>;
@@ -401,6 +408,15 @@ export class DatabaseStorage implements IStorage {
     return conference;
   }
 
+  async updateConference(id: string, data: Partial<Conference>): Promise<Conference | undefined> {
+    const [conference] = await db.update(conferences).set(data).where(eq(conferences.id, id)).returning();
+    return conference;
+  }
+
+  async deleteConference(id: string): Promise<void> {
+    await db.delete(conferences).where(eq(conferences.id, id));
+  }
+
   // Products
   async getProduct(id: string): Promise<Product | undefined> {
     const [product] = await db.select().from(products).where(eq(products.id, id));
@@ -516,6 +532,15 @@ export class DatabaseStorage implements IStorage {
   async createBlogPost(insertPost: InsertBlogPost): Promise<BlogPost> {
     const [post] = await db.insert(blogPosts).values(insertPost).returning();
     return post;
+  }
+
+  async updateBlogPost(id: string, data: Partial<BlogPost>): Promise<BlogPost | undefined> {
+    const [post] = await db.update(blogPosts).set(data).where(eq(blogPosts.id, id)).returning();
+    return post;
+  }
+
+  async deleteBlogPost(id: string): Promise<void> {
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
   }
 
   // News Items
@@ -683,6 +708,10 @@ export class DatabaseStorage implements IStorage {
     const [campaign] = await db.update(campaigns).set(data).where(eq(campaigns.id, id)).returning();
     return campaign;
   }
+  async deleteCampaign(id: string): Promise<void> {
+    await db.delete(campaignDonations).where(eq(campaignDonations.campaignId, id));
+    await db.delete(campaigns).where(eq(campaigns.id, id));
+  }
   async createCampaignDonation(insertDonation: InsertCampaignDonation): Promise<CampaignDonation> {
     const [donation] = await db.insert(campaignDonations).values(insertDonation).returning();
     return donation;
@@ -709,6 +738,9 @@ export class DatabaseStorage implements IStorage {
   async updateTier(id: string, data: Partial<MembershipTier>): Promise<MembershipTier | undefined> {
     const [tier] = await db.update(membershipTiers).set(data).where(eq(membershipTiers.id, id)).returning();
     return tier;
+  }
+  async deleteTier(id: string): Promise<void> {
+    await db.delete(membershipTiers).where(eq(membershipTiers.id, id));
   }
   async createMemberSubscription(insertSub: InsertMemberSubscription): Promise<MemberSubscription> {
     const [sub] = await db.insert(memberSubscriptions).values(insertSub).returning();
@@ -744,6 +776,11 @@ export class DatabaseStorage implements IStorage {
   async updateAuctionItem(id: string, data: Partial<AuctionItem>): Promise<AuctionItem | undefined> {
     const [item] = await db.update(auctionItems).set(data).where(eq(auctionItems.id, id)).returning();
     return item;
+  }
+  async deleteAuctionItem(id: string): Promise<void> {
+    await db.delete(bids).where(eq(bids.auctionItemId, id));
+    await db.delete(raffleTickets).where(eq(raffleTickets.auctionItemId, id));
+    await db.delete(auctionItems).where(eq(auctionItems.id, id));
   }
   async createBid(insertBid: InsertBid): Promise<Bid> {
     const [bid] = await db.insert(bids).values(insertBid).returning();

@@ -26,6 +26,23 @@ The admin panel (`/admin` and all `/admin/*` routes) is protected by session-bas
 - Auth provider: `client/src/components/AdminAuthProvider.tsx`
 - Sessions expire after 24 hours
 
+## CMS Admin Panels
+The admin dashboard at `/admin` provides a comprehensive CMS with 14 management sections:
+- **Chapters** (`/admin/chapters`) — Create, edit, delete chapters; manage leadership teams; upload logos/photos
+- **Regions** (`/admin/regions`, `/admin/regions/:slug`) — Manage regions, coordinators, access codes
+- **Store** (`/admin/store`) — Manage products, pricing, images, inventory
+- **Events** (`/admin/events`) — Create/edit virtual events, view ticket sales
+- **Conferences** (`/admin/conferences`) — Manage conferences/conventions (create, edit, delete)
+- **Campaigns** (`/admin/campaigns`) — Manage fundraising campaigns, view campaign donations
+- **Auctions & Raffles** (`/admin/auctions`) — Manage auction items and raffles, view bids
+- **Donations** (`/admin/donations`) — View all general donations with stats (read-only)
+- **Blog** (`/admin/blog`) — Create, edit, publish/unpublish, delete blog posts
+- **Membership** (`/admin/membership`) — View subscriptions and award fulfillment
+- **Membership Tiers** (`/admin/tiers`) — Manage tier pricing, benefits, awards, display order
+- **Songs** (`/admin/songs`) — Upload and manage revolutionary songs
+- **Printful** (`/admin/printful`) — Print-on-demand fulfillment integration
+- **Member Directory** (`/admin/members`) — Search, filter, export registered members
+
 ## Self-Service Portals
 Chapter and region coordinators can manage their own information via self-service portals:
 - `/portal/chapter/:slug` — Chapter coordinators enter an access code to update chapter info (general details, contact, social media, leadership team)

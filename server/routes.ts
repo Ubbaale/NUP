@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema } from "@shared/schema";
+import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -489,6 +489,40 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/conferences", requireAdmin, async (req, res) => {
+    try {
+      const data = { ...req.body };
+      if (data.startDate) data.startDate = new Date(data.startDate);
+      if (data.endDate) data.endDate = new Date(data.endDate);
+      const conference = await storage.createConference(data);
+      res.status(201).json(conference);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create conference" });
+    }
+  });
+
+  app.patch("/api/conferences/:id", requireAdmin, async (req, res) => {
+    try {
+      const data = { ...req.body };
+      if (data.startDate) data.startDate = new Date(data.startDate);
+      if (data.endDate) data.endDate = new Date(data.endDate);
+      const conference = await storage.updateConference(req.params.id, data);
+      if (!conference) return res.status(404).json({ error: "Conference not found" });
+      res.json(conference);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update conference" });
+    }
+  });
+
+  app.delete("/api/conferences/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteConference(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete conference" });
+    }
+  });
+
   // ===== PRODUCTS =====
   app.get("/api/products", async (req, res) => {
     try {
@@ -762,6 +796,15 @@ export async function registerRoutes(
   });
 
   // ===== DONATIONS =====
+  app.get("/api/donations", requireAdmin, async (req, res) => {
+    try {
+      const allDonations = await storage.getAllDonations();
+      res.json(allDonations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch donations" });
+    }
+  });
+
   app.post("/api/donations", async (req, res) => {
     try {
       const validatedData = insertDonationSchema.parse(req.body);
@@ -801,6 +844,25 @@ export async function registerRoutes(
       res.status(201).json(post);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to create post" });
+    }
+  });
+
+  app.patch("/api/blog/:id", requireAdmin, async (req, res) => {
+    try {
+      const post = await storage.updateBlogPost(req.params.id, req.body);
+      if (!post) return res.status(404).json({ error: "Post not found" });
+      res.json(post);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update post" });
+    }
+  });
+
+  app.delete("/api/blog/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteBlogPost(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete post" });
     }
   });
 
@@ -1508,7 +1570,16 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/campaigns", async (req, res) => {
+  app.get("/api/admin/campaigns", requireAdmin, async (req, res) => {
+    try {
+      const campaignsList = await storage.getAllCampaigns();
+      res.json(campaignsList);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch campaigns" });
+    }
+  });
+
+  app.post("/api/campaigns", requireAdmin, async (req, res) => {
     try {
       const data = { ...req.body };
       if (data.startDate) data.startDate = new Date(data.startDate);
@@ -1554,7 +1625,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/campaigns/:slug/donations", async (req, res) => {
+  app.get("/api/campaigns/:slug/donations", requireAdmin, async (req, res) => {
     try {
       const campaign = await storage.getCampaignBySlug(req.params.slug);
       if (!campaign) return res.status(404).json({ error: "Campaign not found" });
@@ -1562,6 +1633,28 @@ export async function registerRoutes(
       res.json(donations);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch donations" });
+    }
+  });
+
+  app.patch("/api/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      const data = { ...req.body };
+      if (data.startDate) data.startDate = new Date(data.startDate);
+      if (data.endDate) data.endDate = new Date(data.endDate);
+      const campaign = await storage.updateCampaign(req.params.id, data);
+      if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+      res.json(campaign);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update campaign" });
+    }
+  });
+
+  app.delete("/api/campaigns/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteCampaign(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete campaign" });
     }
   });
 
@@ -1575,12 +1668,40 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/membership-tiers", requireAdmin, async (req, res) => {
+    try {
+      const tiers = await storage.getAllTiers();
+      res.json(tiers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch tiers" });
+    }
+  });
+
   app.post("/api/membership-tiers", requireAdmin, async (req, res) => {
     try {
       const tier = await storage.createTier(req.body);
       res.status(201).json(tier);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to create tier" });
+    }
+  });
+
+  app.patch("/api/membership-tiers/:id", requireAdmin, async (req, res) => {
+    try {
+      const tier = await storage.updateTier(req.params.id, req.body);
+      if (!tier) return res.status(404).json({ error: "Tier not found" });
+      res.json(tier);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update tier" });
+    }
+  });
+
+  app.delete("/api/membership-tiers/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteTier(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete tier" });
     }
   });
 
@@ -1706,6 +1827,15 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/auctions", requireAdmin, async (req, res) => {
+    try {
+      const items = await storage.getAllAuctionItems();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch auctions" });
+    }
+  });
+
   app.post("/api/auctions", requireAdmin, async (req, res) => {
     try {
       const data = { ...req.body };
@@ -1715,6 +1845,28 @@ export async function registerRoutes(
       res.status(201).json(item);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to create auction item" });
+    }
+  });
+
+  app.patch("/api/auctions/:id", requireAdmin, async (req, res) => {
+    try {
+      const data = { ...req.body };
+      if (data.startDate) data.startDate = new Date(data.startDate);
+      if (data.endDate) data.endDate = new Date(data.endDate);
+      const item = await storage.updateAuctionItem(req.params.id, data);
+      if (!item) return res.status(404).json({ error: "Item not found" });
+      res.json(item);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update auction item" });
+    }
+  });
+
+  app.delete("/api/auctions/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteAuctionItem(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to delete auction item" });
     }
   });
 
@@ -1743,7 +1895,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/auctions/:slug/bids", async (req, res) => {
+  app.get("/api/auctions/:slug/bids", requireAdmin, async (req, res) => {
     try {
       const item = await storage.getAuctionItemBySlug(req.params.slug);
       if (!item) return res.status(404).json({ error: "Item not found" });

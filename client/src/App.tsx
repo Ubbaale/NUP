@@ -44,6 +44,12 @@ import RegionDetailAdmin from "@/pages/RegionDetailAdmin";
 import MembersAdmin from "@/pages/MembersAdmin";
 import ChapterPortal from "@/pages/ChapterPortal";
 import RegionPortal from "@/pages/RegionPortal";
+import ConferencesAdmin from "@/pages/ConferencesAdmin";
+import CampaignsAdmin from "@/pages/CampaignsAdmin";
+import BlogAdmin from "@/pages/BlogAdmin";
+import DonationsAdmin from "@/pages/DonationsAdmin";
+import AuctionsAdmin from "@/pages/AuctionsAdmin";
+import MembershipTiersAdmin from "@/pages/MembershipTiersAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -107,6 +113,12 @@ function Router() {
       <Route path="/admin/regions">{() => <AdminRoute component={RegionAdmin} />}</Route>
       <Route path="/admin/regions/:slug">{() => <AdminRoute component={RegionDetailAdmin} />}</Route>
       <Route path="/admin/members">{() => <AdminRoute component={MembersAdmin} />}</Route>
+      <Route path="/admin/conferences">{() => <AdminRoute component={ConferencesAdmin} />}</Route>
+      <Route path="/admin/campaigns">{() => <AdminRoute component={CampaignsAdmin} />}</Route>
+      <Route path="/admin/blog">{() => <AdminRoute component={BlogAdmin} />}</Route>
+      <Route path="/admin/donations">{() => <AdminRoute component={DonationsAdmin} />}</Route>
+      <Route path="/admin/auctions">{() => <AdminRoute component={AuctionsAdmin} />}</Route>
+      <Route path="/admin/tiers">{() => <AdminRoute component={MembershipTiersAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

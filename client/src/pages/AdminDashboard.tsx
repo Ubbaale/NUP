@@ -13,6 +13,12 @@ import {
   LayoutDashboard,
   IdCard,
   LogOut,
+  CalendarDays,
+  Target,
+  FileText,
+  Heart,
+  Gavel,
+  Crown,
 } from "lucide-react";
 
 const adminSections = [
@@ -21,6 +27,12 @@ const adminSections = [
     description: "Create and manage chapters across all regions",
     href: "/admin/chapters",
     icon: Building,
+  },
+  {
+    title: "Regions",
+    description: "Manage regions, chapters, and regional leadership",
+    href: "/admin/regions",
+    icon: Globe2,
   },
   {
     title: "Store",
@@ -35,10 +47,46 @@ const adminSections = [
     icon: Calendar,
   },
   {
+    title: "Conferences",
+    description: "Manage conferences, conventions, and past events",
+    href: "/admin/conferences",
+    icon: CalendarDays,
+  },
+  {
+    title: "Campaigns",
+    description: "Manage fundraising campaigns and track donations",
+    href: "/admin/campaigns",
+    icon: Target,
+  },
+  {
+    title: "Auctions & Raffles",
+    description: "Manage auction items, raffles, bids, and tickets",
+    href: "/admin/auctions",
+    icon: Gavel,
+  },
+  {
+    title: "Donations",
+    description: "View all donations, stats, and donor information",
+    href: "/admin/donations",
+    icon: Heart,
+  },
+  {
+    title: "Blog",
+    description: "Create, edit, and publish blog posts",
+    href: "/admin/blog",
+    icon: FileText,
+  },
+  {
     title: "Membership",
     description: "View subscriptions and track award fulfillment",
     href: "/admin/membership",
     icon: Users,
+  },
+  {
+    title: "Membership Tiers",
+    description: "Manage tier pricing, benefits, and awards",
+    href: "/admin/tiers",
+    icon: Crown,
   },
   {
     title: "Songs",
@@ -51,12 +99,6 @@ const adminSections = [
     description: "Manage print-on-demand fulfillment integration",
     href: "/admin/printful",
     icon: Printer,
-  },
-  {
-    title: "Regions",
-    description: "Manage regions, chapters, and regional leadership",
-    href: "/admin/regions",
-    icon: Globe2,
   },
   {
     title: "Member Directory",
@@ -102,7 +144,7 @@ export default function AdminDashboard() {
             <Link key={section.href} href={section.href}>
               <Card
                 className="hover-elevate cursor-pointer h-full"
-                data-testid={`card-admin-${section.title.toLowerCase()}`}
+                data-testid={`card-admin-${section.title.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
@@ -112,7 +154,7 @@ export default function AdminDashboard() {
                     <div className="min-w-0">
                       <h3
                         className="font-semibold mb-1"
-                        data-testid={`text-admin-section-${section.title.toLowerCase()}`}
+                        data-testid={`text-admin-section-${section.title.toLowerCase().replace(/\s+/g, '-')}`}
                       >
                         {section.title}
                       </h3>
