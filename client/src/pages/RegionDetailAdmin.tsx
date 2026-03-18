@@ -55,14 +55,57 @@ import {
   Mail,
   Phone,
   X,
+  Upload,
 } from "lucide-react";
 import type { Region, Chapter, ChapterLeader } from "@shared/schema";
+
+function PhotoUpload({ currentUrl, onUploaded, size = "md", testId }: { currentUrl?: string; onUploaded: (url: string) => void; size?: "sm" | "md"; testId?: string }) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | undefined>(currentUrl);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/upload/leader-image", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { imageUrl } = await res.json();
+      setPreview(imageUrl);
+      onUploaded(imageUrl);
+    } catch { /* ignore */ } finally { setUploading(false); }
+  }
+
+  const dim = size === "sm" ? "w-14 h-14" : "w-20 h-20";
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <label className={`${dim} rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer overflow-hidden hover:border-primary transition-colors relative`}>
+        {preview ? (
+          <img src={preview} className="w-full h-full object-cover" alt="Leader" />
+        ) : (
+          <Upload className="w-5 h-5 text-muted-foreground" />
+        )}
+        {uploading && (
+          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleFile} data-testid={testId || "input-leader-photo"} />
+      </label>
+      <span className="text-xs text-muted-foreground">Photo</span>
+    </div>
+  );
+}
 
 const regionFormSchema = z.object({
   name: z.string().min(1, "Name required"),
   description: z.string().optional(),
   leaderName: z.string().min(1, "Leader name required"),
   leaderTitle: z.string().optional(),
+  leaderImage: z.string().optional(),
   leaderBio: z.string().optional(),
   contactEmail: z.string().email("Valid email required").or(z.literal("")),
   contactPhone: z.string().optional(),
@@ -98,6 +141,7 @@ type ChapterFormData = z.infer<typeof chapterFormSchema>;
 const leaderFormSchema = z.object({
   name: z.string().min(1, "Name required"),
   title: z.string().min(1, "Title required"),
+  image: z.string().optional(),
   bio: z.string().optional(),
   email: z.string().optional(),
   displayOrder: z.number().default(0),
@@ -147,7 +191,7 @@ function ChapterSection({ chapter, onRefresh }: { chapter: Chapter; onRefresh: (
 
   const leaderForm = useForm<LeaderFormData>({
     resolver: zodResolver(leaderFormSchema),
-    defaultValues: { name: "", title: "", bio: "", email: "", displayOrder: 0 },
+    defaultValues: { name: "", title: "", image: "", bio: "", email: "", displayOrder: 0 },
   });
 
   const updateChapter = useMutation({
@@ -261,9 +305,18 @@ function ChapterSection({ chapter, onRefresh }: { chapter: Chapter; onRefresh: (
               <div className="space-y-2">
                 {leaders.map((leader) => (
                   <div key={leader.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">{leader.name}</p>
-                      <p className="text-xs text-muted-foreground">{leader.title}</p>
+                    <div className="flex items-center gap-3">
+                      {leader.image ? (
+                        <img src={leader.image} alt={leader.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
+                          {leader.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{leader.name}</p>
+                        <p className="text-xs text-muted-foreground">{leader.title}</p>
+                      </div>
                     </div>
                     <Button
                       size="icon"
@@ -382,20 +435,30 @@ function ChapterSection({ chapter, onRefresh }: { chapter: Chapter; onRefresh: (
               </DialogHeader>
               <Form {...leaderForm}>
                 <form onSubmit={leaderForm.handleSubmit((data) => addLeader.mutate(data))} className="space-y-4">
-                  <FormField control={leaderForm.control} name="name" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl><Input {...field} data-testid="input-leader-name" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={leaderForm.control} name="title" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title / Role</FormLabel>
-                      <FormControl><Input {...field} placeholder="Chapter President" data-testid="input-leader-title" /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
+                  <div className="flex gap-4">
+                    <PhotoUpload
+                      currentUrl={leaderForm.getValues("image") || undefined}
+                      onUploaded={(url) => leaderForm.setValue("image", url)}
+                      size="sm"
+                      testId="input-new-leader-photo"
+                    />
+                    <div className="flex-1 space-y-3">
+                      <FormField control={leaderForm.control} name="name" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name</FormLabel>
+                          <FormControl><Input {...field} data-testid="input-leader-name" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={leaderForm.control} name="title" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title / Role</FormLabel>
+                          <FormControl><Input {...field} placeholder="Chapter President" data-testid="input-leader-title" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
                   <FormField control={leaderForm.control} name="bio" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Bio</FormLabel>
@@ -453,6 +516,7 @@ export default function RegionDetailAdmin() {
       description: region.description || "",
       leaderName: region.leaderName || "",
       leaderTitle: region.leaderTitle || "",
+      leaderImage: region.leaderImage || "",
       leaderBio: region.leaderBio || "",
       contactEmail: region.contactEmail || "",
       contactPhone: region.contactPhone || "",
@@ -584,21 +648,28 @@ export default function RegionDetailAdmin() {
                   )} />
                   <Separator />
                   <h4 className="text-sm font-semibold">Regional Coordinator</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <FormField control={regionForm.control} name="leaderName" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Coordinator Name</FormLabel>
-                        <FormControl><Input {...field} data-testid="input-region-leader-name" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={regionForm.control} name="leaderTitle" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl><Input {...field} data-testid="input-region-leader-title" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
+                  <div className="flex gap-4">
+                    <PhotoUpload
+                      currentUrl={regionForm.getValues("leaderImage") || undefined}
+                      onUploaded={(url) => regionForm.setValue("leaderImage", url)}
+                      testId="input-region-coordinator-photo"
+                    />
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <FormField control={regionForm.control} name="leaderName" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Coordinator Name</FormLabel>
+                          <FormControl><Input {...field} data-testid="input-region-leader-name" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={regionForm.control} name="leaderTitle" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl><Input {...field} data-testid="input-region-leader-title" /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
                   </div>
                   <FormField control={regionForm.control} name="leaderBio" render={({ field }) => (
                     <FormItem>
@@ -724,7 +795,13 @@ export default function RegionDetailAdmin() {
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <Users className="w-5 h-5 text-primary mt-0.5" />
+                    {region.leaderImage ? (
+                      <img src={region.leaderImage} alt={region.leaderName || ""} className="w-14 h-14 rounded-full object-cover flex-shrink-0" data-testid="img-region-leader" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold flex-shrink-0">
+                        {region.leaderName ? region.leaderName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) : <Users className="w-5 h-5" />}
+                      </div>
+                    )}
                     <div>
                       <p className="font-semibold">{region.leaderName}</p>
                       <p className="text-sm text-muted-foreground">{region.leaderTitle}</p>

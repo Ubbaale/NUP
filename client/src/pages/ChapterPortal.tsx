@@ -57,6 +57,7 @@ const chapterUpdateSchema = z.object({
   iconEmoji: z.string().optional(),
   leaderName: z.string().optional(),
   leaderTitle: z.string().optional(),
+  leaderImage: z.string().optional(),
   leaderBio: z.string().optional(),
   contactEmail: z.string().email("Valid email required").or(z.literal("")).optional(),
   contactPhone: z.string().optional(),
@@ -77,6 +78,7 @@ type ChapterUpdateData = z.infer<typeof chapterUpdateSchema>;
 const leaderFormSchema = z.object({
   name: z.string().min(1, "Name required"),
   title: z.string().min(1, "Title required"),
+  image: z.string().optional(),
   bio: z.string().optional(),
   email: z.string().optional(),
   displayOrder: z.number().default(0),
@@ -168,7 +170,7 @@ export default function ChapterPortal() {
 
   const leaderForm = useForm<LeaderFormData>({
     resolver: zodResolver(leaderFormSchema),
-    defaultValues: { name: "", title: "", bio: "", email: "", displayOrder: 0 },
+    defaultValues: { name: "", title: "", image: "", bio: "", email: "", displayOrder: 0 },
   });
 
   const { data: leaders, refetch: refetchLeaders } = useQuery<ChapterLeader[]>({
@@ -199,6 +201,7 @@ export default function ChapterPortal() {
         iconEmoji: ch.iconEmoji || "",
         leaderName: ch.leaderName || "",
         leaderTitle: ch.leaderTitle || "",
+        leaderImage: ch.leaderImage || "",
         leaderBio: ch.leaderBio || "",
         contactEmail: ch.contactEmail || "",
         contactPhone: ch.contactPhone || "",
@@ -457,21 +460,27 @@ export default function ChapterPortal() {
                   <CardContent className="space-y-4">
                     <Separator />
                     <h4 className="font-semibold text-sm">Primary Leader</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField control={updateForm.control} name="leaderName" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Leader Name</FormLabel>
-                          <FormControl><Input {...field} data-testid="input-portal-leader-name" /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={updateForm.control} name="leaderTitle" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Leader Title</FormLabel>
-                          <FormControl><Input {...field} placeholder="Chapter President" data-testid="input-portal-leader-title" /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                    <div className="flex gap-4">
+                      <PhotoUpload
+                        currentUrl={updateForm.getValues("leaderImage") || undefined}
+                        onUploaded={(url) => updateForm.setValue("leaderImage", url)}
+                      />
+                      <div className="flex-1 grid grid-cols-2 gap-4">
+                        <FormField control={updateForm.control} name="leaderName" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Leader Name</FormLabel>
+                            <FormControl><Input {...field} data-testid="input-portal-leader-name" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={updateForm.control} name="leaderTitle" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Leader Title</FormLabel>
+                            <FormControl><Input {...field} placeholder="Chapter President" data-testid="input-portal-leader-title" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
                     </div>
                     <FormField control={updateForm.control} name="leaderBio" render={({ field }) => (
                       <FormItem>
@@ -624,21 +633,27 @@ export default function ChapterPortal() {
                     <h4 className="font-semibold mb-4">Add New Leader</h4>
                     <Form {...leaderForm}>
                       <form onSubmit={leaderForm.handleSubmit((data) => addLeader.mutate(data))} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField control={leaderForm.control} name="name" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Full Name</FormLabel>
-                              <FormControl><Input {...field} data-testid="input-portal-new-leader-name" /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={leaderForm.control} name="title" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title / Role</FormLabel>
-                              <FormControl><Input {...field} placeholder="Vice President" data-testid="input-portal-new-leader-title" /></FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
+                        <div className="flex gap-4">
+                          <PhotoUpload
+                            currentUrl={leaderForm.getValues("image") || undefined}
+                            onUploaded={(url) => leaderForm.setValue("image", url)}
+                          />
+                          <div className="flex-1 grid grid-cols-2 gap-4">
+                            <FormField control={leaderForm.control} name="name" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Full Name</FormLabel>
+                                <FormControl><Input {...field} data-testid="input-portal-new-leader-name" /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={leaderForm.control} name="title" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Title / Role</FormLabel>
+                                <FormControl><Input {...field} placeholder="Vice President" data-testid="input-portal-new-leader-title" /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
                         </div>
                         <FormField control={leaderForm.control} name="bio" render={({ field }) => (
                           <FormItem>

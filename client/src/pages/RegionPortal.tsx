@@ -35,9 +35,49 @@ import {
   Instagram,
   Youtube,
   MessageCircle,
+  Upload,
 } from "lucide-react";
 import { SiX } from "react-icons/si";
 import type { Region } from "@shared/schema";
+
+function PhotoUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUploaded: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | undefined>(currentUrl);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/upload/leader-image", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { imageUrl } = await res.json();
+      setPreview(imageUrl);
+      onUploaded(imageUrl);
+    } catch { /* ignore */ } finally { setUploading(false); }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <label className="w-20 h-20 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer overflow-hidden hover:border-primary transition-colors relative">
+        {preview ? (
+          <img src={preview} className="w-full h-full object-cover" alt="Leader" />
+        ) : (
+          <Upload className="w-5 h-5 text-muted-foreground" />
+        )}
+        {uploading && (
+          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleFile} data-testid="input-region-portal-leader-photo" />
+      </label>
+      <span className="text-xs text-muted-foreground">Coordinator Photo</span>
+    </div>
+  );
+}
 
 const accessFormSchema = z.object({
   accessCode: z.string().min(1, "Access code is required"),
@@ -48,6 +88,7 @@ const regionUpdateSchema = z.object({
   description: z.string().optional(),
   leaderName: z.string().optional(),
   leaderTitle: z.string().optional(),
+  leaderImage: z.string().optional(),
   leaderBio: z.string().optional(),
   contactEmail: z.string().email("Valid email required").or(z.literal("")).optional(),
   contactPhone: z.string().optional(),
@@ -95,6 +136,7 @@ export default function RegionPortal() {
         description: r.description || "",
         leaderName: r.leaderName || "",
         leaderTitle: r.leaderTitle || "",
+        leaderImage: r.leaderImage || "",
         leaderBio: r.leaderBio || "",
         contactEmail: r.contactEmail || "",
         contactPhone: r.contactPhone || "",
@@ -284,21 +326,27 @@ export default function RegionPortal() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <h4 className="font-semibold text-sm">Regional Coordinator</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField control={updateForm.control} name="leaderName" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Coordinator Name</FormLabel>
-                          <FormControl><Input {...field} data-testid="input-region-portal-leader-name" /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                      <FormField control={updateForm.control} name="leaderTitle" render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Title</FormLabel>
-                          <FormControl><Input {...field} placeholder="Regional Coordinator" data-testid="input-region-portal-leader-title" /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                    <div className="flex gap-4">
+                      <PhotoUpload
+                        currentUrl={updateForm.getValues("leaderImage") || undefined}
+                        onUploaded={(url) => updateForm.setValue("leaderImage", url)}
+                      />
+                      <div className="flex-1 grid grid-cols-2 gap-4">
+                        <FormField control={updateForm.control} name="leaderName" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Coordinator Name</FormLabel>
+                            <FormControl><Input {...field} data-testid="input-region-portal-leader-name" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={updateForm.control} name="leaderTitle" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl><Input {...field} placeholder="Regional Coordinator" data-testid="input-region-portal-leader-title" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
                     </div>
                     <FormField control={updateForm.control} name="leaderBio" render={({ field }) => (
                       <FormItem>

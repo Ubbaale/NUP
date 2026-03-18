@@ -145,6 +145,20 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/regions", async (req, res) => {
+    try {
+      const data = insertRegionSchema.parse(req.body);
+      const existing = await storage.getRegionBySlug(data.slug);
+      if (existing) {
+        return res.status(400).json({ error: "A region with this slug already exists" });
+      }
+      const region = await storage.createRegion(data);
+      res.status(201).json(region);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create region" });
+    }
+  });
+
   app.get("/api/regions/:slug", async (req, res) => {
     try {
       const region = await storage.getRegionBySlug(req.params.slug);
