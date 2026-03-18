@@ -655,6 +655,385 @@ export default function ConferenceDetail() {
     return <Convention2026Page conference={conference} />;
   }
 
+  if (conference.slug === "convention-2025") {
+    return <Boston2025Page conference={conference} />;
+  }
+
+  if (conference.slug === "convention-2024") {
+    return <Chicago2024Page conference={conference} />;
+  }
+
+  return <GenericConferenceDetail conference={conference} />;
+}
+
+const BOSTON_SCHEDULE = [
+  {
+    day: "Thursday, August 7th",
+    title: "Arrival & Welcome",
+    events: [
+      { time: "12:00 PM - 6:00 PM", title: "Delegate Arrival & Check-in", desc: "Boston Marriott Burlington — Welcome packets distributed" },
+      { time: "2:00 PM - 5:00 PM", title: "Offsite Leadership Meetings", desc: "NUP Diaspora leadership and convention organizing committee" },
+      { time: "7:00 PM - 10:00 PM", title: "Welcome Reception & Mixer", desc: "Networking dinner for early arrivals" },
+    ],
+  },
+  {
+    day: "Friday, August 8th",
+    title: "Strategy & Mobilization",
+    events: [
+      { time: "8:00 AM - 11:00 PM", title: "Delegate Registration", desc: "Registration desk, main lobby", icon: CheckCircle },
+      { time: "9:00 AM - 12:00 PM", title: "Opening Ceremony", desc: "Welcome remarks, theme presentation: 'Be the Change You Desire'", icon: BookOpen },
+      { time: "1:30 PM - 5:00 PM", title: "Strategy Sessions", desc: "Democracy advocacy, human rights strategy, resource mobilization" },
+      { time: "7:00 PM - 10:30 PM", title: "Cultural Night", desc: "Celebrating Ugandan heritage and diaspora unity", icon: Music },
+    ],
+  },
+  {
+    day: "Saturday, August 9th",
+    title: "Women's Empowerment & Speakers",
+    events: [
+      { time: "8:30 AM - 12:00 PM", title: "Women's Empowerment Workshop", desc: "Led by First Lady Barbie Itungo Kyagulanyi — Menstrual health, cancer awareness, girl child education", icon: Heart },
+      { time: "9:30 AM - 12:00 PM", title: "Distinguished Speakers", desc: "Presentations by NUP President Bobi Wine and Hon. Joel Ssenyonyi", icon: Star },
+      { time: "1:00 PM - 3:30 PM", title: "Leadership Training", desc: "Building the next generation of democratic leaders" },
+      { time: "4:00 PM", title: "Departure for Boat Cruise", desc: "Buses depart from hotel", icon: Ship },
+      { time: "7:00 PM - 11:00 PM", title: "Boat Cruise", desc: "Networking and celebration on the water", icon: Ship },
+    ],
+  },
+  {
+    day: "Sunday, August 10th",
+    title: "Vision & Solidarity",
+    events: [
+      { time: "9:00 AM - 11:00 AM", title: "Interdenominational Prayer", desc: "Prayers for Uganda and the movement" },
+      { time: "11:30 AM - 1:00 PM", title: "Annual General Meeting", desc: "Resolutions, chapter reports, and path forward" },
+      { time: "2:00 PM - 4:00 PM", title: "Keynote Address", desc: "President Robert Kyagulanyi Ssentamu — Vision for a liberated Uganda", icon: Star },
+      { time: "5:00 PM - 11:00 PM", title: "Closing Banquet & Gala", desc: "Awards, entertainment, and celebration", icon: Trophy },
+    ],
+  },
+  {
+    day: "Monday, August 11th",
+    title: "Departure",
+    events: [
+      { time: "Morning", title: "Farewell Breakfast", desc: "Final networking and departure" },
+    ],
+  },
+];
+
+const BOSTON_SPEAKERS = [
+  { name: "President Robert Kyagulanyi Ssentamu", role: "NUP President / Keynote Speaker", desc: "Leader of the People Power Movement and President of the National Unity Platform" },
+  { name: "Hon. Joel Ssenyonyi", role: "Leader of Opposition", desc: "Member of Parliament for Nakawa West, NUP Spokesperson" },
+  { name: "First Lady Barbie Itungo Kyagulanyi", role: "Women's Empowerment Speaker", desc: "Founder of Caring Hearts Uganda — champion of menstrual health, cancer awareness, and girl child education" },
+  { name: "S.G. David Lewis Rubongeya", role: "Secretary General", desc: "NUP Secretary General and key strategist" },
+  { name: "Moses Mujawa", role: "Convention Chair", desc: "Lead organizer for the Boston 2025 Convention" },
+  { name: "Marvin Bbale", role: "Boston Chapter Leader", desc: "Host chapter leader for the convention" },
+  { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination" },
+  { name: "Dr. Elvis Balikalaba", role: "Organizing Committee", desc: "Convention planning and logistics" },
+];
+
+const CHICAGO_SCHEDULE = [
+  {
+    day: "Thursday, August 8th",
+    title: "Arrival & Leadership",
+    events: [
+      { time: "8:00 AM - 2:00 PM", title: "Arrival of Delegates", desc: "Offsite meetings for Ugandan delegates" },
+      { time: "12:00 PM - 1:00 PM", title: "Convention Leadership Meetings", desc: "NUP Leadership and organizing committee" },
+      { time: "2:00 PM - 6:00 PM", title: "Leadership Training Workshop", desc: "Empowering leadership and civil engagement strategies" },
+      { time: "7:00 PM - 11:00 PM", title: "Welcome Evening & Soccer", desc: "Patriot's Day Cup soccer match followed by picnic and BBQ", icon: Trophy },
+    ],
+  },
+  {
+    day: "Friday, August 9th",
+    title: "Democracy & Engagement",
+    events: [
+      { time: "8:00 AM - 11:00 PM", title: "Delegate Registration", desc: "Registration desk open all day", icon: CheckCircle },
+      { time: "8:00 AM - 12:00 PM", title: "March for Democracy", desc: "Rally and demonstration for democratic change in Uganda", icon: Flag },
+      { time: "10:00 AM - 12:00 PM", title: "United Forces for Change", desc: "Leaders meeting and strategy session" },
+      { time: "1:30 PM - 6:00 PM", title: "Opening Ceremony", desc: "Envisioning A New Uganda — Presentation of Papers", icon: BookOpen },
+      { time: "7:00 PM - 10:30 PM", title: "Celebrating Women's Excellence", desc: "Honoring women's achievements and leadership", icon: Heart },
+      { time: "10:30 PM - 1:00 AM", title: "Meet and Greet Cocktail", desc: "Fostering connections among delegates" },
+    ],
+  },
+  {
+    day: "Saturday, August 10th",
+    title: "Speakers & River Cruise",
+    events: [
+      { time: "8:30 AM - 9:30 AM", title: "General Session", desc: "Welcome remarks and theme introduction" },
+      { time: "9:30 AM - 12:00 PM", title: "Distinguished Speakers", desc: "Presentations by panelists on governance and human rights", icon: Star },
+      { time: "10:00 AM - 12:00 PM", title: "Youth Session", desc: "Empowering the next generation" },
+      { time: "1:00 PM - 3:30 PM", title: "Ugandan Delegates Presentations", desc: "Our Collective Vision for a New Uganda" },
+      { time: "4:00 PM", title: "Departure for Chicago River Cruise", desc: "Buses depart from the hotel", icon: Ship },
+      { time: "7:00 PM - 11:00 PM", title: "Chicago River Cruise", desc: "Dinner, entertainment, and networking with skyline views", icon: Music },
+    ],
+  },
+  {
+    day: "Sunday, August 11th",
+    title: "Solidarity & Celebration",
+    events: [
+      { time: "8:00 AM", title: "Patriots Day 2K Run", desc: "Supporting victims of political repression", icon: Trophy },
+      { time: "10:00 AM - 12:00 PM", title: "Interdenominational Prayer", desc: "Prayers for patriots and victims" },
+      { time: "1:00 PM - 3:00 PM", title: "Annual General Meeting", desc: "Resolutions and path forward" },
+      { time: "4:00 PM - 2:00 AM", title: "Closing Ceremony & Banquet", desc: "Grand finale with awards and cultural performances", icon: Star },
+    ],
+  },
+  {
+    day: "Monday, August 12th",
+    title: "Departure",
+    events: [
+      { time: "Morning", title: "Farewell & Departure", desc: "Safe travels and continued solidarity" },
+    ],
+  },
+];
+
+const CHICAGO_SPEAKERS = [
+  { name: "President Robert Kyagulanyi Ssentamu", role: "NUP President / Keynote Speaker", desc: "Leader of the People Power Movement — delivered powerful closing remarks thanking American supporters" },
+  { name: "Hon. Joel Ssenyonyi", role: "Leader of Opposition", desc: "Member of Parliament and NUP Spokesperson" },
+  { name: "Professor Milton Allimadi", role: "Distinguished Speaker", desc: "Renowned journalist and professor of African studies" },
+  { name: "Congressman Danny K Davis", role: "Distinguished Guest Speaker", desc: "U.S. Congressman and human rights advocate" },
+  { name: "Professor David Ssejinja", role: "Guest Speaker", desc: "Expert in international politics and African education" },
+  { name: "Professor James Powell", role: "Guest Speaker", desc: "Adjunct Professor and humanitarian advocate" },
+  { name: "Professor Tim Szczepanski", role: "Guest Speaker", desc: "Director of Student Engagement, CSU Northridge" },
+  { name: "Katie Lowe", role: "Guest Speaker", desc: "CFO, American Leaders Class — human rights activist" },
+  { name: "Godfrey Nyenje", role: "Convention Chair", desc: "Lead organizer for the Chicago 2024 Convention" },
+  { name: "Hellen Nandaula", role: "NUP Chicago Team Leader", desc: "Host chapter leader for the convention" },
+  { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination" },
+];
+
+function PastConventionPage({ conference, schedule, speakersList, highlights, venue }: {
+  conference: Conference;
+  schedule: typeof BOSTON_SCHEDULE;
+  speakersList: typeof BOSTON_SPEAKERS;
+  highlights: { icon: typeof Star; title: string; desc: string }[];
+  venue: { name: string; address: string; details: string[] };
+}) {
+  const [activeDay, setActiveDay] = useState(0);
+
+  return (
+    <div className="min-h-screen">
+      <div className="relative bg-gradient-to-br from-gray-900 via-red-950 to-gray-900 py-20">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
+        <div className="container mx-auto px-4 relative z-10">
+          <Link href="/conferences">
+            <Button variant="ghost" className="mb-6 text-white/80 hover:text-white hover:bg-white/10" data-testid="button-back-to-conferences">
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Conferences
+            </Button>
+          </Link>
+          <div className="text-center">
+            <Badge className="mb-4 bg-white/20 text-white border-white/30 hover:bg-white/30">
+              <Clock className="w-3 h-3 mr-1" /> Past Convention
+            </Badge>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4" data-testid="text-conference-title">
+              {conference.title}
+            </h1>
+            {conference.theme && (
+              <p className="text-xl md:text-2xl text-white/80 italic mb-6" data-testid="text-conference-theme">
+                "{conference.theme}"
+              </p>
+            )}
+            <div className="flex flex-wrap items-center justify-center gap-6 text-white/70">
+              <span className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                {conference.startDate && format(new Date(conference.startDate), "MMMM d")} - {conference.endDate && format(new Date(conference.endDate), "MMMM d, yyyy")}
+              </span>
+              <span className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                {conference.city}, {conference.country}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+          {highlights.map((h, i) => (
+            <Card key={i} className="text-center p-6 hover:shadow-md transition-shadow" data-testid={`card-highlight-${i}`}>
+              <h.icon className="w-10 h-10 mx-auto mb-3 text-primary" />
+              <h3 className="font-bold mb-1">{h.title}</h3>
+              <p className="text-sm text-muted-foreground">{h.desc}</p>
+            </Card>
+          ))}
+        </div>
+
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold mb-3 text-center">About the Convention</h2>
+          <Separator className="w-20 mx-auto mb-8" />
+          <Card>
+            <CardContent className="p-8">
+              <p className="text-muted-foreground text-lg leading-relaxed whitespace-pre-wrap">
+                {conference.description}
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold mb-3 text-center">Convention Schedule</h2>
+          <Separator className="w-20 mx-auto mb-8" />
+          <Tabs value={String(activeDay)} onValueChange={(v) => setActiveDay(Number(v))}>
+            <TabsList className="flex flex-wrap justify-center gap-1 bg-transparent h-auto mb-6">
+              {schedule.map((day, i) => (
+                <TabsTrigger
+                  key={i}
+                  value={String(i)}
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-full"
+                  data-testid={`tab-day-${i}`}
+                >
+                  Day {i + 1}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {schedule.map((day, i) => (
+              <TabsContent key={i} value={String(i)}>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold">{day.day}</h3>
+                        <p className="text-sm text-muted-foreground">{day.title}</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {day.events.map((evt, j) => {
+                        const IconComp = evt.icon || Clock;
+                        return (
+                          <div key={j} className="flex gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors" data-testid={`schedule-event-${i}-${j}`}>
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <IconComp className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1">
+                                <span className="text-xs font-mono text-primary font-semibold">{evt.time}</span>
+                                <h4 className="font-semibold">{evt.title}</h4>
+                              </div>
+                              {evt.desc && <p className="text-sm text-muted-foreground">{evt.desc}</p>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </section>
+
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold mb-3 text-center">Featured Speakers</h2>
+          <Separator className="w-20 mx-auto mb-8" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {speakersList.map((speaker, i) => (
+              <Card key={i} className="hover:shadow-md transition-shadow" data-testid={`card-speaker-${i}`}>
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm">{speaker.name}</h3>
+                      <p className="text-xs text-primary font-medium mb-1">{speaker.role}</p>
+                      <p className="text-xs text-muted-foreground">{speaker.desc}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold mb-3 text-center">Venue</h2>
+          <Separator className="w-20 mx-auto mb-8" />
+          <Card>
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row items-start gap-6">
+                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Hotel className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-1">{venue.name}</h3>
+                  <p className="text-muted-foreground mb-4 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" /> {venue.address}
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {venue.details.map((detail, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {detail}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <PastConventions />
+      </div>
+    </div>
+  );
+}
+
+function Boston2025Page({ conference }: { conference: Conference }) {
+  return (
+    <PastConventionPage
+      conference={conference}
+      schedule={BOSTON_SCHEDULE}
+      speakersList={BOSTON_SPEAKERS}
+      highlights={[
+        { icon: Users, title: "5th Annual", desc: "The fifth gathering of NUP Diaspora from across the globe" },
+        { icon: Heart, title: "Women's Empowerment", desc: "Workshop led by First Lady Barbie Kyagulanyi" },
+        { icon: Star, title: "Leader of Opposition", desc: "Hon. Joel Ssenyonyi addressed delegates" },
+        { icon: Ship, title: "Boat Cruise", desc: "Networking and celebration on the water" },
+      ]}
+      venue={{
+        name: "Boston Marriott Burlington",
+        address: "One Burlington Mall Road, Burlington, MA 01803",
+        details: [
+          "$165/night group rate",
+          "Breakfast included",
+          "15 miles north of Boston",
+          "Complimentary airport shuttle",
+          "Near Burlington Mall",
+          "Close to Salem, Lexington & Concord",
+        ],
+      }}
+    />
+  );
+}
+
+function Chicago2024Page({ conference }: { conference: Conference }) {
+  return (
+    <PastConventionPage
+      conference={conference}
+      schedule={CHICAGO_SCHEDULE}
+      speakersList={CHICAGO_SPEAKERS}
+      highlights={[
+        { icon: Flag, title: "March for Democracy", desc: "Public rally advocating for democratic change in Uganda" },
+        { icon: Ship, title: "Chicago River Cruise", desc: "Signature cruise exploring the iconic skyline" },
+        { icon: Star, title: "6+ Distinguished Speakers", desc: "Professors, congressmen, and human rights advocates" },
+        { icon: Trophy, title: "Patriot's Day Cup", desc: "Soccer match and community sports event" },
+      ]}
+      venue={{
+        name: "Convention Venue — Chicago",
+        address: "Chicago, Illinois",
+        details: [
+          "Home of President Obama",
+          "Legacy of civil rights movements",
+          "Explore the Magnificent Mile",
+          "Lake Michigan shoreline",
+          "Hyde Park neighborhood",
+          "World-class dining and culture",
+        ],
+      }}
+    />
+  );
+}
+
+function GenericConferenceDetail({ conference }: { conference: Conference }) {
   const speakers = conference.speakers ? JSON.parse(conference.speakers) : [];
 
   return (
