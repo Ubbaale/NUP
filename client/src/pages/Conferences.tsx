@@ -5,16 +5,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConferenceCard } from "@/components/ConferenceCard";
 import { Calendar } from "lucide-react";
-import { useEffect } from "react";
-import { useLocation } from "wouter";
 import type { Conference } from "@shared/schema";
 
 export default function Conferences() {
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    setLocation("/conferences/convention-2026");
-  }, [setLocation]);
   const { data: conferences, isLoading } = useQuery<Conference[]>({
     queryKey: ["/api/conferences"],
   });
