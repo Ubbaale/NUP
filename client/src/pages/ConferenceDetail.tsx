@@ -27,6 +27,22 @@ import nupGetInvolvedImg from "@assets/nup-get-involved.jpg";
 import nupBoatCruise1Img from "@assets/nup-boat-cruise-1.jpg";
 import nupBoatCruise2Img from "@assets/nup-boat-cruise-2.jpg";
 import bobiWineSpeakerImg from "@assets/bobi-wine-speaker.jpg";
+import bobiWineDiasporaImg from "@assets/bobi-wine-speaker-diaspora.jpg";
+import joelSsenyonyiImg from "@assets/joel-ssenyonyi-speaker.jpg";
+import barbieKyagulanyiImg from "@assets/barbie-kyagulanyi-speaker.jpg";
+import davidLewisImg from "@assets/david-lewis-rubongeya.jpg";
+import chicagoMarriottImg from "@assets/chicago-marriott-hotel.jpeg";
+import chicagoPromontoryImg from "@assets/chicago-promontory-point.jpg";
+import chicagoSpiritCruiseImg from "@assets/chicago-spirit-cruise.jpg";
+import chicagoGroupImg from "@assets/chicago-convention-group.jpeg";
+import chicagoDelegate1Img from "@assets/chicago-convention-delegate1.jpeg";
+import chicagoDelegate2Img from "@assets/chicago-convention-delegate2.jpeg";
+import bostonMarriottImg from "@assets/boston-marriott-burlington.webp";
+import chicagoFlyerImg from "@assets/chicago-flyer-poster.jpeg";
+import davidSsejinjaImg from "@assets/david-ssejinja-speaker.jpg";
+import katieLoweSpeakerImg from "@assets/katie-lowe-speaker.jpg";
+import timSzczepanskiImg from "@assets/tim-szczepanski-speaker.jpg";
+import dannyKDavisImg from "@assets/danny-k-davis-speaker.jpg";
 
 const HERO_SLIDES = [
   { src: nupEventPhotoImg, alt: "NUP Diaspora community gathering" },
@@ -717,14 +733,14 @@ const BOSTON_SCHEDULE = [
 ];
 
 const BOSTON_SPEAKERS = [
-  { name: "President Robert Kyagulanyi Ssentamu", role: "NUP President / Keynote Speaker", desc: "Leader of the People Power Movement and President of the National Unity Platform" },
-  { name: "Hon. Joel Ssenyonyi", role: "Leader of Opposition", desc: "Member of Parliament for Nakawa West, NUP Spokesperson" },
-  { name: "First Lady Barbie Itungo Kyagulanyi", role: "Women's Empowerment Speaker", desc: "Founder of Caring Hearts Uganda — champion of menstrual health, cancer awareness, and girl child education" },
-  { name: "S.G. David Lewis Rubongeya", role: "Secretary General", desc: "NUP Secretary General and key strategist" },
-  { name: "Moses Mujawa", role: "Convention Chair", desc: "Lead organizer for the Boston 2025 Convention" },
-  { name: "Marvin Bbale", role: "Boston Chapter Leader", desc: "Host chapter leader for the convention" },
-  { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination" },
-  { name: "Dr. Elvis Balikalaba", role: "Organizing Committee", desc: "Convention planning and logistics" },
+  { name: "President Robert Kyagulanyi Ssentamu", role: "NUP President / Keynote Speaker", desc: "Leader of the People Power Movement and President of the National Unity Platform", photo: bobiWineDiasporaImg },
+  { name: "Hon. Joel Ssenyonyi", role: "Leader of Opposition", desc: "Member of Parliament for Nakawa West, NUP Spokesperson", photo: joelSsenyonyiImg },
+  { name: "First Lady Barbie Itungo Kyagulanyi", role: "Women's Empowerment Speaker", desc: "Founder of Caring Hearts Uganda — champion of menstrual health, cancer awareness, and girl child education", photo: barbieKyagulanyiImg },
+  { name: "S.G. David Lewis Rubongeya", role: "Secretary General", desc: "NUP Secretary General and key strategist", photo: davidLewisImg },
+  { name: "Moses Mujawa", role: "Convention Chair", desc: "Lead organizer for the Boston 2025 Convention", photo: null },
+  { name: "Marvin Bbale", role: "Boston Chapter Leader", desc: "Host chapter leader for the convention", photo: null },
+  { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination", photo: null },
+  { name: "Dr. Elvis Balikalaba", role: "Organizing Committee", desc: "Convention planning and logistics", photo: null },
 ];
 
 const CHICAGO_SCHEDULE = [
@@ -782,32 +798,63 @@ const CHICAGO_SCHEDULE = [
 ];
 
 const CHICAGO_SPEAKERS = [
-  { name: "President Robert Kyagulanyi Ssentamu", role: "NUP President / Keynote Speaker", desc: "Leader of the People Power Movement — delivered powerful closing remarks thanking American supporters" },
-  { name: "Hon. Joel Ssenyonyi", role: "Leader of Opposition", desc: "Member of Parliament and NUP Spokesperson" },
-  { name: "Professor Milton Allimadi", role: "Distinguished Speaker", desc: "Renowned journalist and professor of African studies" },
-  { name: "Congressman Danny K Davis", role: "Distinguished Guest Speaker", desc: "U.S. Congressman and human rights advocate" },
-  { name: "Professor David Ssejinja", role: "Guest Speaker", desc: "Expert in international politics and African education" },
-  { name: "Professor James Powell", role: "Guest Speaker", desc: "Adjunct Professor and humanitarian advocate" },
-  { name: "Professor Tim Szczepanski", role: "Guest Speaker", desc: "Director of Student Engagement, CSU Northridge" },
-  { name: "Katie Lowe", role: "Guest Speaker", desc: "CFO, American Leaders Class — human rights activist" },
-  { name: "Godfrey Nyenje", role: "Convention Chair", desc: "Lead organizer for the Chicago 2024 Convention" },
-  { name: "Hellen Nandaula", role: "NUP Chicago Team Leader", desc: "Host chapter leader for the convention" },
-  { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination" },
+  { name: "President Robert Kyagulanyi Ssentamu", role: "NUP President / Keynote Speaker", desc: "Leader of the People Power Movement — delivered powerful closing remarks thanking American supporters", photo: bobiWineDiasporaImg },
+  { name: "Hon. Joel Ssenyonyi", role: "Leader of Opposition", desc: "Member of Parliament and NUP Spokesperson", photo: joelSsenyonyiImg },
+  { name: "Professor Milton Allimadi", role: "Distinguished Speaker", desc: "Renowned journalist and professor of African studies", photo: null },
+  { name: "Congressman Danny K Davis", role: "Distinguished Guest Speaker", desc: "U.S. Congressman and human rights advocate", photo: dannyKDavisImg },
+  { name: "Professor David Ssejinja", role: "Guest Speaker", desc: "Expert in international politics and African education", photo: davidSsejinjaImg },
+  { name: "Professor James Powell", role: "Guest Speaker", desc: "Adjunct Professor and humanitarian advocate", photo: null },
+  { name: "Professor Tim Szczepanski", role: "Guest Speaker", desc: "Director of Student Engagement, CSU Northridge", photo: timSzczepanskiImg },
+  { name: "Katie Lowe", role: "Guest Speaker", desc: "CFO, American Leaders Class — human rights activist", photo: katieLoweSpeakerImg },
+  { name: "Godfrey Nyenje", role: "Convention Chair", desc: "Lead organizer for the Chicago 2024 Convention", photo: null },
+  { name: "Hellen Nandaula", role: "NUP Chicago Team Leader", desc: "Host chapter leader for the convention", photo: null },
+  { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination", photo: null },
 ];
 
-function PastConventionPage({ conference, schedule, speakersList, highlights, venue }: {
+function PastConventionPage({ conference, schedule, speakersList, highlights, venue, heroImages, venueImage }: {
   conference: Conference;
   schedule: typeof BOSTON_SCHEDULE;
   speakersList: typeof BOSTON_SPEAKERS;
   highlights: { icon: typeof Star; title: string; desc: string }[];
   venue: { name: string; address: string; details: string[] };
+  heroImages?: { src: string; alt: string }[];
+  venueImage?: string;
 }) {
   const [activeDay, setActiveDay] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = heroImages || [];
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [slides.length]);
 
   return (
     <div className="min-h-screen">
-      <div className="relative bg-gradient-to-br from-gray-900 via-red-950 to-gray-900 py-20">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
+      <div className="relative py-20 min-h-[400px] flex items-center overflow-hidden">
+        {slides.length > 0 ? (
+          <>
+            {slides.map((slide, i) => (
+              <img
+                key={i}
+                src={slide.src}
+                alt={slide.alt}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-in-out ${
+                  i === currentSlide ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-red-950 to-gray-900" />
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
+          </>
+        )}
         <div className="container mx-auto px-4 relative z-10">
           <Link href="/conferences">
             <Button variant="ghost" className="mb-6 text-white/80 hover:text-white hover:bg-white/10" data-testid="button-back-to-conferences">
@@ -928,9 +975,17 @@ function PastConventionPage({ conference, schedule, speakersList, highlights, ve
               <Card key={i} className="hover:shadow-md transition-shadow" data-testid={`card-speaker-${i}`}>
                 <CardContent className="p-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Users className="w-6 h-6 text-primary" />
-                    </div>
+                    {speaker.photo ? (
+                      <img
+                        src={speaker.photo}
+                        alt={speaker.name}
+                        className="w-14 h-14 rounded-full object-cover flex-shrink-0 border-2 border-primary/20"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-6 h-6 text-primary" />
+                      </div>
+                    )}
                     <div>
                       <h3 className="font-bold text-sm">{speaker.name}</h3>
                       <p className="text-xs text-primary font-medium mb-1">{speaker.role}</p>
@@ -946,7 +1001,12 @@ function PastConventionPage({ conference, schedule, speakersList, highlights, ve
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-3 text-center">Venue</h2>
           <Separator className="w-20 mx-auto mb-8" />
-          <Card>
+          <Card className="overflow-hidden">
+            {venueImage && (
+              <div className="h-56 md:h-72 overflow-hidden">
+                <img src={venueImage} alt={venue.name} className="w-full h-full object-cover" />
+              </div>
+            )}
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -983,6 +1043,15 @@ function Boston2025Page({ conference }: { conference: Conference }) {
       conference={conference}
       schedule={BOSTON_SCHEDULE}
       speakersList={BOSTON_SPEAKERS}
+      heroImages={[
+        { src: nupEventPhotoImg, alt: "NUP Diaspora community gathering at Boston convention" },
+        { src: bostonMarriottImg, alt: "Boston Marriott Burlington — convention venue" },
+        { src: nupInitiativesImg, alt: "NUP Diaspora initiatives and engagement" },
+        { src: nupBoatCruise1Img, alt: "Convention boat cruise celebration" },
+        { src: nupGetInvolvedImg, alt: "NUP community outreach and involvement" },
+        { src: nupBoatCruise2Img, alt: "Delegates networking on the boat cruise" },
+      ]}
+      venueImage={bostonMarriottImg}
       highlights={[
         { icon: Users, title: "5th Annual", desc: "The fifth gathering of NUP Diaspora from across the globe" },
         { icon: Heart, title: "Women's Empowerment", desc: "Workshop led by First Lady Barbie Kyagulanyi" },
@@ -1011,6 +1080,16 @@ function Chicago2024Page({ conference }: { conference: Conference }) {
       conference={conference}
       schedule={CHICAGO_SCHEDULE}
       speakersList={CHICAGO_SPEAKERS}
+      heroImages={[
+        { src: chicagoGroupImg, alt: "NUP convention delegates group photo in Chicago" },
+        { src: chicagoPromontoryImg, alt: "Promontory Point at Burnham Park, Chicago" },
+        { src: chicagoSpiritCruiseImg, alt: "Spirit of Chicago — convention river cruise" },
+        { src: chicagoMarriottImg, alt: "Marriott Chicago O'Hare — convention hotel" },
+        { src: chicagoDelegate1Img, alt: "Convention delegate at the Chicago gathering" },
+        { src: chicagoDelegate2Img, alt: "Convention delegate at the Chicago gathering" },
+        { src: nupEventPhotoImg, alt: "NUP Diaspora community gathering" },
+      ]}
+      venueImage={chicagoMarriottImg}
       highlights={[
         { icon: Flag, title: "March for Democracy", desc: "Public rally advocating for democratic change in Uganda" },
         { icon: Ship, title: "Chicago River Cruise", desc: "Signature cruise exploring the iconic skyline" },
@@ -1018,8 +1097,8 @@ function Chicago2024Page({ conference }: { conference: Conference }) {
         { icon: Trophy, title: "Patriot's Day Cup", desc: "Soccer match and community sports event" },
       ]}
       venue={{
-        name: "Convention Venue — Chicago",
-        address: "Chicago, Illinois",
+        name: "Marriott Chicago O'Hare",
+        address: "8535 West Higgins Road, Chicago, IL 60631",
         details: [
           "Home of President Obama",
           "Legacy of civil rights movements",
