@@ -134,7 +134,43 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+
+  // ===== ADMIN AUTH =====
+  app.post("/api/admin/login", (req, res) => {
+    const { username, password } = req.body;
+    const adminUser = process.env.ADMIN_USERNAME;
+    const adminPass = process.env.ADMIN_PASSWORD;
+    if (!adminUser || !adminPass) {
+      return res.status(500).json({ error: "Admin credentials not configured" });
+    }
+    if (username === adminUser && password === adminPass) {
+      req.session.regenerate((err) => {
+        if (err) return res.status(500).json({ error: "Session error" });
+        req.session.isAdmin = true;
+        req.session.save(() => {
+          return res.json({ success: true });
+        });
+      });
+      return;
+    }
+    return res.status(401).json({ error: "Invalid credentials" });
+  });
+
+  app.post("/api/admin/logout", (req, res) => {
+    req.session.destroy(() => {
+      res.json({ success: true });
+    });
+  });
+
+  app.get("/api/admin/check", (req, res) => {
+    res.json({ authenticated: !!req.session.isAdmin });
+  });
+
+  function requireAdmin(req: any, res: any, next: any) {
+    if (req.session && req.session.isAdmin) return next();
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
   // ===== REGIONS =====
   app.get("/api/regions", async (req, res) => {
     try {
@@ -145,7 +181,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/regions", async (req, res) => {
+  app.post("/api/regions", requireAdmin, async (req, res) => {
     try {
       const data = insertRegionSchema.parse(req.body);
       const existing = await storage.getRegionBySlug(data.slug);
@@ -171,7 +207,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/regions/:id", async (req, res) => {
+  app.patch("/api/regions/:id", requireAdmin, async (req, res) => {
     try {
       const allowed = insertRegionSchema.partial().parse(req.body);
       const region = await storage.updateRegion(req.params.id, allowed);
@@ -338,7 +374,7 @@ export async function registerRoutes(
   });
 
   // Chapter Admin CRUD
-  app.post("/api/chapters", async (req, res) => {
+  app.post("/api/chapters", requireAdmin, async (req, res) => {
     try {
       const parsed = insertChapterSchema.parse(req.body);
       const existing = await storage.getChapterBySlug(parsed.slug);
@@ -352,7 +388,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/chapters/:id", async (req, res) => {
+  app.patch("/api/chapters/:id", requireAdmin, async (req, res) => {
     try {
       const existing = await storage.getChapter(req.params.id);
       if (!existing) {
@@ -372,7 +408,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/chapters/:id", async (req, res) => {
+  app.delete("/api/chapters/:id", requireAdmin, async (req, res) => {
     try {
       await storage.deleteChapter(req.params.id);
       res.json({ success: true });
@@ -395,7 +431,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/chapters/:id/leaders", async (req, res) => {
+  app.post("/api/chapters/:id/leaders", requireAdmin, async (req, res) => {
     try {
       const chapter = await storage.getChapter(req.params.id);
       if (!chapter) {
@@ -409,7 +445,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/chapter-leaders/:id", async (req, res) => {
+  app.patch("/api/chapter-leaders/:id", requireAdmin, async (req, res) => {
     try {
       const allowed = insertChapterLeaderSchema.partial().omit({ chapterId: true }).parse(req.body);
       const leader = await storage.updateChapterLeader(req.params.id, allowed);
@@ -422,7 +458,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/chapter-leaders/:id", async (req, res) => {
+  app.delete("/api/chapter-leaders/:id", requireAdmin, async (req, res) => {
     try {
       await storage.deleteChapterLeader(req.params.id);
       res.json({ success: true });
@@ -475,7 +511,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/products", async (req, res) => {
+  app.post("/api/products", requireAdmin, async (req, res) => {
     try {
       const validatedData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(validatedData);
@@ -485,7 +521,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/products/:id", async (req, res) => {
+  app.patch("/api/products/:id", requireAdmin, async (req, res) => {
     try {
       const product = await storage.updateProduct(req.params.id, req.body);
       if (!product) {
@@ -497,7 +533,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/products/:id", async (req, res) => {
+  app.delete("/api/products/:id", requireAdmin, async (req, res) => {
     try {
       await storage.deleteProduct(req.params.id);
       res.json({ success: true });
@@ -506,7 +542,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/upload/product-image", productImageUpload.single("image"), (req, res) => {
+  app.post("/api/upload/product-image", requireAdmin, productImageUpload.single("image"), (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
@@ -559,7 +595,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/members/search", async (req, res) => {
+  app.get("/api/members/search", requireAdmin, async (req, res) => {
     try {
       const query = req.query.q as string;
       if (!query) {
@@ -582,7 +618,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/members/stats", async (req, res) => {
+  app.get("/api/members/stats", requireAdmin, async (req, res) => {
     try {
       const totalCount = await storage.getMemberCount();
       const byRegion = await storage.getMemberCountByRegion();
@@ -599,7 +635,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/members/export", async (req, res) => {
+  app.get("/api/members/export", requireAdmin, async (req, res) => {
     try {
       const regionId = req.query.regionId as string | undefined;
       let memberList: Member[];
@@ -643,7 +679,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/members", async (req, res) => {
+  app.get("/api/members", requireAdmin, async (req, res) => {
     try {
       const regionId = req.query.regionId as string | undefined;
       const search = req.query.search as string | undefined;
@@ -758,7 +794,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/blog", async (req, res) => {
+  app.post("/api/blog", requireAdmin, async (req, res) => {
     try {
       const validatedData = insertBlogPostSchema.parse(req.body);
       const post = await storage.createBlogPost(validatedData);
@@ -778,7 +814,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/news/refresh", async (req, res) => {
+  app.post("/api/news/refresh", requireAdmin, async (req, res) => {
     try {
       const { fetchNewsFromRSS } = await import("./newsFetcher");
       const count = await fetchNewsFromRSS();
@@ -882,7 +918,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/orders/:id/status", async (req, res) => {
+  app.patch("/api/orders/:id/status", requireAdmin, async (req, res) => {
     try {
       const { status, trackingNumber, shippingCarrier, estimatedDelivery } = req.body;
       if (!status) return res.status(400).json({ error: "Status required" });
@@ -940,7 +976,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/printful/link-product", async (req, res) => {
+  app.post("/api/printful/link-product", requireAdmin, async (req, res) => {
     try {
       const { productId, printfulSyncVariantId, printfulProductId, baseCost } = req.body;
       if (!productId || !printfulSyncVariantId) {
@@ -954,7 +990,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/printful/resubmit/:orderId", async (req, res) => {
+  app.post("/api/printful/resubmit/:orderId", requireAdmin, async (req, res) => {
     try {
       const order = await storage.getOrder(req.params.orderId);
       if (!order) return res.status(404).json({ error: "Order not found" });
@@ -1005,7 +1041,7 @@ export async function registerRoutes(
   app.use("/uploads/products", (await import("express")).default.static(path.join(process.cwd(), "uploads", "products")));
   app.use("/uploads/chapter-logos", (await import("express")).default.static(path.join(process.cwd(), "uploads", "chapter-logos")));
 
-  app.post("/api/upload/chapter-logo", chapterLogoUpload.single("image"), (req, res) => {
+  app.post("/api/upload/chapter-logo", requireAdmin, chapterLogoUpload.single("image"), (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
@@ -1050,7 +1086,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/songs", songUpload.single("songFile"), async (req, res) => {
+  app.post("/api/songs", requireAdmin, songUpload.single("songFile"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "Song file is required" });
@@ -1078,7 +1114,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/songs/:id/cover", coverUpload.single("coverImage"), async (req, res) => {
+  app.post("/api/songs/:id/cover", requireAdmin, coverUpload.single("coverImage"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "Cover image is required" });
@@ -1093,7 +1129,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/songs/:id", async (req, res) => {
+  app.patch("/api/songs/:id", requireAdmin, async (req, res) => {
     try {
       const song = await storage.updateSong(req.params.id, req.body);
       if (!song) return res.status(404).json({ error: "Song not found" });
@@ -1103,7 +1139,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/songs/:id", async (req, res) => {
+  app.delete("/api/songs/:id", requireAdmin, async (req, res) => {
     try {
       const song = await storage.getSong(req.params.id);
       if (!song) return res.status(404).json({ error: "Song not found" });
@@ -1356,7 +1392,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/events", async (req, res) => {
+  app.post("/api/events", requireAdmin, async (req, res) => {
     try {
       const data = { ...req.body };
       if (data.eventDate) data.eventDate = new Date(data.eventDate);
@@ -1368,7 +1404,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/events/:id", async (req, res) => {
+  app.patch("/api/events/:id", requireAdmin, async (req, res) => {
     try {
       const event = await storage.updateEvent(req.params.id, req.body);
       if (!event) return res.status(404).json({ error: "Event not found" });
@@ -1539,7 +1575,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/membership-tiers", async (req, res) => {
+  app.post("/api/membership-tiers", requireAdmin, async (req, res) => {
     try {
       const tier = await storage.createTier(req.body);
       res.status(201).json(tier);
@@ -1618,7 +1654,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/membership/subscriptions", async (req, res) => {
+  app.get("/api/membership/subscriptions", requireAdmin, async (req, res) => {
     try {
       const subs = await storage.getAllMemberSubscriptions();
       const tiers = await storage.getAllTiers();
@@ -1635,7 +1671,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/membership/subscriptions/:id/award-status", async (req, res) => {
+  app.patch("/api/membership/subscriptions/:id/award-status", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { awardStatus } = req.body;
@@ -1670,7 +1706,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/auctions", async (req, res) => {
+  app.post("/api/auctions", requireAdmin, async (req, res) => {
     try {
       const data = { ...req.body };
       if (data.startDate) data.startDate = new Date(data.startDate);

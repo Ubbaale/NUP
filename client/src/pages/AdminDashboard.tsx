@@ -1,5 +1,7 @@
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAdminAuth } from "@/components/AdminAuthProvider";
 import {
   Building,
   Package,
@@ -10,6 +12,7 @@ import {
   Globe2,
   LayoutDashboard,
   IdCard,
+  LogOut,
 } from "lucide-react";
 
 const adminSections = [
@@ -64,21 +67,34 @@ const adminSections = [
 ];
 
 export default function AdminDashboard() {
+  const { logout } = useAdminAuth();
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-5xl">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-5 h-5 text-primary" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+              <LayoutDashboard className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold" data-testid="text-admin-dashboard-title">
+                Admin Dashboard
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Manage all aspects of the NUP platform
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-admin-dashboard-title">
-              Admin Dashboard
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage all aspects of the NUP platform
-            </p>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={logout}
+            data-testid="button-admin-logout"
+            className="gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { AdminAuthProvider, useAdminAuth } from "@/components/AdminAuthProvider";
 import Home from "@/pages/Home";
 import Regions from "@/pages/Regions";
 import RegionDetail from "@/pages/RegionDetail";
@@ -37,12 +38,35 @@ import AuctionDetail from "@/pages/AuctionDetail";
 import ProductDetail from "@/pages/ProductDetail";
 import AboutUs from "@/pages/AboutUs";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminLogin from "@/pages/AdminLogin";
 import RegionAdmin from "@/pages/RegionAdmin";
 import RegionDetailAdmin from "@/pages/RegionDetailAdmin";
 import MembersAdmin from "@/pages/MembersAdmin";
 import ChapterPortal from "@/pages/ChapterPortal";
 import RegionPortal from "@/pages/RegionPortal";
 import NotFound from "@/pages/not-found";
+import { Loader2 } from "lucide-react";
+
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAdminAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+      </div>
+    );
+  }
+  if (!isAuthenticated) return <AdminLogin />;
+  return <>{children}</>;
+}
+
+function AdminRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  return (
+    <AdminGuard>
+      <Component />
+    </AdminGuard>
+  );
+}
 
 function Router() {
   return (
@@ -62,13 +86,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPostDetail} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/order-tracking" component={OrderTracking} />
-      <Route path="/admin/printful" component={PrintfulAdmin} />
       <Route path="/songs" component={Songs} />
-      <Route path="/admin/songs" component={SongsAdmin} />
-      <Route path="/admin/events" component={EventsAdmin} />
-      <Route path="/admin/membership" component={MembershipAdmin} />
-      <Route path="/admin/chapters" component={ChaptersAdmin} />
-      <Route path="/admin/store" component={StoreAdmin} />
       <Route path="/membership-tiers" component={MembershipTiers} />
       <Route path="/events" component={VirtualEvents} />
       <Route path="/events/:slug" component={VirtualEventDetail} />
@@ -77,12 +95,18 @@ function Router() {
       <Route path="/auctions" component={Auctions} />
       <Route path="/auctions/:slug" component={AuctionDetail} />
       <Route path="/about" component={AboutUs} />
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin/regions" component={RegionAdmin} />
-      <Route path="/admin/regions/:slug" component={RegionDetailAdmin} />
-      <Route path="/admin/members" component={MembersAdmin} />
       <Route path="/portal/chapter/:slug" component={ChapterPortal} />
       <Route path="/portal/region/:slug" component={RegionPortal} />
+      <Route path="/admin">{() => <AdminRoute component={AdminDashboard} />}</Route>
+      <Route path="/admin/printful">{() => <AdminRoute component={PrintfulAdmin} />}</Route>
+      <Route path="/admin/songs">{() => <AdminRoute component={SongsAdmin} />}</Route>
+      <Route path="/admin/events">{() => <AdminRoute component={EventsAdmin} />}</Route>
+      <Route path="/admin/membership">{() => <AdminRoute component={MembershipAdmin} />}</Route>
+      <Route path="/admin/chapters">{() => <AdminRoute component={ChaptersAdmin} />}</Route>
+      <Route path="/admin/store">{() => <AdminRoute component={StoreAdmin} />}</Route>
+      <Route path="/admin/regions">{() => <AdminRoute component={RegionAdmin} />}</Route>
+      <Route path="/admin/regions/:slug">{() => <AdminRoute component={RegionDetailAdmin} />}</Route>
+      <Route path="/admin/members">{() => <AdminRoute component={MembersAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -92,17 +116,19 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="flex flex-col min-h-screen">
-          <Header />
-          <main className="flex-1 pb-20 lg:pb-0">
-            <Router />
-          </main>
-          <div className="hidden lg:block">
-            <Footer />
+        <AdminAuthProvider>
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-1 pb-20 lg:pb-0">
+              <Router />
+            </main>
+            <div className="hidden lg:block">
+              <Footer />
+            </div>
+            <MobileNav />
           </div>
-          <MobileNav />
-        </div>
-        <Toaster />
+          <Toaster />
+        </AdminAuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
