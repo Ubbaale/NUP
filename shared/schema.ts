@@ -570,11 +570,16 @@ export const galleryPhotos = pgTable("gallery_photos", {
   title: text("title").notNull(),
   description: text("description"),
   imageUrl: text("image_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
   category: text("category").notNull().default("events"),
   album: text("album"),
   tags: text("tags"),
   sortOrder: integer("sort_order").default(0),
   featured: boolean("featured").default(false),
+  originalSize: integer("original_size"),
+  compressedSize: integer("compressed_size"),
+  width: integer("width"),
+  height: integer("height"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

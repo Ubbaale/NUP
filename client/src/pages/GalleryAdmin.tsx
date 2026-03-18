@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Image, Plus, Trash2, Edit, Star, Search } from "lucide-react";
+import { Image, Plus, Trash2, Edit, Star, Search, FileDown } from "lucide-react";
 import type { GalleryPhoto } from "@shared/schema";
 
 const CATEGORIES = [
@@ -38,15 +38,16 @@ export default function GalleryAdmin() {
   const [formFile, setFormFile] = useState<File | null>(null);
   const [formImageUrl, setFormImageUrl] = useState("");
 
-  const { data: photos = [], isLoading } = useQuery<GalleryPhoto[]>({
+  const { data: galleryData, isLoading } = useQuery<{ photos: GalleryPhoto[]; total: number }>({
     queryKey: ["/api/gallery", categoryFilter],
     queryFn: async () => {
-      const url = categoryFilter !== "all" ? `/api/gallery?category=${categoryFilter}` : "/api/gallery";
+      const url = categoryFilter !== "all" ? `/api/gallery?category=${categoryFilter}&limit=200` : "/api/gallery?limit=200";
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
   });
+  const photos = galleryData?.photos || [];
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -149,6 +150,11 @@ export default function GalleryAdmin() {
   );
 
   const categoryLabel = (cat: string) => CATEGORIES.find(c => c.value === cat)?.label || cat;
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto" data-testid="gallery-admin-page">
@@ -213,13 +219,14 @@ export default function GalleryAdmin() {
                 </div>
               </div>
               <div>
-                <Label>Upload Image</Label>
+                <Label>Upload Image (up to 50MB — auto-compressed)</Label>
                 <Input
                   type="file"
                   accept="image/*"
                   onChange={e => { setFormFile(e.target.files?.[0] || null); setFormImageUrl(""); }}
                   data-testid="input-photo-file"
                 />
+                <p className="text-xs text-muted-foreground mt-1">Photos are automatically compressed to WebP format while maintaining quality</p>
               </div>
               <div>
                 <Label>Or paste Image URL</Label>
@@ -284,7 +291,7 @@ export default function GalleryAdmin() {
             <Card key={photo.id} className="overflow-hidden group" data-testid={`card-gallery-${photo.id}`}>
               <div className="aspect-square relative overflow-hidden bg-muted">
                 <img
-                  src={photo.imageUrl}
+                  src={photo.thumbnailUrl || photo.imageUrl}
                   alt={photo.title}
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   loading="lazy"
@@ -315,6 +322,16 @@ export default function GalleryAdmin() {
                   <Badge variant="secondary" className="text-xs">{categoryLabel(photo.category)}</Badge>
                   {photo.album && <span className="text-xs text-muted-foreground truncate ml-2">{photo.album}</span>}
                 </div>
+                {photo.originalSize && photo.compressedSize && (
+                  <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
+                    <FileDown className="w-3 h-3" />
+                    <span>{formatBytes(photo.originalSize)} → {formatBytes(photo.compressedSize)}</span>
+                    <span className="text-green-600 font-medium">({Math.round((1 - photo.compressedSize / photo.originalSize) * 100)}% saved)</span>
+                  </div>
+                )}
+                {photo.width && photo.height && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{photo.width}×{photo.height}px</p>
+                )}
               </CardContent>
             </Card>
           ))}

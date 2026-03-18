@@ -8,6 +8,7 @@ import * as email from "./email";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { compressGalleryImage, compressImageFromUrl } from "./imageCompressor";
 import crypto from "crypto";
 
 function stripAccessCode<T extends Record<string, any>>(obj: T): Omit<T, 'accessCode'> {
@@ -151,7 +152,7 @@ const galleryUpload = multer({
       cb(new Error("Only image files (JPG, PNG, WebP, GIF) are allowed"));
     }
   },
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
 });
 
 export async function registerRoutes(
@@ -1263,13 +1264,22 @@ export async function registerRoutes(
 
   app.get("/api/gallery", async (req, res) => {
     try {
-      const { category } = req.query as { category?: string };
+      const { category, page, limit } = req.query as { category?: string; page?: string; limit?: string };
+      const parsedPage = parseInt(page || "1");
+      const parsedLimit = parseInt(limit || "100");
+      const pageNum = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+      const limitNum = Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 200) : 100;
+
       if (category && category !== "all") {
         const photos = await storage.getGalleryPhotosByCategory(category);
-        return res.json(photos);
+        const total = photos.length;
+        const paginated = photos.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+        return res.json({ photos: paginated, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) });
       }
       const photos = await storage.getAllGalleryPhotos();
-      res.json(photos);
+      const total = photos.length;
+      const paginated = photos.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+      res.json({ photos: paginated, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch gallery photos" });
     }
@@ -1280,21 +1290,51 @@ export async function registerRoutes(
       const { title, description, category, album, tags, sortOrder, featured } = req.body;
       if (!title) return res.status(400).json({ error: "Title is required" });
 
-      let imageUrl = req.body.imageUrl || "";
+      let imageUrl = "";
+      let thumbnailUrl: string | null = null;
+      let originalSize: number | null = null;
+      let compressedSize: number | null = null;
+      let width: number | null = null;
+      let height: number | null = null;
+
       if (req.file) {
-        imageUrl = `/uploads/gallery/${req.file.filename}`;
+        const compressed = await compressGalleryImage(req.file.path, req.file.originalname);
+        imageUrl = compressed.compressedUrl;
+        thumbnailUrl = compressed.thumbnailUrl;
+        originalSize = compressed.originalSize;
+        compressedSize = compressed.compressedSize;
+        width = compressed.width;
+        height = compressed.height;
+      } else if (req.body.imageUrl) {
+        const compressed = await compressImageFromUrl(req.body.imageUrl);
+        if (compressed) {
+          imageUrl = compressed.compressedUrl;
+          thumbnailUrl = compressed.thumbnailUrl;
+          originalSize = compressed.originalSize;
+          compressedSize = compressed.compressedSize;
+          width = compressed.width;
+          height = compressed.height;
+        } else {
+          imageUrl = req.body.imageUrl;
+        }
       }
+
       if (!imageUrl) return res.status(400).json({ error: "Image is required" });
 
       const photo = await storage.createGalleryPhoto({
         title,
         description: description || null,
         imageUrl,
+        thumbnailUrl,
         category: category || "events",
         album: album || null,
         tags: tags || null,
         sortOrder: sortOrder ? parseInt(sortOrder) : 0,
         featured: featured === "true" || featured === true,
+        originalSize,
+        compressedSize,
+        width,
+        height,
       });
       res.status(201).json(photo);
     } catch (error: any) {
@@ -1322,14 +1362,20 @@ export async function registerRoutes(
     }
   });
 
+  const galleryDir = path.resolve(process.cwd(), "uploads", "gallery");
+  function safeGalleryDelete(filePath: string) {
+    if (!filePath.startsWith("/uploads/gallery/")) return;
+    const resolved = path.resolve(process.cwd(), filePath.slice(1));
+    if (!resolved.startsWith(galleryDir)) return;
+    if (fs.existsSync(resolved)) fs.unlinkSync(resolved);
+  }
+
   app.delete("/api/gallery/:id", requireAdmin, async (req, res) => {
     try {
       const photo = await storage.getGalleryPhoto(req.params.id);
       if (!photo) return res.status(404).json({ error: "Photo not found" });
-      if (photo.imageUrl.startsWith("/uploads/gallery/")) {
-        const filePath = path.join(process.cwd(), photo.imageUrl);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      }
+      safeGalleryDelete(photo.imageUrl);
+      if (photo.thumbnailUrl) safeGalleryDelete(photo.thumbnailUrl);
       await storage.deleteGalleryPhoto(req.params.id);
       res.json({ success: true });
     } catch (error) {
