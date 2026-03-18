@@ -11,7 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, CheckCircle, Clock, Truck, MapPin, Star, ShoppingBag, AlertCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Package, Search, CheckCircle, Clock, Truck, MapPin, Star, ShoppingBag, AlertCircle, RotateCcw } from "lucide-react";
 import type { Order, ProductRating } from "@shared/schema";
 
 interface OrderItem {
@@ -132,6 +133,154 @@ function RateProductDialog({ item, orderId, orderEmail, onRated }: {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface ReturnRequestData {
+  id: string;
+  orderId: string;
+  email: string;
+  fullName: string;
+  reason: string;
+  items: string;
+  status: string;
+  adminNotes: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+const RETURN_REASONS = [
+  "Wrong size",
+  "Defective/damaged item",
+  "Not as described",
+  "Changed my mind",
+  "Received wrong item",
+  "Other",
+];
+
+function ReturnRequestSection({ order }: { order: Order }) {
+  const { toast } = useToast();
+  const [showForm, setShowForm] = useState(false);
+  const [reason, setReason] = useState("");
+  const [details, setDetails] = useState("");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const items: OrderItem[] = (() => { try { return JSON.parse(order.items); } catch { return []; } })();
+
+  const { data: returnRequests = [], isLoading } = useQuery<ReturnRequestData[]>({
+    queryKey: ["/api/returns", order.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/returns/${order.id}?email=${encodeURIComponent(order.email)}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const submitReturnMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/returns", {
+      orderId: order.id,
+      email: order.email,
+      fullName: order.fullName,
+      reason: `${reason}${details ? ": " + details : ""}`,
+      items: selectedItems.length > 0 ? selectedItems.join(", ") : "All items",
+      status: "pending",
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/returns", order.id] });
+      toast({ title: "Return request submitted", description: "We'll review your request and get back to you." });
+      setShowForm(false);
+      setReason("");
+      setDetails("");
+      setSelectedItems([]);
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message || "Failed to submit return request", variant: "destructive" });
+    },
+  });
+
+  const canRequestReturn = (order.status === "delivered" || order.status === "shipped") && !returnRequests.some(r => r.status === "pending");
+
+  return (
+    <div className="space-y-3">
+      <Separator />
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-sm flex items-center gap-2">
+          <RotateCcw className="w-4 h-4" /> Returns
+        </h4>
+        {canRequestReturn && !showForm && (
+          <Button size="sm" variant="outline" onClick={() => setShowForm(true)} data-testid="button-request-return">
+            Request Return
+          </Button>
+        )}
+      </div>
+
+      {returnRequests.map(ret => (
+        <div key={ret.id} className="bg-muted/50 rounded-lg p-3 text-sm space-y-1" data-testid={`return-request-${ret.id}`}>
+          <div className="flex items-center justify-between">
+            <Badge className={ret.status === "approved" ? "bg-green-100 text-green-800" : ret.status === "denied" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"}>
+              {ret.status}
+            </Badge>
+            <span className="text-xs text-muted-foreground">{new Date(ret.createdAt).toLocaleDateString()}</span>
+          </div>
+          <p><span className="font-medium">Reason:</span> {ret.reason}</p>
+          <p><span className="font-medium">Items:</span> {ret.items}</p>
+          {ret.adminNotes && <p><span className="font-medium">Response:</span> {ret.adminNotes}</p>}
+        </div>
+      ))}
+
+      {showForm && (
+        <div className="border rounded-lg p-4 space-y-3" data-testid="return-request-form">
+          <div>
+            <Label className="mb-1 block">Reason for return</Label>
+            <Select value={reason} onValueChange={setReason}>
+              <SelectTrigger data-testid="select-return-reason">
+                <SelectValue placeholder="Select a reason" />
+              </SelectTrigger>
+              <SelectContent>
+                {RETURN_REASONS.map(r => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="mb-1 block">Additional details (optional)</Label>
+            <Textarea value={details} onChange={e => setDetails(e.target.value)} placeholder="Tell us more..." rows={2} data-testid="input-return-details" />
+          </div>
+          <div>
+            <Label className="mb-1 block">Which items? (select applicable)</Label>
+            <div className="space-y-1">
+              {items.map((item, i) => (
+                <label key={i} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(item.productName)}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedItems(prev => [...prev, item.productName]);
+                      else setSelectedItems(prev => prev.filter(n => n !== item.productName));
+                    }}
+                    data-testid={`checkbox-return-item-${i}`}
+                  />
+                  {item.productName}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={!reason || submitReturnMutation.isPending}
+              onClick={() => submitReturnMutation.mutate()}
+              data-testid="button-submit-return"
+            >
+              {submitReturnMutation.isPending ? "Submitting..." : "Submit Return Request"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowForm(false)} data-testid="button-cancel-return">
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -269,6 +418,8 @@ function OrderCard({ order, onRefresh }: { order: Order; onRefresh: () => void }
             <p className="text-2xl font-bold text-primary">${Number(order.totalAmount).toFixed(2)}</p>
           </div>
         </div>
+
+        <ReturnRequestSection order={order} />
       </CardContent>
     </Card>
   );

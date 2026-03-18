@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema } from "@shared/schema";
+import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -983,7 +983,10 @@ export async function registerRoutes(
   app.patch("/api/orders/:id/status", requireAdmin, async (req, res) => {
     try {
       const { status, trackingNumber, shippingCarrier, estimatedDelivery } = req.body;
-      if (!status) return res.status(400).json({ error: "Status required" });
+      const validStatuses = ["pending", "processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
+      if (!status || !validStatuses.includes(status)) {
+        return res.status(400).json({ error: `Status must be one of: ${validStatuses.join(", ")}` });
+      }
       const order = await storage.updateOrderStatus(req.params.id, status, trackingNumber, shippingCarrier, estimatedDelivery);
       if (!order) return res.status(404).json({ error: "Order not found" });
       res.json(order);
@@ -1095,6 +1098,139 @@ export async function registerRoutes(
       res.json({ success: false, error: fulfillResult.error });
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to resubmit order" });
+    }
+  });
+
+  // ===== PRINTFUL WEBHOOK =====
+  app.post("/api/printful/webhook", async (req, res) => {
+    try {
+      const { type, data } = req.body;
+      if (!type || !data) {
+        return res.status(400).json({ error: "Invalid webhook payload" });
+      }
+
+      if (type === "package_shipped") {
+        const printfulOrderId = String(data.order?.id || data.order?.external_id || "");
+        const shipment = data.shipment || {};
+        const trackingNumber = shipment.tracking_number || "";
+        const carrier = shipment.carrier || shipment.service || "";
+        const trackingUrl = shipment.tracking_url || "";
+        const estimatedDelivery = shipment.estimated_delivery || "";
+
+        if (printfulOrderId) {
+          const allOrders = await storage.getAllOrders();
+          const matchedOrder = allOrders.find(o =>
+            o.printfulOrderId === printfulOrderId ||
+            o.id === data.order?.external_id
+          );
+
+          if (matchedOrder) {
+            await storage.updateOrderFulfillment(
+              matchedOrder.id,
+              printfulOrderId,
+              "shipped",
+              trackingNumber,
+              carrier,
+              estimatedDelivery
+            );
+            await storage.updateOrderStatus(matchedOrder.id, "shipped", trackingNumber, carrier, estimatedDelivery);
+            console.log(`[Printful Webhook] Order ${matchedOrder.id} marked as shipped. Tracking: ${trackingNumber}`);
+          } else {
+            console.warn(`[Printful Webhook] No matching order for Printful ID: ${printfulOrderId}`);
+          }
+        }
+      } else if (type === "package_returned") {
+        const printfulOrderId = String(data.order?.id || "");
+        if (printfulOrderId) {
+          const allOrders = await storage.getAllOrders();
+          const matchedOrder = allOrders.find(o => o.printfulOrderId === printfulOrderId);
+          if (matchedOrder) {
+            await storage.updateOrderStatus(matchedOrder.id, "cancelled");
+            console.log(`[Printful Webhook] Order ${matchedOrder.id} returned/cancelled.`);
+          }
+        }
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("[Printful Webhook] Error:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  // ===== ADMIN ORDERS =====
+  app.get("/api/admin/orders", requireAdmin, async (req, res) => {
+    try {
+      const allOrders = await storage.getAllOrders();
+      res.json(allOrders);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch orders" });
+    }
+  });
+
+  // ===== RETURN REQUESTS =====
+  app.post("/api/returns", async (req, res) => {
+    try {
+      const validatedData = insertReturnRequestSchema.parse(req.body);
+      validatedData.status = "pending";
+      const order = await storage.getOrder(validatedData.orderId);
+      if (!order) return res.status(404).json({ error: "Order not found" });
+      if (order.email.toLowerCase() !== validatedData.email.toLowerCase()) {
+        return res.status(403).json({ error: "Email does not match order" });
+      }
+      if (order.status !== "delivered" && order.status !== "shipped") {
+        return res.status(400).json({ error: "Returns are only accepted for shipped or delivered orders" });
+      }
+      const existing = await storage.getReturnRequestsByOrder(validatedData.orderId);
+      const hasPending = existing.some(r => r.status === "pending");
+      if (hasPending) {
+        return res.status(400).json({ error: "A return request is already pending for this order" });
+      }
+      const returnRequest = await storage.createReturnRequest(validatedData);
+      res.status(201).json(returnRequest);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create return request" });
+    }
+  });
+
+  app.get("/api/returns/:orderId", async (req, res) => {
+    try {
+      const { email } = req.query as { email?: string };
+      if (!email) {
+        return res.status(400).json({ error: "Email required for verification" });
+      }
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order || order.email.toLowerCase() !== email.toLowerCase()) {
+        return res.json([]);
+      }
+      const returns = await storage.getReturnRequestsByOrder(req.params.orderId);
+      const sanitized = returns.map(({ adminNotes, ...rest }) => rest);
+      res.json(sanitized);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch return requests" });
+    }
+  });
+
+  app.get("/api/admin/returns", requireAdmin, async (req, res) => {
+    try {
+      const allReturns = await storage.getAllReturnRequests();
+      res.json(allReturns);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch return requests" });
+    }
+  });
+
+  app.patch("/api/returns/:id", requireAdmin, async (req, res) => {
+    try {
+      const { status, adminNotes } = req.body;
+      if (!status || !["approved", "denied", "pending"].includes(status)) {
+        return res.status(400).json({ error: "Valid status required (approved, denied, pending)" });
+      }
+      const updated = await storage.updateReturnRequest(req.params.id, status, adminNotes);
+      if (!updated) return res.status(404).json({ error: "Return request not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update return request" });
     }
   });
 

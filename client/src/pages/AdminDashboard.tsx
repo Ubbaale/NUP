@@ -19,6 +19,7 @@ import {
   Heart,
   Gavel,
   Crown,
+  ShoppingCart,
 } from "lucide-react";
 
 const adminSections = [
@@ -99,6 +100,12 @@ const adminSections = [
     description: "Manage print-on-demand fulfillment integration",
     href: "/admin/printful",
     icon: Printer,
+  },
+  {
+    title: "Orders",
+    description: "View and manage all store orders, tracking, and returns",
+    href: "/admin/orders",
+    icon: ShoppingCart,
   },
   {
     title: "Member Directory",

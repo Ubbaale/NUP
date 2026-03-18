@@ -26,6 +26,7 @@ import {
   type AuctionItem, type InsertAuctionItem, auctionItems,
   type Bid, type InsertBid, bids,
   type RaffleTicket, type InsertRaffleTicket, raffleTickets,
+  type ReturnRequest, type InsertReturnRequest, returnRequests,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -102,10 +103,18 @@ export interface IStorage {
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
+  getAllOrders(): Promise<Order[]>;
   getOrdersByEmail(email: string): Promise<Order[]>;
+  getOrdersByPrintfulStatus(status: string): Promise<Order[]>;
   updateOrderStatus(id: string, status: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined>;
   updateOrderFulfillment(id: string, printfulOrderId: string, fulfillmentStatus: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined>;
   updateProductPrintful(id: string, printfulSyncVariantId: string, printfulProductId: string, baseCost?: string): Promise<Product | undefined>;
+
+  // Return Requests
+  createReturnRequest(request: InsertReturnRequest): Promise<ReturnRequest>;
+  getReturnRequestsByOrder(orderId: string): Promise<ReturnRequest[]>;
+  getAllReturnRequests(): Promise<ReturnRequest[]>;
+  updateReturnRequest(id: string, status: string, adminNotes?: string): Promise<ReturnRequest | undefined>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -485,6 +494,35 @@ export class DatabaseStorage implements IStorage {
     if (baseCost) updateData.baseCost = baseCost;
     const [product] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
     return product;
+  }
+
+  async getAllOrders(): Promise<Order[]> {
+    return db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  async getOrdersByPrintfulStatus(status: string): Promise<Order[]> {
+    return db.select().from(orders).where(eq(orders.fulfillmentStatus, status)).orderBy(desc(orders.createdAt));
+  }
+
+  async createReturnRequest(request: InsertReturnRequest): Promise<ReturnRequest> {
+    const [rr] = await db.insert(returnRequests).values(request).returning();
+    return rr;
+  }
+
+  async getReturnRequestsByOrder(orderId: string): Promise<ReturnRequest[]> {
+    return db.select().from(returnRequests).where(eq(returnRequests.orderId, orderId)).orderBy(desc(returnRequests.createdAt));
+  }
+
+  async getAllReturnRequests(): Promise<ReturnRequest[]> {
+    return db.select().from(returnRequests).orderBy(desc(returnRequests.createdAt));
+  }
+
+  async updateReturnRequest(id: string, status: string, adminNotes?: string): Promise<ReturnRequest | undefined> {
+    const updateData: Partial<ReturnRequest> = { status };
+    if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
+    if (status === "approved" || status === "denied") updateData.resolvedAt = new Date();
+    const [rr] = await db.update(returnRequests).set(updateData).where(eq(returnRequests.id, id)).returning();
+    return rr;
   }
 
   // Product Ratings

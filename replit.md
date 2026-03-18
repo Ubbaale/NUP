@@ -41,7 +41,20 @@ The admin dashboard at `/admin` provides a comprehensive CMS with 14 management 
 - **Membership Tiers** (`/admin/tiers`) — Manage tier pricing, benefits, awards, display order
 - **Songs** (`/admin/songs`) — Upload and manage revolutionary songs
 - **Printful** (`/admin/printful`) — Print-on-demand fulfillment integration
+- **Orders** (`/admin/orders`) — View all orders, update status/tracking, manage return requests
 - **Member Directory** (`/admin/members`) — Search, filter, export registered members
+
+## Printful Webhook
+- Endpoint: `POST /api/printful/webhook` — Receives Printful `package_shipped` and `package_returned` events
+- Automatically updates order tracking number, carrier, fulfillment status, and order status
+- Configure in Printful dashboard: Settings → Webhooks → point to `https://<domain>/api/printful/webhook`
+
+## Return Request System
+- Customers can request returns on shipped/delivered orders via the Order Tracking page
+- Return request form includes reason selection, details, and item checkboxes
+- Admins can approve/deny returns with notes via the Orders admin panel
+- API: `POST /api/returns`, `GET /api/returns/:orderId`, `GET /api/admin/returns`, `PATCH /api/returns/:id`
+- Schema: `return_requests` table (id, orderId, email, fullName, reason, items, status, adminNotes, createdAt, resolvedAt)
 
 ## Self-Service Portals
 Chapter and region coordinators can manage their own information via self-service portals:

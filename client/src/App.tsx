@@ -50,6 +50,7 @@ import BlogAdmin from "@/pages/BlogAdmin";
 import DonationsAdmin from "@/pages/DonationsAdmin";
 import AuctionsAdmin from "@/pages/AuctionsAdmin";
 import MembershipTiersAdmin from "@/pages/MembershipTiersAdmin";
+import OrdersAdmin from "@/pages/OrdersAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -119,6 +120,7 @@ function Router() {
       <Route path="/admin/donations">{() => <AdminRoute component={DonationsAdmin} />}</Route>
       <Route path="/admin/auctions">{() => <AdminRoute component={AuctionsAdmin} />}</Route>
       <Route path="/admin/tiers">{() => <AdminRoute component={MembershipTiersAdmin} />}</Route>
+      <Route path="/admin/orders">{() => <AdminRoute component={OrdersAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
