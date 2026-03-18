@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown } from "lucide-react";
+import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown, ImageIcon } from "lucide-react";
 import nupLogo from "@/assets/images/nup-official-logo.png";
 import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
 
@@ -21,6 +21,7 @@ const moreNavItems = [
   { href: "/blog", label: "Blog", icon: BookOpen },
   { href: "/auctions", label: "Auctions", icon: Gavel },
   { href: "/songs", label: "Songs", icon: Music },
+  { href: "/gallery", label: "Gallery", icon: ImageIcon },
 ];
 
 export function Header() {

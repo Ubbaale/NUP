@@ -27,6 +27,7 @@ import {
   type Bid, type InsertBid, bids,
   type RaffleTicket, type InsertRaffleTicket, raffleTickets,
   type ReturnRequest, type InsertReturnRequest, returnRequests,
+  type GalleryPhoto, type InsertGalleryPhoto, galleryPhotos,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -115,6 +116,14 @@ export interface IStorage {
   getReturnRequestsByOrder(orderId: string): Promise<ReturnRequest[]>;
   getAllReturnRequests(): Promise<ReturnRequest[]>;
   updateReturnRequest(id: string, status: string, adminNotes?: string): Promise<ReturnRequest | undefined>;
+
+  // Gallery
+  createGalleryPhoto(photo: InsertGalleryPhoto): Promise<GalleryPhoto>;
+  getAllGalleryPhotos(): Promise<GalleryPhoto[]>;
+  getGalleryPhotosByCategory(category: string): Promise<GalleryPhoto[]>;
+  getGalleryPhoto(id: string): Promise<GalleryPhoto | undefined>;
+  updateGalleryPhoto(id: string, data: Partial<InsertGalleryPhoto>): Promise<GalleryPhoto | undefined>;
+  deleteGalleryPhoto(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -523,6 +532,33 @@ export class DatabaseStorage implements IStorage {
     if (status === "approved" || status === "denied") updateData.resolvedAt = new Date();
     const [rr] = await db.update(returnRequests).set(updateData).where(eq(returnRequests.id, id)).returning();
     return rr;
+  }
+
+  async createGalleryPhoto(photo: InsertGalleryPhoto): Promise<GalleryPhoto> {
+    const [p] = await db.insert(galleryPhotos).values(photo).returning();
+    return p;
+  }
+
+  async getAllGalleryPhotos(): Promise<GalleryPhoto[]> {
+    return db.select().from(galleryPhotos).orderBy(asc(galleryPhotos.sortOrder), desc(galleryPhotos.createdAt));
+  }
+
+  async getGalleryPhotosByCategory(category: string): Promise<GalleryPhoto[]> {
+    return db.select().from(galleryPhotos).where(eq(galleryPhotos.category, category)).orderBy(asc(galleryPhotos.sortOrder), desc(galleryPhotos.createdAt));
+  }
+
+  async getGalleryPhoto(id: string): Promise<GalleryPhoto | undefined> {
+    const [p] = await db.select().from(galleryPhotos).where(eq(galleryPhotos.id, id));
+    return p;
+  }
+
+  async updateGalleryPhoto(id: string, data: Partial<InsertGalleryPhoto>): Promise<GalleryPhoto | undefined> {
+    const [p] = await db.update(galleryPhotos).set(data).where(eq(galleryPhotos.id, id)).returning();
+    return p;
+  }
+
+  async deleteGalleryPhoto(id: string): Promise<void> {
+    await db.delete(galleryPhotos).where(eq(galleryPhotos.id, id));
   }
 
   // Product Ratings

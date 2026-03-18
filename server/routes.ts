@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema } from "@shared/schema";
+import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema, insertGalleryPhotoSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -128,6 +128,30 @@ const leaderImageUpload = multer({
     }
   },
   limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+const galleryUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", "gallery");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files (JPG, PNG, WebP, GIF) are allowed"));
+    }
+  },
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 export async function registerRoutes(
@@ -1231,6 +1255,85 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: "Failed to update return request" });
+    }
+  });
+
+  // ===== GALLERY =====
+  app.use("/uploads/gallery", (await import("express")).default.static(path.join(process.cwd(), "uploads", "gallery")));
+
+  app.get("/api/gallery", async (req, res) => {
+    try {
+      const { category } = req.query as { category?: string };
+      if (category && category !== "all") {
+        const photos = await storage.getGalleryPhotosByCategory(category);
+        return res.json(photos);
+      }
+      const photos = await storage.getAllGalleryPhotos();
+      res.json(photos);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch gallery photos" });
+    }
+  });
+
+  app.post("/api/gallery", requireAdmin, galleryUpload.single("image"), async (req, res) => {
+    try {
+      const { title, description, category, album, tags, sortOrder, featured } = req.body;
+      if (!title) return res.status(400).json({ error: "Title is required" });
+
+      let imageUrl = req.body.imageUrl || "";
+      if (req.file) {
+        imageUrl = `/uploads/gallery/${req.file.filename}`;
+      }
+      if (!imageUrl) return res.status(400).json({ error: "Image is required" });
+
+      const photo = await storage.createGalleryPhoto({
+        title,
+        description: description || null,
+        imageUrl,
+        category: category || "events",
+        album: album || null,
+        tags: tags || null,
+        sortOrder: sortOrder ? parseInt(sortOrder) : 0,
+        featured: featured === "true" || featured === true,
+      });
+      res.status(201).json(photo);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create gallery photo" });
+    }
+  });
+
+  app.patch("/api/gallery/:id", requireAdmin, async (req, res) => {
+    try {
+      const { title, description, category, album, tags, sortOrder, featured } = req.body;
+      const updateData: Record<string, any> = {};
+      if (title !== undefined) updateData.title = title;
+      if (description !== undefined) updateData.description = description;
+      if (category !== undefined) updateData.category = category;
+      if (album !== undefined) updateData.album = album;
+      if (tags !== undefined) updateData.tags = tags;
+      if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
+      if (featured !== undefined) updateData.featured = featured === "true" || featured === true;
+
+      const photo = await storage.updateGalleryPhoto(req.params.id, updateData);
+      if (!photo) return res.status(404).json({ error: "Photo not found" });
+      res.json(photo);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update gallery photo" });
+    }
+  });
+
+  app.delete("/api/gallery/:id", requireAdmin, async (req, res) => {
+    try {
+      const photo = await storage.getGalleryPhoto(req.params.id);
+      if (!photo) return res.status(404).json({ error: "Photo not found" });
+      if (photo.imageUrl.startsWith("/uploads/gallery/")) {
+        const filePath = path.join(process.cwd(), photo.imageUrl);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
+      await storage.deleteGalleryPhoto(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete gallery photo" });
     }
   });
 

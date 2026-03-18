@@ -564,3 +564,20 @@ export const returnRequests = pgTable("return_requests", {
 export const insertReturnRequestSchema = createInsertSchema(returnRequests).omit({ id: true, createdAt: true, resolvedAt: true });
 export type InsertReturnRequest = z.infer<typeof insertReturnRequestSchema>;
 export type ReturnRequest = typeof returnRequests.$inferSelect;
+
+export const galleryPhotos = pgTable("gallery_photos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  category: text("category").notNull().default("events"),
+  album: text("album"),
+  tags: text("tags"),
+  sortOrder: integer("sort_order").default(0),
+  featured: boolean("featured").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertGalleryPhotoSchema = createInsertSchema(galleryPhotos).omit({ id: true, createdAt: true });
+export type InsertGalleryPhoto = z.infer<typeof insertGalleryPhotoSchema>;
+export type GalleryPhoto = typeof galleryPhotos.$inferSelect;

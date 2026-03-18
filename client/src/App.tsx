@@ -51,6 +51,8 @@ import DonationsAdmin from "@/pages/DonationsAdmin";
 import AuctionsAdmin from "@/pages/AuctionsAdmin";
 import MembershipTiersAdmin from "@/pages/MembershipTiersAdmin";
 import OrdersAdmin from "@/pages/OrdersAdmin";
+import Gallery from "@/pages/Gallery";
+import GalleryAdmin from "@/pages/GalleryAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -93,6 +95,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPostDetail} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/order-tracking" component={OrderTracking} />
+      <Route path="/gallery" component={Gallery} />
       <Route path="/songs" component={Songs} />
       <Route path="/membership-tiers" component={MembershipTiers} />
       <Route path="/events" component={VirtualEvents} />
@@ -121,6 +124,7 @@ function Router() {
       <Route path="/admin/auctions">{() => <AdminRoute component={AuctionsAdmin} />}</Route>
       <Route path="/admin/tiers">{() => <AdminRoute component={MembershipTiersAdmin} />}</Route>
       <Route path="/admin/orders">{() => <AdminRoute component={OrdersAdmin} />}</Route>
+      <Route path="/admin/gallery">{() => <AdminRoute component={GalleryAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

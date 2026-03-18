@@ -14,6 +14,7 @@ import {
   Crown,
   Settings,
   Music,
+  ImageIcon,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -33,6 +34,7 @@ const moreItems = [
   { href: "/news", label: "News", icon: Newspaper },
   { href: "/blog", label: "Blog", icon: BookOpen },
   { href: "/auctions", label: "Auctions", icon: Gavel },
+  { href: "/gallery", label: "Gallery", icon: ImageIcon },
   { href: "/store", label: "Store", icon: ShoppingBag },
   { href: "/membership", label: "Membership", icon: Users },
   { href: "/membership-tiers", label: "Premium Tiers", icon: Crown },

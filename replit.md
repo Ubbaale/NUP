@@ -42,6 +42,7 @@ The admin dashboard at `/admin` provides a comprehensive CMS with 14 management 
 - **Songs** (`/admin/songs`) — Upload and manage revolutionary songs
 - **Printful** (`/admin/printful`) — Print-on-demand fulfillment integration
 - **Orders** (`/admin/orders`) — View all orders, update status/tracking, manage return requests
+- **Gallery** (`/admin/gallery`) — Upload, edit, delete photos; organize by category and album
 - **Member Directory** (`/admin/members`) — Search, filter, export registered members
 
 ## Printful Webhook

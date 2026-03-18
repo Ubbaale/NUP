@@ -20,6 +20,7 @@ import {
   Gavel,
   Crown,
   ShoppingCart,
+  ImageIcon,
 } from "lucide-react";
 
 const adminSections = [
@@ -106,6 +107,12 @@ const adminSections = [
     description: "View and manage all store orders, tracking, and returns",
     href: "/admin/orders",
     icon: ShoppingCart,
+  },
+  {
+    title: "Gallery",
+    description: "Upload and manage event & advocacy photo galleries",
+    href: "/admin/gallery",
+    icon: ImageIcon,
   },
   {
     title: "Member Directory",
