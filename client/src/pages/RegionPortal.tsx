@@ -51,7 +51,7 @@ function PhotoUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUpload
     try {
       const formData = new FormData();
       formData.append("image", file);
-      const res = await fetch("/api/upload/leader-image", { method: "POST", body: formData });
+      const res = await fetch("/api/upload/leader-image", { method: "POST", body: formData, credentials: "include" });
       if (!res.ok) throw new Error("Upload failed");
       const { imageUrl } = await res.json();
       setPreview(imageUrl);

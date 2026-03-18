@@ -109,6 +109,7 @@ function PhotoUpload({
       const res = await fetch("/api/upload/leader-image", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();

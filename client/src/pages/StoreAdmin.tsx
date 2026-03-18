@@ -153,7 +153,7 @@ function ProductFormDialog({
     try {
       const formData = new FormData();
       formData.append("image", file);
-      const res = await fetch("/api/upload/product-image", { method: "POST", body: formData });
+      const res = await fetch("/api/upload/product-image", { method: "POST", body: formData, credentials: "include" });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setForm((f) => ({ ...f, imageUrl: data.imageUrl }));

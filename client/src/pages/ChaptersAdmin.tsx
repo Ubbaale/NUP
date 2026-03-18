@@ -145,6 +145,7 @@ function PhotoUpload({
       const res = await fetch("/api/upload/leader-image", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
       if (!res.ok) {
         const err = await res.json();
@@ -788,7 +789,7 @@ function ChapterFormComponent({
                     const fd = new FormData();
                     fd.append("image", file);
                     try {
-                      const res = await fetch("/api/upload/chapter-logo", { method: "POST", body: fd });
+                      const res = await fetch("/api/upload/chapter-logo", { method: "POST", body: fd, credentials: "include" });
                       if (!res.ok) throw new Error("Upload failed");
                       const data = await res.json();
                       form.setValue("logoUrl", data.imageUrl);
