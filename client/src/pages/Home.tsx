@@ -151,7 +151,7 @@ export default function Home() {
 
             <Card className="overflow-hidden">
               <div className="grid md:grid-cols-5 gap-0">
-                <div className="md:col-span-2 flex items-center justify-center p-6">
+                <div className="md:col-span-2 bg-muted flex items-center justify-center p-6">
                   <img
                     src={bobiWinePresidentImg}
                     alt="President Kyagulanyi Ssentamu Robert (Bobi Wine)"
