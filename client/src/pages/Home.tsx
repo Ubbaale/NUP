@@ -32,6 +32,7 @@ import nupInitiatives from "@assets/nup-initiatives.jpg";
 import nupExecutiveTeam from "@assets/Executive-Team-Members-1024x683_1773023680694.jpg";
 import nupGetInvolved from "@assets/nup-get-involved.jpg";
 import bobiWinePresidentImg from "@assets/bobi-wine-los-angeles-premiere-national-geographic-440nw-14022_1773964190237.png";
+import nupHeadquartersBg from "@assets/GDveZy3XoAE5uHY_1773964414475.jpg";
 
 const campaignImages = [
   bobiCrowd1,
@@ -67,7 +68,11 @@ export default function Home() {
   const upcomingConference = conferences?.find(c => c.isUpcoming);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <div className="fixed inset-0 z-0">
+        <img src={nupHeadquartersBg} alt="" className="w-full h-full object-cover opacity-[0.06]" />
+      </div>
+      <div className="relative z-10">
       <section className="relative overflow-hidden py-20 lg:py-32">
         <AnimatePresence mode="wait">
           <motion.div
@@ -403,6 +408,7 @@ export default function Home() {
         </section>
       )}
 
+      </div>
     </div>
   );
 }
