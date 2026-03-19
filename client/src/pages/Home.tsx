@@ -138,6 +138,40 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="py-16" data-testid="section-introduction">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <Badge variant="outline" className="mb-4">Who We Are</Badge>
+              <h2 className="text-3xl font-bold mb-4">National Unity Platform</h2>
+              <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed">
+                The National Unity Platform is a political and social liberation political party duly registered United States under the laws of US Government. We are a progressive, social democratic organisation, guided by the principles of servant leadership, equality, transparency, accountability, freedom, liberty and social justice.
+              </p>
+            </div>
+
+            <Card className="overflow-hidden">
+              <div className="grid md:grid-cols-5 gap-0">
+                <div className="md:col-span-2 bg-muted">
+                  <img
+                    src={bobiWinePresidentImg}
+                    alt="President Kyagulanyi Ssentamu Robert (Bobi Wine)"
+                    className="w-full h-full object-cover min-h-[280px]"
+                  />
+                </div>
+                <div className="md:col-span-3 p-6 md:p-8 flex flex-col justify-center">
+                  <Badge className="w-fit mb-3 bg-primary/10 text-primary border-primary/20">The President</Badge>
+                  <h3 className="text-xl md:text-2xl font-bold mb-1">Kyagulanyi Ssentamu Robert</h3>
+                  <p className="text-sm text-primary font-medium mb-4">Hon. Bobi Wine</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Hon. Kyagulanyi Ssentamu Robert, also known by his stage name Bobi Wine, a Ugandan musician, actor, and activist; he's an artist-turned-politician who, by popular acclaim, heads the generational and transformational People Power Movement, which is a resistance pressure group formed in 2018 to unite Ugandans across the globe on issues such as ending human rights abuse, corruption, redefining the rule of law, restoring dignity, and rebuilding lives.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 bg-card">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
