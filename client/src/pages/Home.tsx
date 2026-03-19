@@ -31,7 +31,7 @@ import nupAboutUsGroup from "@assets/nup-about-us-group.webp";
 import nupInitiatives from "@assets/nup-initiatives.jpg";
 import nupExecutiveTeam from "@assets/Executive-Team-Members-1024x683_1773023680694.jpg";
 import nupGetInvolved from "@assets/nup-get-involved.jpg";
-import bobiWinePresidentImg from "@assets/bobi-wine-speaker.jpg";
+import bobiWinePresidentImg from "@assets/Screenshot_2025-08-24_225138_1773034002651.png";
 
 const campaignImages = [
   bobiCrowd1,
