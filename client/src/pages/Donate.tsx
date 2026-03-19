@@ -14,6 +14,7 @@ import { Heart, DollarSign, Users, Globe, CheckCircle, Shield } from "lucide-rea
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import RevolutionarySongs from "@/components/RevolutionarySongs";
+import donateHeroImg from "@assets/image_1773896814002.png";
 
 const donationSchema = z.object({
   donorName: z.string().min(2, "Name must be at least 2 characters"),
@@ -101,16 +102,29 @@ export default function Donate() {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <Badge variant="secondary" className="mb-4">Support the Cause</Badge>
-          <h1 className="text-4xl font-bold mb-4">Donate to NUP Diaspora</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Your donation supports our initiatives for democracy, justice, and a better future for Uganda. 
-            Every contribution makes a difference.
-          </p>
+    <div className="min-h-screen">
+      <section className="relative overflow-hidden py-20">
+        <div className="absolute inset-0">
+          <img src={donateHeroImg} alt="Bobi Wine rally with Ugandan flags" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
         </div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-2xl">
+            <Badge className="mb-4 bg-primary/90 text-white border-primary">
+              #ProtestVote26
+            </Badge>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">NUP Donation Support</h1>
+            <p className="text-lg text-white/90 leading-relaxed">
+              This donation platform is more than a place to give — it is a rallying point for every Ugandan, friends of Uganda abroad who dreams of a better tomorrow for their family, their community, and their country. By contributing, you help strengthen the struggle for good governance, support community-centered initiatives, empower grassroots mobilization, and sustain the movement for democratic change.
+            </p>
+            <p className="text-white/80 mt-4 text-lg font-medium italic">
+              Together, we can be the generation that made change possible.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-12">
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="lg:col-span-2">
