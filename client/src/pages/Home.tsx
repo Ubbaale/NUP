@@ -155,7 +155,7 @@ export default function Home() {
                   <img
                     src={bobiWinePresidentImg}
                     alt="President Kyagulanyi Ssentamu Robert (Bobi Wine)"
-                    className="max-w-[200px] max-h-[280px] object-contain"
+                    className="max-w-[160px] max-h-[220px] object-contain"
                   />
                 </div>
                 <div className="md:col-span-3 p-6 md:p-8 flex flex-col justify-center">
