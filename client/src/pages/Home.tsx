@@ -5,17 +5,17 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorldMap } from "@/components/WorldMap";
-import { NewsCard } from "@/components/NewsCard";
+
 import { ConferenceCard } from "@/components/ConferenceCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { 
   Globe2, Users, Heart, Calendar, ArrowRight, 
-  Newspaper, ShoppingBag, MapPin, ChevronRight,
+  MapPin, ChevronRight,
   Shield, Handshake, Award, UsersRound, Flag,
   Ship, Hotel, ExternalLink, Clock, FileText, Download
 } from "lucide-react";
-import type { Region, NewsItem, Conference } from "@shared/schema";
+import type { Region, Conference } from "@shared/schema";
 
 import nupEventPhotoImg from "@assets/nup-event-photo.jpg";
 import laSkylineDayImg from "@assets/la-skyline-day.png";
@@ -58,10 +58,6 @@ export default function Home() {
 
   const { data: regions, isLoading: regionsLoading } = useQuery<Region[]>({
     queryKey: ["/api/regions"],
-  });
-
-  const { data: news, isLoading: newsLoading } = useQuery<NewsItem[]>({
-    queryKey: ["/api/news"],
   });
 
   const { data: conferences, isLoading: conferencesLoading } = useQuery<Conference[]>({
@@ -372,88 +368,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                <Newspaper className="w-8 h-8 text-primary" />
-                Latest News from Uganda
-              </h2>
-              <p className="text-muted-foreground">Stay updated with NUP and Bobi Wine news</p>
-            </div>
-            <Link href="/news">
-              <Button variant="outline" data-testid="button-view-all-news">
-                View All News
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-          </div>
-          
-          {newsLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="h-80 rounded-lg" />
-              ))}
-            </div>
-          ) : news && news.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {news.slice(0, 6).map(item => (
-                <NewsCard key={item.id} news={item} />
-              ))}
-            </div>
-          ) : (
-            <Card className="p-8 text-center">
-              <Newspaper className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No news available at the moment</p>
-            </Card>
-          )}
-        </div>
-      </section>
-
-      <section className="py-16 bg-card">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-center">Get Involved</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Users,
-                title: "Become a Member",
-                description: "Join thousands of Ugandans worldwide in the fight for democracy and freedom.",
-                href: "/membership",
-                action: "Register Now",
-              },
-              {
-                icon: Heart,
-                title: "Make a Donation",
-                description: "Support our initiatives and help fund the movement for change in Uganda.",
-                href: "/donate",
-                action: "Donate Today",
-              },
-              {
-                icon: ShoppingBag,
-                title: "Shop Merchandise",
-                description: "Show your support with official NUP merchandise and party apparel.",
-                href: "/store",
-                action: "Visit Store",
-              },
-            ].map((item) => (
-              <Card key={item.title} className="p-6 hover-elevate">
-                <item.icon className="w-12 h-12 text-primary mb-4" />
-                <h3 className="font-bold text-xl mb-2">{item.title}</h3>
-                <p className="text-muted-foreground mb-4">{item.description}</p>
-                <Link href={item.href}>
-                  <Button variant="outline" className="w-full" data-testid={`button-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                    {item.action}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section className="py-16 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
