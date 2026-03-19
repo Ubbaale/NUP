@@ -369,27 +369,6 @@ export default function Home() {
         </section>
       )}
 
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Vote for a Free Uganda</h2>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            We are mobilizing for a peaceful transition after over 40 years of oppression. 
-            Your support is not just a donation, it's a declaration for democracy, justice, and a better tomorrow.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/donate">
-              <Button size="lg" variant="secondary" data-testid="button-support-movement">
-                Support the Movement
-              </Button>
-            </Link>
-            <Link href="/membership">
-              <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" data-testid="button-become-member">
-                Become a Member
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
