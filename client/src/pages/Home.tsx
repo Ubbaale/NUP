@@ -31,7 +31,7 @@ import nupAboutUsGroup from "@assets/nup-about-us-group.webp";
 import nupInitiatives from "@assets/nup-initiatives.jpg";
 import nupExecutiveTeam from "@assets/Executive-Team-Members-1024x683_1773023680694.jpg";
 import nupGetInvolved from "@assets/nup-get-involved.jpg";
-import bobiWinePresidentImg from "@assets/Screenshot_2025-08-24_225138_1773034002651.png";
+import bobiWinePresidentImg from "@assets/bobi-wine-speaker.jpg";
 
 const campaignImages = [
   bobiCrowd1,
@@ -149,25 +149,23 @@ export default function Home() {
               </p>
             </div>
 
-            <Card className="overflow-hidden">
-              <div className="grid md:grid-cols-5 gap-0">
-                <div className="md:col-span-2 bg-muted">
-                  <img
-                    src={bobiWinePresidentImg}
-                    alt="President Kyagulanyi Ssentamu Robert (Bobi Wine)"
-                    className="w-full h-full object-cover min-h-[280px]"
-                  />
-                </div>
-                <div className="md:col-span-3 p-6 md:p-8 flex flex-col justify-center">
-                  <Badge className="w-fit mb-3 bg-primary/10 text-primary border-primary/20">The President</Badge>
-                  <h3 className="text-xl md:text-2xl font-bold mb-1">Kyagulanyi Ssentamu Robert</h3>
-                  <p className="text-sm text-primary font-medium mb-4">Hon. Bobi Wine</p>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Hon. Kyagulanyi Ssentamu Robert, also known by his stage name Bobi Wine, a Ugandan musician, actor, and activist; he's an artist-turned-politician who, by popular acclaim, heads the generational and transformational People Power Movement, which is a resistance pressure group formed in 2018 to unite Ugandans across the globe on issues such as ending human rights abuse, corruption, redefining the rule of law, restoring dignity, and rebuilding lives.
-                  </p>
-                </div>
+            <div className="grid md:grid-cols-5 gap-8 items-center">
+              <div className="md:col-span-2 flex justify-center">
+                <img
+                  src={bobiWinePresidentImg}
+                  alt="President Kyagulanyi Ssentamu Robert (Bobi Wine)"
+                  className="w-64 md:w-full max-w-xs rounded-2xl shadow-lg object-cover"
+                />
               </div>
-            </Card>
+              <div className="md:col-span-3 flex flex-col justify-center">
+                <Badge className="w-fit mb-3 bg-primary/10 text-primary border-primary/20">The President</Badge>
+                <h3 className="text-xl md:text-2xl font-bold mb-1">Kyagulanyi Ssentamu Robert</h3>
+                <p className="text-sm text-primary font-medium mb-4">Hon. Bobi Wine</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  Hon. Kyagulanyi Ssentamu Robert, also known by his stage name Bobi Wine, a Ugandan musician, actor, and activist; he's an artist-turned-politician who, by popular acclaim, heads the generational and transformational People Power Movement, which is a resistance pressure group formed in 2018 to unite Ugandans across the globe on issues such as ending human rights abuse, corruption, redefining the rule of law, restoring dignity, and rebuilding lives.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
