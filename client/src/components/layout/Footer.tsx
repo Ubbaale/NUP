@@ -80,7 +80,7 @@ export function Footer() {
                 </a>
               </Button>
               <Button size="icon" variant="ghost" asChild>
-                <a href="https://x.com" target="_blank" rel="noopener noreferrer" data-testid="link-twitter">
+                <a href="https://x.com/DiasporaNUP" target="_blank" rel="noopener noreferrer" data-testid="link-twitter">
                   <SiX className="w-4 h-4" />
                 </a>
               </Button>
@@ -113,8 +113,14 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center text-muted-foreground text-sm">
+        <div className="border-t mt-8 pt-8 text-center text-muted-foreground text-sm space-y-1">
           <p>&copy; {new Date().getFullYear()} National Unity Platform Diaspora Inc. All rights reserved.</p>
+          <p>
+            Follow us on X:{" "}
+            <a href="https://x.com/DiasporaNUP" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium" data-testid="link-twitter-handle">
+              @DiasporaNUP
+            </a>
+          </p>
         </div>
       </div>
       <div className="flex h-2">
