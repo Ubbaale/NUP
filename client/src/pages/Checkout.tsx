@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
 import { apiRequest } from "@/lib/queryClient";
-import { ShoppingBag, Package, CheckCircle, ArrowLeft, ArrowRight, Truck, Star, Lock, ShieldCheck, CreditCard } from "lucide-react";
+import { ShoppingBag, Package, CheckCircle, ArrowLeft, ArrowRight, Truck, Star, Lock, ShieldCheck, CreditCard, Paintbrush } from "lucide-react";
 import type { Order } from "@shared/schema";
 
 const shippingSchema = z.object({
@@ -101,6 +101,11 @@ export default function Checkout() {
         quantity: item.quantity,
         size: item.selectedSize,
         color: item.selectedColor,
+        ...(item.isCustomDesign && {
+          isCustomDesign: true,
+          customDesignUrl: item.customDesignUrl,
+          customDesignNotes: item.customDesignNotes,
+        }),
       }));
       const shipping = getShippingCost();
       const total = (cartTotal + shipping).toFixed(2);
@@ -191,7 +196,9 @@ export default function Checkout() {
                   {cart.map((item, idx) => (
                     <div key={idx} className="flex gap-4 p-4 bg-muted/50 rounded-lg">
                       <div className="w-16 h-16 bg-muted rounded-md shrink-0 overflow-hidden">
-                        {item.product.imageUrl ? (
+                        {item.customDesignUrl ? (
+                          <img src={item.customDesignUrl} alt="Custom design" className="w-full h-full object-cover" />
+                        ) : item.product.imageUrl ? (
                           <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -200,16 +207,28 @@ export default function Checkout() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold truncate">{item.product.name}</h4>
+                        <h4 className="font-semibold truncate">
+                          {item.product.name}
+                          {item.isCustomDesign && <Badge className="ml-2 text-[10px]"><Paintbrush className="w-3 h-3 mr-1" />Custom</Badge>}
+                        </h4>
                         <div className="flex gap-2 mt-1 flex-wrap">
                           {item.selectedSize && <Badge variant="outline" className="text-xs">{item.selectedSize}</Badge>}
                           {item.selectedColor && <Badge variant="outline" className="text-xs">{item.selectedColor}</Badge>}
                         </div>
+                        {item.customDesignNotes && (
+                          <p className="text-xs text-muted-foreground mt-1 italic">Notes: {item.customDesignNotes}</p>
+                        )}
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">
-                            <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => updateQuantity(item.product.id, -1, item.selectedSize, item.selectedColor)} data-testid={`button-decrease-${item.product.id}`}>-</Button>
-                            <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
-                            <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => updateQuantity(item.product.id, 1, item.selectedSize, item.selectedColor)} data-testid={`button-increase-${item.product.id}`}>+</Button>
+                            {!item.isCustomDesign ? (
+                              <>
+                                <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => updateQuantity(item.product.id, -1, item.selectedSize, item.selectedColor)} data-testid={`button-decrease-${item.product.id}`}>-</Button>
+                                <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                                <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => updateQuantity(item.product.id, 1, item.selectedSize, item.selectedColor)} data-testid={`button-increase-${item.product.id}`}>+</Button>
+                              </>
+                            ) : (
+                              <span className="w-6 text-center text-sm font-medium">1</span>
+                            )}
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="font-bold">${(Number(item.product.price) * item.quantity).toFixed(2)}</span>

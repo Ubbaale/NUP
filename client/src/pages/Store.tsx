@@ -1,26 +1,48 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "@/components/ProductCard";
 import { useCart } from "@/hooks/use-cart";
-import { ShoppingBag, ShoppingCart, Trash2, Plus, Minus, Search, Star, Package } from "lucide-react";
+import { ShoppingBag, ShoppingCart, Trash2, Plus, Minus, Search, Package, Upload, Paintbrush, Image, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Product, ProductRating } from "@shared/schema";
+import type { Product } from "@shared/schema";
+
+const CUSTOM_PRODUCT_TYPES = [
+  { value: "t-shirt", label: "T-Shirt", price: "29.99", sizes: ["S", "M", "L", "XL", "2XL", "3XL"] },
+  { value: "hoodie", label: "Hoodie", price: "49.99", sizes: ["S", "M", "L", "XL", "2XL", "3XL"] },
+  { value: "mug", label: "Mug", price: "14.99", sizes: [] },
+  { value: "cap", label: "Cap / Hat", price: "19.99", sizes: ["One Size"] },
+  { value: "tote-bag", label: "Tote Bag", price: "17.99", sizes: [] },
+  { value: "poster", label: "Poster", price: "12.99", sizes: ["A3", "A2", "A1"] },
+  { value: "sticker", label: "Sticker Pack", price: "7.99", sizes: [] },
+  { value: "phone-case", label: "Phone Case", price: "19.99", sizes: ["iPhone", "Samsung", "Universal"] },
+];
 
 export default function Store() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const { cart, addToCart, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+  const { cart, addToCart, addCustomDesignToCart, updateQuantity, removeFromCart, removeCustomDesign, cartTotal, cartCount } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [cartOpen, setCartOpen] = useState(false);
+
+  const [customProductType, setCustomProductType] = useState("");
+  const [customSize, setCustomSize] = useState("");
+  const [customNotes, setCustomNotes] = useState("");
+  const [designPreview, setDesignPreview] = useState<string | null>(null);
+  const [designUrl, setDesignUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -47,13 +69,82 @@ export default function Store() {
     navigate("/checkout");
   };
 
+  const handleDesignUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => setDesignPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("design", file);
+      const res = await fetch("/api/upload/custom-design", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      setDesignUrl(data.designUrl);
+      toast({ title: "Design uploaded", description: "Your design has been uploaded successfully" });
+    } catch {
+      toast({ title: "Upload failed", description: "Could not upload your design. Please try again.", variant: "destructive" });
+      setDesignPreview(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAddCustomToCart = () => {
+    if (!designUrl || !customProductType) {
+      toast({ title: "Missing information", description: "Please upload a design and select a product type", variant: "destructive" });
+      return;
+    }
+
+    const productType = CUSTOM_PRODUCT_TYPES.find(t => t.value === customProductType);
+    if (!productType) return;
+
+    if (productType.sizes.length > 0 && !customSize) {
+      toast({ title: "Select a size", description: "Please select a size for your custom product", variant: "destructive" });
+      return;
+    }
+
+    const customProduct: Product = {
+      id: `custom-${Date.now()}`,
+      name: `Custom ${productType.label}`,
+      slug: `custom-${productType.value}-${Date.now()}`,
+      description: `Custom design printed on ${productType.label}`,
+      price: productType.price,
+      category: "Custom Design",
+      imageUrl: designUrl,
+      sizes: productType.sizes.length > 0 ? productType.sizes : null,
+      colors: null,
+      inStock: true,
+      featured: false,
+      printfulSyncVariantId: null,
+      printfulProductId: null,
+      baseCost: null,
+    };
+
+    addCustomDesignToCart(customProduct, designUrl, customNotes, customSize || undefined);
+    toast({ title: "Custom design added!", description: `Your custom ${productType.label} has been added to cart` });
+
+    setCustomProductType("");
+    setCustomSize("");
+    setCustomNotes("");
+    setDesignPreview(null);
+    setDesignUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const selectedProductType = CUSTOM_PRODUCT_TYPES.find(t => t.value === customProductType);
+
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div>
             <Badge variant="secondary" className="mb-2">Official Merchandise</Badge>
-            <h1 className="text-4xl font-bold">NUP Store</h1>
+            <h1 className="text-4xl font-bold" data-testid="text-store-title">NUP Store</h1>
             <p className="text-muted-foreground">Show your support with official NUP merchandise</p>
           </div>
 
@@ -96,45 +187,55 @@ export default function Store() {
                         {cart.map((item, idx) => (
                           <div key={idx} className="flex gap-3 p-3 bg-muted/50 rounded-md">
                             <div className="w-14 h-14 bg-muted rounded-md flex items-center justify-center shrink-0 overflow-hidden">
-                              {item.product.imageUrl ? (
+                              {item.customDesignUrl ? (
+                                <img src={item.customDesignUrl} alt="Custom design" className="w-full h-full object-cover rounded-md" />
+                              ) : item.product.imageUrl ? (
                                 <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover rounded-md" />
                               ) : (
                                 <ShoppingBag className="w-5 h-5 text-muted-foreground" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
+                              <h4 className="font-medium text-sm truncate">
+                                {item.product.name}
+                                {item.isCustomDesign && <Badge variant="outline" className="ml-1 text-[10px]">Custom</Badge>}
+                              </h4>
                               <div className="flex gap-1 mt-0.5 flex-wrap">
                                 {item.selectedSize && <span className="text-xs text-muted-foreground">{item.selectedSize}</span>}
                                 {item.selectedColor && <span className="text-xs text-muted-foreground">{item.selectedColor}</span>}
                               </div>
                               <p className="text-sm text-muted-foreground">${Number(item.product.price).toFixed(2)}</p>
                               <div className="flex items-center gap-2 mt-1.5">
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  className="w-6 h-6"
-                                  onClick={() => updateQuantity(item.product.id, -1, item.selectedSize, item.selectedColor)}
-                                  data-testid={`button-decrease-${item.product.id}`}
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </Button>
-                                <span className="text-sm w-6 text-center font-medium">{item.quantity}</span>
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  className="w-6 h-6"
-                                  onClick={() => updateQuantity(item.product.id, 1, item.selectedSize, item.selectedColor)}
-                                  data-testid={`button-increase-${item.product.id}`}
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </Button>
+                                {!item.isCustomDesign && (
+                                  <>
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      className="w-6 h-6"
+                                      onClick={() => updateQuantity(item.product.id, -1, item.selectedSize, item.selectedColor)}
+                                      data-testid={`button-decrease-${item.product.id}`}
+                                    >
+                                      <Minus className="w-3 h-3" />
+                                    </Button>
+                                    <span className="text-sm w-6 text-center font-medium">{item.quantity}</span>
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      className="w-6 h-6"
+                                      onClick={() => updateQuantity(item.product.id, 1, item.selectedSize, item.selectedColor)}
+                                      data-testid={`button-increase-${item.product.id}`}
+                                    >
+                                      <Plus className="w-3 h-3" />
+                                    </Button>
+                                  </>
+                                )}
+                                {item.isCustomDesign && <span className="text-sm w-6 text-center font-medium">1</span>}
                                 <Button
                                   size="icon"
                                   variant="ghost"
                                   className="w-6 h-6 ml-auto text-destructive"
-                                  onClick={() => removeFromCart(item.product.id, item.selectedSize, item.selectedColor)}
-                                  data-testid={`button-remove-${item.product.id}`}
+                                  onClick={() => item.isCustomDesign ? removeCustomDesign(idx) : removeFromCart(item.product.id, item.selectedSize, item.selectedColor)}
+                                  data-testid={`button-remove-${idx}`}
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
@@ -167,6 +268,140 @@ export default function Store() {
             </Sheet>
           </div>
         </div>
+
+        <Card className="mb-10 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent" data-testid="card-custom-design">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Paintbrush className="w-5 h-5 text-primary" />
+              Custom Design - Print Your Own
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Upload your own image or design and we'll print it on the product of your choice</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label className="mb-2 block">Upload Your Design</Label>
+                  <div
+                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors relative"
+                    onClick={() => fileInputRef.current?.click()}
+                    data-testid="upload-design-area"
+                  >
+                    {designPreview ? (
+                      <div className="relative">
+                        <img src={designPreview} alt="Design preview" className="max-h-48 mx-auto rounded-md object-contain" />
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-0 right-0 w-6 h-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDesignPreview(null);
+                            setDesignUrl(null);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                          data-testid="button-remove-design"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                        {uploading && (
+                          <div className="absolute inset-0 bg-black/40 rounded-md flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">Uploading...</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm font-medium">Click to upload your design</p>
+                        <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP, GIF, PDF — Max 20MB</p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    onChange={handleDesignUpload}
+                    data-testid="input-design-file"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="custom-notes" className="mb-2 block">Design Notes (optional)</Label>
+                  <Textarea
+                    id="custom-notes"
+                    placeholder="Any special instructions for printing? (e.g., placement, color preferences, text to add)"
+                    value={customNotes}
+                    onChange={(e) => setCustomNotes(e.target.value)}
+                    className="resize-none"
+                    rows={3}
+                    data-testid="input-custom-notes"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label className="mb-2 block">Product Type</Label>
+                  <Select value={customProductType} onValueChange={(v) => { setCustomProductType(v); setCustomSize(""); }} data-testid="select-custom-product-type">
+                    <SelectTrigger data-testid="select-trigger-product-type">
+                      <SelectValue placeholder="Select a product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CUSTOM_PRODUCT_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label} — ${type.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedProductType && selectedProductType.sizes.length > 0 && (
+                  <div>
+                    <Label className="mb-2 block">Size</Label>
+                    <Select value={customSize} onValueChange={setCustomSize} data-testid="select-custom-size">
+                      <SelectTrigger data-testid="select-trigger-size">
+                        <SelectValue placeholder="Select a size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectedProductType.sizes.map(size => (
+                          <SelectItem key={size} value={size}>{size}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {selectedProductType && (
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Image className="w-5 h-5 text-primary" />
+                      <span className="font-medium">{selectedProductType.label}</span>
+                    </div>
+                    <p className="text-2xl font-bold text-primary">${selectedProductType.price}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Your design printed on high-quality {selectedProductType.label.toLowerCase()}</p>
+                  </div>
+                )}
+
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={!designUrl || !customProductType || uploading}
+                  onClick={handleAddCustomToCart}
+                  data-testid="button-add-custom-to-cart"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Add Custom Design to Cart
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Separator className="mb-8" />
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">

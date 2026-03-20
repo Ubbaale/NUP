@@ -30,7 +30,7 @@ The admin panel (`/admin` and all `/admin/*` routes) is protected by session-bas
 The admin dashboard at `/admin` provides a comprehensive CMS with 14 management sections:
 - **Chapters** (`/admin/chapters`) — Create, edit, delete chapters; manage leadership teams; upload logos/photos
 - **Regions** (`/admin/regions`, `/admin/regions/:slug`) — Manage regions, coordinators, access codes
-- **Store** (`/admin/store`) — Manage products, pricing, images, inventory
+- **Store** (`/admin/store`) — Manage products, pricing, images, inventory; supports custom design orders where customers upload their own artwork
 - **Events** (`/admin/events`) — Create/edit virtual events, view ticket sales
 - **Conferences** (`/admin/conferences`) — Manage conferences/conventions (create, edit, delete)
 - **Campaigns** (`/admin/campaigns`) — Manage fundraising campaigns, view campaign donations
@@ -65,6 +65,13 @@ Chapter and region coordinators can manage their own information via self-servic
 - Access codes are **never** exposed in public API responses (stripped server-side via `stripAccessCode` helper)
 - Portal updates require the access code with each request; slug/id/regionId fields cannot be modified via portal
 - New fields added to both regions and chapters: `accessCode`, `websiteUrl`, `facebookUrl`, `twitterUrl`, `whatsappLink`, `instagramUrl`, `youtubeUrl`, `memberCount`, `foundedDate`
+
+## Custom Design Orders
+- Customers can upload their own design/artwork at the top of the Store page and select a product type (T-Shirt, Hoodie, Mug, Cap, Tote Bag, Poster, Sticker Pack, Phone Case) with sizes and optional notes
+- Design files uploaded to `/uploads/custom-designs/` via `POST /api/upload/custom-design` (supports JPG, PNG, WebP, GIF, SVG, PDF up to 20MB)
+- Custom design items are added to the cart with `isCustomDesign: true`, `customDesignUrl`, and `customDesignNotes`
+- The order items JSON includes the design URL and notes so admin can view/download the customer's artwork in the Orders admin panel
+- Cart hook (`use-cart.ts`) extended with `addCustomDesignToCart()` and `removeCustomDesign()` methods
 
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.

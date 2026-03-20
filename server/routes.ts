@@ -155,6 +155,30 @@ const galleryUpload = multer({
   limits: { fileSize: 50 * 1024 * 1024 },
 });
 
+const customDesignUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", "custom-designs");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files (JPG, PNG, WebP, GIF, PDF) are allowed"));
+    }
+  },
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -612,6 +636,20 @@ export async function registerRoutes(
       res.status(400).json({ error: error.message || "Failed to upload image" });
     }
   });
+
+  app.post("/api/upload/custom-design", customDesignUpload.single("design"), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No design file provided" });
+      }
+      const designUrl = `/uploads/custom-designs/${req.file.filename}`;
+      res.json({ designUrl });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to upload design" });
+    }
+  });
+
+  app.use("/uploads/custom-designs", (await import("express")).default.static(path.join(process.cwd(), "uploads", "custom-designs")));
 
   // ===== MEMBERS =====
   app.post("/api/members", async (req, res) => {

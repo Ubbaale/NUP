@@ -175,9 +175,27 @@ export default function OrdersAdmin() {
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Items</p>
                 {items.map((item: any, i: number) => (
-                  <div key={i} className="flex justify-between py-1">
-                    <span>{item.productName} × {item.quantity}{item.size ? ` (${item.size})` : ""}</span>
-                    <span className="font-medium">${parseFloat(item.price).toFixed(2)}</span>
+                  <div key={i} className="py-2">
+                    <div className="flex justify-between">
+                      <span>
+                        {item.productName} × {item.quantity}{item.size ? ` (${item.size})` : ""}
+                        {item.isCustomDesign && (
+                          <Badge variant="outline" className="ml-2 text-[10px] border-primary text-primary">Custom Design</Badge>
+                        )}
+                      </span>
+                      <span className="font-medium">${parseFloat(item.price).toFixed(2)}</span>
+                    </div>
+                    {item.isCustomDesign && item.customDesignUrl && (
+                      <div className="mt-2 ml-2 p-2 bg-muted/50 rounded-md">
+                        <a href={item.customDesignUrl} target="_blank" rel="noopener noreferrer" download className="block">
+                          <img src={item.customDesignUrl} alt="Customer design" className="w-24 h-24 object-contain rounded border" />
+                        </a>
+                        <a href={item.customDesignUrl} download className="text-xs text-primary underline mt-1 inline-block">Download Design</a>
+                        {item.customDesignNotes && (
+                          <p className="text-xs text-muted-foreground mt-1 italic">Notes: {item.customDesignNotes}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
                 <Separator className="my-2" />

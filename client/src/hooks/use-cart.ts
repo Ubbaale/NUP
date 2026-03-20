@@ -6,6 +6,9 @@ export interface CartItem {
   quantity: number;
   selectedSize?: string;
   selectedColor?: string;
+  customDesignUrl?: string;
+  customDesignNotes?: string;
+  isCustomDesign?: boolean;
 }
 
 const CART_KEY = "nup_cart";
@@ -33,17 +36,32 @@ export function useCart() {
   const addToCart = (product: Product, size?: string, color?: string) => {
     setCart(prev => {
       const existing = prev.find(
-        item => item.product.id === product.id && item.selectedSize === size && item.selectedColor === color
+        item => item.product.id === product.id && item.selectedSize === size && item.selectedColor === color && !item.isCustomDesign
       );
       if (existing) {
         return prev.map(item =>
-          item.product.id === product.id && item.selectedSize === size && item.selectedColor === color
+          item.product.id === product.id && item.selectedSize === size && item.selectedColor === color && !item.isCustomDesign
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
       return [...prev, { product, quantity: 1, selectedSize: size, selectedColor: color }];
     });
+  };
+
+  const addCustomDesignToCart = (product: Product, designUrl: string, notes: string, size?: string, color?: string) => {
+    setCart(prev => [
+      ...prev,
+      {
+        product,
+        quantity: 1,
+        selectedSize: size,
+        selectedColor: color,
+        customDesignUrl: designUrl,
+        customDesignNotes: notes,
+        isCustomDesign: true,
+      },
+    ]);
   };
 
   const updateQuantity = (productId: string, delta: number, size?: string, color?: string) => {
@@ -64,6 +82,10 @@ export function useCart() {
     );
   };
 
+  const removeCustomDesign = (index: number) => {
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
+
   const clearCart = () => {
     setCart([]);
   };
@@ -71,5 +93,5 @@ export function useCart() {
   const cartTotal = cart.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  return { cart, addToCart, updateQuantity, removeFromCart, clearCart, cartTotal, cartCount };
+  return { cart, addToCart, addCustomDesignToCart, updateQuantity, removeFromCart, removeCustomDesign, clearCart, cartTotal, cartCount };
 }
