@@ -28,35 +28,33 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-primary font-bold text-xl">NUP</span>
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-primary font-bold text-sm">NUP</span>
             </div>
           </div>
         )}
         {product.featured && (
-          <Badge className="absolute top-2 right-2">Featured</Badge>
+          <Badge className="absolute top-1 right-1 text-[10px] px-1.5 py-0">Featured</Badge>
         )}
         {!product.inStock && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-            <Badge variant="secondary">Out of Stock</Badge>
+            <Badge variant="secondary" className="text-xs">Out of Stock</Badge>
           </div>
         )}
       </div>
-      <CardContent className="p-4">
-        <Badge variant="outline" className="mb-2 text-xs">{product.category}</Badge>
-        <h3 className="font-semibold mb-1 line-clamp-1">{product.name}</h3>
-        {product.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{product.description}</p>
-        )}
+      <CardContent className="p-2">
+        <Badge variant="outline" className="mb-1 text-[10px] px-1.5 py-0">{product.category}</Badge>
+        <h3 className="font-semibold text-xs mb-1 line-clamp-1">{product.name}</h3>
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold">${Number(product.price).toFixed(2)}</span>
+          <span className="text-sm font-bold">${Number(product.price).toFixed(2)}</span>
           <Button
             size="sm"
+            className="h-7 px-2 text-xs"
             disabled={!product.inStock}
             onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
             data-testid={`add-to-cart-${product.id}`}
           >
-            <ShoppingCart className="w-4 h-4 mr-1" />
+            <ShoppingCart className="w-3 h-3 mr-1" />
             Add
           </Button>
         </div>
