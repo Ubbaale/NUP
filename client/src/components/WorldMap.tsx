@@ -142,9 +142,9 @@ export function WorldMap({ regions }: WorldMapProps) {
                 <text
                   textAnchor="middle"
                   y={4}
-                  style={{ fontFamily: "system-ui", fontWeight: "bold", fontSize: "10px", fill: "#fff" }}
+                  style={{ fontFamily: "system-ui", fontWeight: "bold", fontSize: "9px", fill: "#fff" }}
                 >
-                  🇺🇬
+                  HQ
                 </text>
               </g>
             </a>
@@ -189,7 +189,7 @@ export function WorldMap({ regions }: WorldMapProps) {
         >
           <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-800 rounded-lg shadow-xl">
             <p className="font-bold text-foreground flex items-center gap-2">
-              <span>🇺🇬</span> Uganda - Our Homeland
+              <span>🇺🇬</span> Headquarters Uganda
             </p>
             <p className="text-xs text-muted-foreground">Click to visit NUP Uganda</p>
           </div>
