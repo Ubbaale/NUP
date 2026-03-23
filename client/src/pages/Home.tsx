@@ -69,7 +69,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative">
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <img src={nupHeadquartersBg} alt="" className="w-full h-full object-cover opacity-[0.06]" />
       </div>
       <div className="relative z-10">
