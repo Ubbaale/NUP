@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SEO } from "@/components/SEO";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -159,6 +160,7 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen py-8 bg-muted/30">
+      <SEO title="Checkout" noindex={true} />
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="mb-8">
           <Button variant="ghost" size="sm" onClick={() => step > 1 && step < 4 ? setStep(s => s - 1) : navigate("/store")} data-testid="button-back">

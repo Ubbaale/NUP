@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,11 @@ export default function Blog() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Blog"
+        description="Read the latest blog posts from NUP Diaspora members. Stories, perspectives, and updates from Ugandans in the diaspora fighting for democracy and good governance."
+        keywords="NUP blog, People Power blog, Uganda diaspora stories, NUP news blog, Uganda democracy blog, Ugandan diaspora perspectives, NUP updates"
+      />
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div>

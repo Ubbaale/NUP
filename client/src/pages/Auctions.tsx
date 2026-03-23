@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -111,6 +112,11 @@ export default function Auctions() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Auctions & Raffles"
+        description="Bid on exclusive items and enter raffles to support the National Unity Platform. Proceeds fund NUP Diaspora activities and campaigns for Uganda's democracy."
+        keywords="NUP auction, People Power raffle, NUP fundraiser, Uganda diaspora auction, NUP charity auction, Uganda democracy fundraiser"
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">Fundraising</Badge>

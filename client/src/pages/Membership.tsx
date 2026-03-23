@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -373,6 +374,11 @@ export default function Membership() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Become a Member"
+        description="Join the National Unity Platform (NUP) Diaspora. Register as a member to connect with Ugandans worldwide, participate in chapter activities, attend events, and support the movement for democracy in Uganda."
+        keywords="NUP membership, join People Power, NUP diaspora member, Uganda diaspora registration, NUP chapter member, People Power membership, join NUP, Uganda democracy membership"
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">Join the Movement</Badge>

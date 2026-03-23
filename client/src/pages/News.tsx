@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewsCard } from "@/components/NewsCard";
@@ -40,6 +41,11 @@ export default function News() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="News"
+        description="Latest news about Uganda, the National Unity Platform, and People Power movement. Stay informed on Uganda politics, democracy, and diaspora activities."
+        keywords="Uganda news, NUP news, People Power news, Uganda politics news, Bobi Wine news, Uganda democracy updates, NUP diaspora news, Uganda opposition news"
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">Live Updates</Badge>

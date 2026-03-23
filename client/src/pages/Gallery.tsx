@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -112,6 +113,11 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen" data-testid="gallery-page">
+      <SEO
+        title="Photo Gallery"
+        description="Browse photos from NUP Diaspora events, conventions, advocacy actions, and community gatherings. See the People Power movement in action across the globe."
+        keywords="NUP photos, People Power gallery, NUP diaspora events photos, Uganda advocacy photos, NUP convention photos, Bobi Wine rally photos, Uganda democracy photos"
+      />
       <div className="bg-gradient-to-b from-red-900 to-red-800 text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-gallery-title">Photo Gallery</h1>

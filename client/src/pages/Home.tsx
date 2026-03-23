@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorldMap } from "@/components/WorldMap";
+import { SEO } from "@/components/SEO";
 
 import { ConferenceCard } from "@/components/ConferenceCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +70,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative">
+      <SEO
+        title="Home"
+        description="National Unity Platform (NUP) Diaspora connects Ugandans worldwide for democracy, freedom, and good governance. Join People Power chapters, attend conventions, support campaigns, and stand for a better Uganda."
+        keywords="NUP, National Unity Platform, People Power, Bobi Wine, Uganda diaspora, NUP chapters worldwide, Uganda democracy movement, People Power diaspora, free Uganda, Uganda opposition, #ProtestVote26"
+      />
       <div className="fixed inset-0 z-0 pointer-events-none">
         <img src={nupHeadquartersBg} alt="" className="w-full h-full object-cover opacity-[0.06]" />
       </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { SEO } from "@/components/SEO";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -462,6 +463,7 @@ export default function OrderTracking() {
 
   return (
     <div className="min-h-screen py-8 bg-muted/30">
+      <SEO title="Order Tracking" noindex={true} />
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">

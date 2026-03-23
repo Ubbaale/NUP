@@ -73,6 +73,16 @@ Chapter and region coordinators can manage their own information via self-servic
 - The order items JSON includes the design URL and notes so admin can view/download the customer's artwork in the Orders admin panel
 - Cart hook (`use-cart.ts`) extended with `addCustomDesignToCart()` and `removeCustomDesign()` methods
 
+## SEO & Meta Tags
+- **react-helmet-async** used for per-page dynamic meta tags (title, description, keywords, Open Graph, Twitter Cards)
+- `HelmetProvider` wraps the entire app in `App.tsx`
+- Reusable `SEO` component at `client/src/components/SEO.tsx` with defaults for NUP-related keywords
+- All 14+ public pages have unique SEO tags with page-specific titles, descriptions, and keywords
+- Utility pages (Checkout, OrderTracking, 404) use `noindex` to prevent search engine indexing
+- Structured data (JSON-LD Organization schema) in `client/index.html`
+- OG image at `client/public/og-image.png`
+- Twitter Cards configured with `summary_large_image` type
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Drizzle ORM**: Used for database interaction.

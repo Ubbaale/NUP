@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -87,6 +88,11 @@ export default function AboutUs() {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="About Us"
+        description="Learn about the National Unity Platform (NUP) Diaspora Inc. Our mission, vision, leadership, and advocacy work with U.S. Congress for democracy, human rights, and freedom in Uganda."
+        keywords="about NUP diaspora, NUP mission, People Power vision, NUP leadership, Bobi Wine, Uganda advocacy US Congress, NUP diaspora Inc, Uganda human rights, Gregory Meeks Uganda"
+      />
       <section className="relative py-28 md:py-40 overflow-hidden">
         <div className="absolute inset-0" style={{ backgroundImage: `url(${lincolnMemorialBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />

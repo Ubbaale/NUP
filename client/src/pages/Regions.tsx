@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WorldMap } from "@/components/WorldMap";
@@ -16,6 +17,11 @@ export default function Regions() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Global Regions & Chapters"
+        description="Find NUP Diaspora chapters in your region. Our global network spans North America, Europe, Africa, Asia, Middle East, and Oceania with active chapters working towards a free Uganda."
+        keywords="NUP chapters, NUP diaspora regions, People Power chapters, NUP North America, NUP Europe, NUP Africa, Uganda diaspora chapters, NUP worldwide, find NUP chapter"
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">Global Network</Badge>

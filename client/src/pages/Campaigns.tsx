@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -111,6 +112,11 @@ export default function Campaigns() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Campaigns"
+        description="Support active NUP Diaspora campaigns for democracy, human rights, and justice in Uganda. Join grassroots initiatives driving change for a better Uganda."
+        keywords="NUP campaigns, People Power campaigns, Uganda democracy campaign, NUP diaspora initiatives, Uganda human rights campaign, Uganda grassroots, #ProtestVote26"
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">Fundraising</Badge>

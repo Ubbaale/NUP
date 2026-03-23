@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -140,6 +141,11 @@ export default function Store() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Party Store"
+        description="Shop official NUP merchandise - t-shirts, caps, hoodies, flags, posters, and more. Show your support for the National Unity Platform and People Power movement. Custom design printing available."
+        keywords="NUP merchandise, People Power store, NUP t-shirt, Bobi Wine merchandise, Uganda democracy merch, NUP cap, NUP hoodie, NUP flag, People Power clothing, custom NUP design"
+      />
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div>

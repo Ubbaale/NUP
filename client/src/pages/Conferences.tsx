@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +18,11 @@ export default function Conferences() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Conferences & Conventions"
+        description="NUP Diaspora annual conferences and conventions bringing Ugandans together from across the globe. Join us for networking, workshops, and strategic planning for Uganda's democracy."
+        keywords="NUP convention, NUP diaspora conference, People Power convention, Uganda diaspora conference, NUP annual meeting, Uganda democracy conference, NUP 2026 convention, NUP 2025 convention"
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">Annual Events</Badge>

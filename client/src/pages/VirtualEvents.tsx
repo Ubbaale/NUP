@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,6 +36,11 @@ export default function VirtualEvents() {
 
   return (
     <div className="min-h-screen py-8">
+      <SEO
+        title="Events"
+        description="Join NUP Diaspora virtual events, town halls, webinars, workshops, and concerts. Connect with the Ugandan community worldwide and participate in the democracy movement."
+        keywords="NUP events, People Power events, Uganda diaspora events, NUP webinar, NUP town hall, Uganda virtual events, NUP diaspora meetings, Uganda community events"
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4">Virtual Events</Badge>

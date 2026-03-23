@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,6 +104,11 @@ export default function Donate() {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Donate"
+        description="Support the National Unity Platform (NUP) and People Power movement. Your donation helps fund campaigns for democracy, freedom, and good governance in Uganda. Every contribution makes a difference."
+        keywords="donate NUP, support People Power, Uganda democracy donation, NUP fundraising, support Bobi Wine, Uganda freedom fund, NUP diaspora donate, Uganda opposition support"
+      />
       <section className="relative overflow-hidden py-20">
         <div className="absolute inset-0">
           <img src={donateHeroImg} alt="Bobi Wine rally with Ugandan flags" className="w-full h-full object-cover" />
