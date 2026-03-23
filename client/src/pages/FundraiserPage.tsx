@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Target, Users, DollarSign, Heart, CheckCircle, ArrowLeft, User, Share2, Copy, Check } from "lucide-react";
+import { Target, Users, DollarSign, Heart, CheckCircle, ArrowLeft, User, Share2, Copy, Check, MessageCircle } from "lucide-react";
+import { SiWhatsapp, SiFacebook } from "react-icons/si";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/SEO";
@@ -238,27 +239,65 @@ export default function FundraiserPage() {
               </Card>
 
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3 flex-wrap">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-3">
                     <Share2 className="w-5 h-5 text-primary" />
-                    <span className="font-medium text-sm">Share this fundraiser:</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={shareUrl}
-                          readOnly
-                          className="text-xs"
-                          data-testid="input-share-url"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleCopyLink}
-                          data-testid="button-copy-link"
-                        >
-                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        </Button>
-                      </div>
+                    <h3 className="font-bold text-base">Share This Fundraiser</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Help {fundraiser.fullName} reach their goal — share with friends and family!
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(`Please support ${fundraiser.fullName}'s fundraiser! Donate here: ${shareUrl}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="button-share-whatsapp"
+                    >
+                      <Button variant="outline" className="w-full gap-2 text-green-600 border-green-200 hover:bg-green-50">
+                        <SiWhatsapp className="w-4 h-4" />
+                        WhatsApp
+                      </Button>
+                    </a>
+                    <a
+                      href={`sms:?body=${encodeURIComponent(`Please support ${fundraiser.fullName}'s fundraiser! Donate here: ${shareUrl}`)}`}
+                      data-testid="button-share-sms"
+                    >
+                      <Button variant="outline" className="w-full gap-2 text-blue-600 border-blue-200 hover:bg-blue-50">
+                        <MessageCircle className="w-4 h-4" />
+                        Text Message
+                      </Button>
+                    </a>
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-testid="button-share-facebook"
+                    >
+                      <Button variant="outline" className="w-full gap-2 text-blue-700 border-blue-200 hover:bg-blue-50">
+                        <SiFacebook className="w-4 h-4" />
+                        Facebook
+                      </Button>
+                    </a>
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      onClick={handleCopyLink}
+                      data-testid="button-copy-link"
+                    >
+                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      {copied ? "Copied!" : "Copy Link"}
+                    </Button>
+                  </div>
+                  <div className="bg-muted rounded-md p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Your fundraiser link:</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={shareUrl}
+                        readOnly
+                        className="text-xs flex-1"
+                        data-testid="input-share-url"
+                      />
                     </div>
                   </div>
                 </CardContent>

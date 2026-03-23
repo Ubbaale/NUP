@@ -14,7 +14,9 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Target, Clock, Users, DollarSign, Heart, CheckCircle, ArrowLeft, User, Trophy, UserPlus, Share2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Target, Clock, Users, DollarSign, Heart, CheckCircle, ArrowLeft, User, Trophy, UserPlus, Share2, Camera, MessageCircle, Copy } from "lucide-react";
+import { SiWhatsapp, SiFacebook } from "react-icons/si";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Campaign, CampaignDonation, CampaignFundraiser } from "@shared/schema";
@@ -118,6 +120,81 @@ const fundraiserSignupSchema = z.object({
 
 type FundraiserSignupData = z.infer<typeof fundraiserSignupSchema>;
 
+function FundraiserSuccessPanel({ fundraiserSlug, campaignTitle, onCopyLink }: { fundraiserSlug: string; campaignTitle: string; onCopyLink: (link: string) => void }) {
+  const frLink = `${window.location.origin}/fundraise/${fundraiserSlug}`;
+  const shareText = `I'm raising funds for ${campaignTitle}! Please support me by donating here: ${frLink}`;
+
+  return (
+    <div className="text-center py-4">
+      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <CheckCircle className="w-8 h-8 text-primary" />
+      </div>
+      <DialogHeader className="mb-4">
+        <DialogTitle>Your Fundraiser Page is Live!</DialogTitle>
+        <DialogDescription>Now share it with your friends and family to start collecting donations</DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-3 mb-4">
+        <p className="text-sm font-medium text-left">Share via:</p>
+        <div className="grid grid-cols-2 gap-2">
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="button-share-whatsapp"
+          >
+            <Button variant="outline" className="w-full gap-2 text-green-600 border-green-200 hover:bg-green-50">
+              <SiWhatsapp className="w-4 h-4" />
+              WhatsApp
+            </Button>
+          </a>
+          <a
+            href={`sms:?body=${encodeURIComponent(shareText)}`}
+            data-testid="button-share-sms"
+          >
+            <Button variant="outline" className="w-full gap-2 text-blue-600 border-blue-200 hover:bg-blue-50">
+              <MessageCircle className="w-4 h-4" />
+              Text Message
+            </Button>
+          </a>
+          <a
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(frLink)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="button-share-facebook"
+          >
+            <Button variant="outline" className="w-full gap-2 text-blue-700 border-blue-200 hover:bg-blue-50">
+              <SiFacebook className="w-4 h-4" />
+              Facebook
+            </Button>
+          </a>
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={() => onCopyLink(frLink)}
+            data-testid="button-copy-fundraiser-link"
+          >
+            <Copy className="w-4 h-4" />
+            Copy Link
+          </Button>
+        </div>
+      </div>
+
+      <div className="bg-muted rounded-md p-3 mb-4">
+        <p className="text-xs text-muted-foreground mb-1">Your link:</p>
+        <p className="text-sm font-mono break-all" data-testid="text-fundraiser-link">
+          {frLink}
+        </p>
+      </div>
+      <a href={`/fundraise/${fundraiserSlug}`}>
+        <Button className="w-full" data-testid="button-view-fundraiser">
+          View My Fundraiser Page
+        </Button>
+      </a>
+    </div>
+  );
+}
+
 function FundraiserLeaderboard({ fundraisers, campaignSlug }: { fundraisers: CampaignFundraiser[]; campaignSlug: string }) {
   if (!fundraisers || fundraisers.length === 0) return null;
 
@@ -182,6 +259,9 @@ export default function CampaignDetail() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFundraiserDialog, setShowFundraiserDialog] = useState(false);
   const [fundraiserCreated, setFundraiserCreated] = useState<CampaignFundraiser | null>(null);
+  const [fundraiserPhoto, setFundraiserPhoto] = useState<File | null>(null);
+  const [fundraiserPhotoPreview, setFundraiserPhotoPreview] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const { data: campaign, isLoading } = useQuery<Campaign>({
     queryKey: ["/api/campaigns", slug],
@@ -208,19 +288,44 @@ export default function CampaignDetail() {
     },
   });
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFundraiserPhoto(file);
+      const reader = new FileReader();
+      reader.onload = () => setFundraiserPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const createFundraiserMutation = useMutation({
     mutationFn: async (data: FundraiserSignupData) => {
+      let photoUrl = null;
+      if (fundraiserPhoto) {
+        setUploadingPhoto(true);
+        const formData = new FormData();
+        formData.append("photo", fundraiserPhoto);
+        const uploadRes = await fetch("/api/upload/fundraiser-photo", { method: "POST", body: formData });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          photoUrl = uploadData.url;
+        }
+        setUploadingPhoto(false);
+      }
       const res = await apiRequest("POST", `/api/campaigns/${slug}/fundraisers`, {
         fullName: data.fullName,
         email: data.email,
         personalMessage: data.personalMessage || "",
         goalAmount: data.goalAmount,
+        photoUrl,
       });
       return res.json();
     },
     onSuccess: (data) => {
       setFundraiserCreated(data);
       fundraiserForm.reset();
+      setFundraiserPhoto(null);
+      setFundraiserPhotoPreview(null);
       queryClient.invalidateQueries({ queryKey: ["/api/campaigns", slug, "fundraisers"] });
       toast({
         title: "Fundraiser Page Created!",
@@ -595,38 +700,14 @@ export default function CampaignDetail() {
       <Dialog open={showFundraiserDialog} onOpenChange={setShowFundraiserDialog}>
         <DialogContent className="max-w-md">
           {fundraiserCreated ? (
-            <div className="text-center py-4">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-primary" />
-              </div>
-              <DialogHeader className="mb-4">
-                <DialogTitle>Your Fundraiser Page is Live!</DialogTitle>
-                <DialogDescription>Share your unique link to start collecting donations</DialogDescription>
-              </DialogHeader>
-              <div className="bg-muted rounded-md p-3 mb-4">
-                <p className="text-sm font-mono break-all" data-testid="text-fundraiser-link">
-                  {window.location.origin}/fundraise/{fundraiserCreated.slug}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/fundraise/${fundraiserCreated.slug}`);
-                    toast({ title: "Link copied!" });
-                  }}
-                  data-testid="button-copy-fundraiser-link"
-                >
-                  Copy Link
-                </Button>
-                <a href={`/fundraise/${fundraiserCreated.slug}`} className="flex-1">
-                  <Button className="w-full" data-testid="button-view-fundraiser">
-                    View My Page
-                  </Button>
-                </a>
-              </div>
-            </div>
+            <FundraiserSuccessPanel
+              fundraiserSlug={fundraiserCreated.slug}
+              campaignTitle={campaign?.title || "a great cause"}
+              onCopyLink={(link: string) => {
+                navigator.clipboard.writeText(link);
+                toast({ title: "Link copied!", description: "Paste it anywhere to share." });
+              }}
+            />
           ) : (
             <>
               <DialogHeader>
@@ -640,6 +721,28 @@ export default function CampaignDetail() {
               </DialogHeader>
               <Form {...fundraiserForm}>
                 <form onSubmit={fundraiserForm.handleSubmit((data) => createFundraiserMutation.mutate(data))} className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Your Photo (Optional)</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-dashed border-muted-foreground/30">
+                        {fundraiserPhotoPreview ? (
+                          <img src={fundraiserPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <Camera className="w-6 h-6 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <Input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handlePhotoChange}
+                          className="text-sm"
+                          data-testid="input-fundraiser-photo"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Add your photo so people know who you are</p>
+                      </div>
+                    </div>
+                  </div>
                   <FormField
                     control={fundraiserForm.control}
                     name="fullName"
@@ -702,10 +805,10 @@ export default function CampaignDetail() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={createFundraiserMutation.isPending}
+                    disabled={createFundraiserMutation.isPending || uploadingPhoto}
                     data-testid="button-create-fundraiser"
                   >
-                    {createFundraiserMutation.isPending ? "Creating..." : "Create My Fundraiser Page"}
+                    {uploadingPhoto ? "Uploading photo..." : createFundraiserMutation.isPending ? "Creating..." : "Create My Fundraiser Page"}
                   </Button>
                 </form>
               </Form>

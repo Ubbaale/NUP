@@ -179,6 +179,30 @@ const customDesignUpload = multer({
   limits: { fileSize: 20 * 1024 * 1024 },
 });
 
+const fundraiserPhotoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = path.join(process.cwd(), "uploads", "fundraiser-photos");
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = [".jpg", ".jpeg", ".png", ".webp"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files (JPG, PNG, WebP) are allowed"));
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -2003,6 +2027,15 @@ export async function registerRoutes(
   });
 
   // ===== CAMPAIGN FUNDRAISERS (Peer-to-Peer) =====
+  app.post("/api/upload/fundraiser-photo", fundraiserPhotoUpload.single("photo"), (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "No photo uploaded" });
+      res.json({ url: `/uploads/fundraiser-photos/${req.file.filename}` });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to upload photo" });
+    }
+  });
+
   app.get("/api/campaigns/:slug/fundraisers", async (req, res) => {
     try {
       const campaign = await storage.getCampaignBySlug(req.params.slug);
