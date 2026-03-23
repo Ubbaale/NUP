@@ -36,7 +36,7 @@ export function Footer() {
   return (
     <footer className="bg-card border-t mt-auto">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           <div>
             <div className="mb-4">
               <img src={nupLogo} alt="National Unity Platform" className="h-14 object-contain" />
@@ -54,6 +54,17 @@ export function Footer() {
               <Link href="/membership" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Become a Member</Link>
               <Link href="/store" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Party Store</Link>
               <Link href="/donate" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Donate</Link>
+            </nav>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-4">Explore</h4>
+            <nav className="flex flex-col gap-2">
+              <Link href="/campaigns" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Campaigns</Link>
+              <Link href="/blog" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Blog</Link>
+              <Link href="/auctions" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Auctions</Link>
+              <Link href="/songs" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Songs</Link>
+              <Link href="/gallery" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Gallery</Link>
             </nav>
           </div>
 
