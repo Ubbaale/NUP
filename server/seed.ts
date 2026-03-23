@@ -349,11 +349,11 @@ const ALL_REGIONS_DATA = [
     coordinates: JSON.stringify({ lat: 34.0479, lng: 100.6197 }),
   },
   {
-    name: "Gulf-UAE",
+    name: "Gulf",
     slug: "gulf-uae",
     description: "NUP Diaspora presence in the Gulf region and United Arab Emirates, connecting Ugandans across the Middle East.",
     leaderName: "Patricia Mugisha",
-    leaderTitle: "Gulf-UAE Regional Coordinator",
+    leaderTitle: "Gulf Regional Coordinator",
     leaderBio: "Patricia Mugisha coordinates NUP diaspora activities across the Gulf states and United Arab Emirates.",
     contactEmail: "gulf@diasporanup.org",
     contactPhone: "+971 55 733 7826",
