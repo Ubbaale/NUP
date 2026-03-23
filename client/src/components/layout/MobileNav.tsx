@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Globe2, Video, Heart, Menu, HandHeart } from "lucide-react";
+import { Home, Globe2, Video, Heart, Menu, HandHeart, Mail } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ const bottomTabs = [
   { href: "/events", label: "Events", icon: Video },
   { href: "/regions", label: "Regions", icon: Globe2 },
   { href: "/donate", label: "Donate", icon: Heart },
+  { href: "mail", label: "Mail", icon: Mail, external: "https://mail.hostinger.com/v2/auth/login" },
   { href: "more", label: "More", icon: Menu },
 ];
 
@@ -99,6 +100,20 @@ export function MobileNav() {
                   </div>
                 </SheetContent>
               </Sheet>
+            );
+          }
+
+          if ((tab as any).external) {
+            return (
+              <a key={tab.href} href={(tab as any).external} target="_blank" rel="noopener noreferrer">
+                <button
+                  className="flex flex-col items-center justify-center gap-0.5 w-16 h-full transition-colors text-muted-foreground"
+                  data-testid={`tab-${tab.label.toLowerCase()}`}
+                >
+                  <tab.icon className="w-5 h-5" />
+                  <span className="text-[10px] font-medium">{tab.label}</span>
+                </button>
+              </a>
             );
           }
 
