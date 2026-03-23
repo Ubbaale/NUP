@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown, ImageIcon } from "lucide-react";
+import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown, ImageIcon, HandHeart } from "lucide-react";
 import nupLogo from "@/assets/images/nup-official-logo.png";
 import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
 
@@ -83,6 +83,12 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <Link href="/fundraise" className="hidden lg:block">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white" data-testid="button-fundraise-header">
+                <HandHeart className="w-4 h-4 mr-2" />
+                Fundraise
+              </Button>
+            </Link>
             <Link href="/donate" className="hidden lg:block">
               <Button data-testid="button-donate-header">
                 <Heart className="w-4 h-4 mr-2" />

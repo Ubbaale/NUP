@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Globe2, Video, Heart, Menu } from "lucide-react";
+import { Home, Globe2, Video, Heart, Menu, HandHeart } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,7 @@ const bottomTabs = [
 const moreItems = [
   { href: "/about", label: "About Us", icon: Info },
   { href: "/songs", label: "Songs", icon: Music },
+  { href: "/fundraise", label: "Fundraise", icon: HandHeart },
   { href: "/campaigns", label: "Campaigns", icon: Target },
   { href: "/conferences", label: "Conferences", icon: Calendar },
   { href: "/news", label: "News", icon: Newspaper },

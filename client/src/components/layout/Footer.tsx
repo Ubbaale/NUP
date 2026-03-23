@@ -60,6 +60,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Explore</h4>
             <nav className="flex flex-col gap-2">
+              <Link href="/fundraise" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Fundraise</Link>
               <Link href="/campaigns" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Campaigns</Link>
               <Link href="/blog" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Blog</Link>
               <Link href="/auctions" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Auctions</Link>
