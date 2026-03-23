@@ -13,10 +13,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Target, Clock, Users, DollarSign, Heart, CheckCircle, ArrowLeft, User } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Target, Clock, Users, DollarSign, Heart, CheckCircle, ArrowLeft, User, Trophy, UserPlus, Share2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Campaign, CampaignDonation } from "@shared/schema";
+import type { Campaign, CampaignDonation, CampaignFundraiser } from "@shared/schema";
 
 const donationSchema = z.object({
   donorName: z.string().min(2, "Name must be at least 2 characters"),
@@ -106,12 +107,81 @@ function DonorWall({ donations }: { donations: CampaignDonation[] }) {
   );
 }
 
+const fundraiserSignupSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  personalMessage: z.string().optional(),
+  goalAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 50, {
+    message: "Minimum goal is $50",
+  }),
+});
+
+type FundraiserSignupData = z.infer<typeof fundraiserSignupSchema>;
+
+function FundraiserLeaderboard({ fundraisers, campaignSlug }: { fundraisers: CampaignFundraiser[]; campaignSlug: string }) {
+  if (!fundraisers || fundraisers.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <h3 className="font-bold text-lg flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-yellow-500" />
+          Fundraiser Leaderboard
+        </h3>
+        <CardDescription>
+          {fundraisers.length} {fundraisers.length === 1 ? "person is" : "people are"} fundraising for this campaign
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {fundraisers.map((fr, index) => {
+            const raised = Number(fr.raisedAmount);
+            const goal = Number(fr.goalAmount);
+            const pct = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0;
+            return (
+              <a
+                key={fr.id}
+                href={`/fundraise/${fr.slug}`}
+                className="flex items-center gap-3 p-3 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors group"
+                data-testid={`fundraiser-leaderboard-${fr.id}`}
+              >
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-primary">
+                  {index < 3 ? ["🥇", "🥈", "🥉"][index] : `#${index + 1}`}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="font-medium text-sm group-hover:text-primary transition-colors" data-testid={`text-fr-name-${fr.id}`}>
+                      {fr.fullName}
+                    </span>
+                    <span className="font-semibold text-sm text-primary" data-testid={`text-fr-raised-${fr.id}`}>
+                      ${raised.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Progress value={pct} className="h-1.5 flex-1" />
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {Math.round(pct)}% of ${goal.toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{fr.donorCount} supporters</span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function CampaignDetail() {
   const [, params] = useRoute("/campaigns/:slug");
   const slug = params?.slug;
   const { toast } = useToast();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showFundraiserDialog, setShowFundraiserDialog] = useState(false);
+  const [fundraiserCreated, setFundraiserCreated] = useState<CampaignFundraiser | null>(null);
 
   const { data: campaign, isLoading } = useQuery<Campaign>({
     queryKey: ["/api/campaigns", slug],
@@ -121,6 +191,49 @@ export default function CampaignDetail() {
   const { data: donations } = useQuery<CampaignDonation[]>({
     queryKey: ["/api/campaigns", slug, "donations"],
     enabled: !!slug,
+  });
+
+  const { data: fundraisers } = useQuery<CampaignFundraiser[]>({
+    queryKey: ["/api/campaigns", slug, "fundraisers"],
+    enabled: !!slug,
+  });
+
+  const fundraiserForm = useForm<FundraiserSignupData>({
+    resolver: zodResolver(fundraiserSignupSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      personalMessage: "",
+      goalAmount: "500",
+    },
+  });
+
+  const createFundraiserMutation = useMutation({
+    mutationFn: async (data: FundraiserSignupData) => {
+      const res = await apiRequest("POST", `/api/campaigns/${slug}/fundraisers`, {
+        fullName: data.fullName,
+        email: data.email,
+        personalMessage: data.personalMessage || "",
+        goalAmount: data.goalAmount,
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setFundraiserCreated(data);
+      fundraiserForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/campaigns", slug, "fundraisers"] });
+      toast({
+        title: "Fundraiser Page Created!",
+        description: "Share your unique link to start collecting donations.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed",
+        description: error.message || "Could not create fundraiser page.",
+        variant: "destructive",
+      });
+    },
   });
 
   const form = useForm<DonationFormData>({
@@ -277,6 +390,35 @@ export default function CampaignDetail() {
                 )}
               </CardContent>
             </Card>
+
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Share2 className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Help Raise Funds</h3>
+                    <p className="text-sm text-muted-foreground">Create your own fundraising page for this campaign</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Get your own unique link to share with friends and family. Track how much you've raised and see your name on the leaderboard.
+                </p>
+                <Button
+                  onClick={() => { setShowFundraiserDialog(true); setFundraiserCreated(null); }}
+                  className="w-full"
+                  data-testid="button-start-fundraising"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Start My Fundraiser
+                </Button>
+              </CardContent>
+            </Card>
+
+            {fundraisers && fundraisers.length > 0 && (
+              <FundraiserLeaderboard fundraisers={fundraisers} campaignSlug={slug || ""} />
+            )}
 
             <Card>
               <CardHeader>
@@ -449,6 +591,128 @@ export default function CampaignDetail() {
           </div>
         </div>
       </div>
+
+      <Dialog open={showFundraiserDialog} onOpenChange={setShowFundraiserDialog}>
+        <DialogContent className="max-w-md">
+          {fundraiserCreated ? (
+            <div className="text-center py-4">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-primary" />
+              </div>
+              <DialogHeader className="mb-4">
+                <DialogTitle>Your Fundraiser Page is Live!</DialogTitle>
+                <DialogDescription>Share your unique link to start collecting donations</DialogDescription>
+              </DialogHeader>
+              <div className="bg-muted rounded-md p-3 mb-4">
+                <p className="text-sm font-mono break-all" data-testid="text-fundraiser-link">
+                  {window.location.origin}/fundraise/{fundraiserCreated.slug}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/fundraise/${fundraiserCreated.slug}`);
+                    toast({ title: "Link copied!" });
+                  }}
+                  data-testid="button-copy-fundraiser-link"
+                >
+                  Copy Link
+                </Button>
+                <a href={`/fundraise/${fundraiserCreated.slug}`} className="flex-1">
+                  <Button className="w-full" data-testid="button-view-fundraiser">
+                    View My Page
+                  </Button>
+                </a>
+              </div>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <UserPlus className="w-5 h-5 text-primary" />
+                  Start Your Fundraiser
+                </DialogTitle>
+                <DialogDescription>
+                  Create your personal fundraising page for "{campaign?.title}". You'll get a unique link to share.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...fundraiserForm}>
+                <form onSubmit={fundraiserForm.handleSubmit((data) => createFundraiserMutation.mutate(data))} className="space-y-4">
+                  <FormField
+                    control={fundraiserForm.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Your Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John Doe" {...field} data-testid="input-fundraiser-name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={fundraiserForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="john@example.com" {...field} data-testid="input-fundraiser-email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={fundraiserForm.control}
+                    name="goalAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>My Fundraising Goal ($)</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input type="number" placeholder="500" className="pl-10" {...field} data-testid="input-fundraiser-goal" />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={fundraiserForm.control}
+                    name="personalMessage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Personal Message (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Why this campaign is important to me..."
+                            {...field}
+                            data-testid="input-fundraiser-message"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={createFundraiserMutation.isPending}
+                    data-testid="button-create-fundraiser"
+                  >
+                    {createFundraiserMutation.isPending ? "Creating..." : "Create My Fundraiser Page"}
+                  </Button>
+                </form>
+              </Form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

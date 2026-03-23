@@ -94,6 +94,21 @@ Chapter and region coordinators can manage their own information via self-servic
 - OG image at `client/public/og-image.png`
 - Twitter Cards configured with `summary_large_image` type
 
+## Peer-to-Peer Fundraising
+- Campaign supporters can create personal fundraising pages at `/fundraise/:slug`
+- Each fundraiser gets a unique shareable link to collect donations on behalf of a campaign
+- All donations flow to the main campaign total, with individual tracking per fundraiser
+- **Leaderboard** on campaign detail pages shows top fundraisers ranked by amount raised
+- **Database**: `campaign_fundraisers` table (id, campaignId, fullName, email, slug, personalMessage, goalAmount, raisedAmount, donorCount, photoUrl, isActive)
+- **Campaign donations** have optional `fundraiser_id` column linking donations to their fundraiser
+- **API Routes**:
+  - `GET /api/campaigns/:slug/fundraisers` — List all fundraisers for a campaign
+  - `POST /api/campaigns/:slug/fundraisers` — Create a new fundraiser page
+  - `GET /api/fundraisers/:slug` — Get fundraiser details (email stripped for privacy)
+  - `GET /api/fundraisers/:slug/donations` — Get donations through a fundraiser (emails stripped)
+  - `POST /api/campaigns/:slug/donate` — Now accepts optional `fundraiserId` to attribute donation
+- **Frontend pages**: `FundraiserPage.tsx` (individual fundraiser page), updated `CampaignDetail.tsx` with leaderboard + signup dialog
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Drizzle ORM**: Used for database interaction.

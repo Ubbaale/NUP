@@ -423,6 +423,7 @@ export type Campaign = typeof campaigns.$inferSelect;
 export const campaignDonations = pgTable("campaign_donations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   campaignId: varchar("campaign_id").notNull(),
+  fundraiserId: varchar("fundraiser_id"),
   donorName: text("donor_name").notNull(),
   email: text("email").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
@@ -434,6 +435,26 @@ export const campaignDonations = pgTable("campaign_donations", {
 export const insertCampaignDonationSchema = createInsertSchema(campaignDonations).omit({ id: true, createdAt: true });
 export type InsertCampaignDonation = z.infer<typeof insertCampaignDonationSchema>;
 export type CampaignDonation = typeof campaignDonations.$inferSelect;
+
+// Campaign Fundraisers (peer-to-peer)
+export const campaignFundraisers = pgTable("campaign_fundraisers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull(),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  slug: text("slug").notNull().unique(),
+  personalMessage: text("personal_message"),
+  goalAmount: decimal("goal_amount", { precision: 10, scale: 2 }).default("500"),
+  raisedAmount: decimal("raised_amount", { precision: 10, scale: 2 }).notNull().default("0"),
+  donorCount: integer("donor_count").notNull().default(0),
+  photoUrl: text("photo_url"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCampaignFundraiserSchema = createInsertSchema(campaignFundraisers).omit({ id: true, createdAt: true, raisedAmount: true, donorCount: true });
+export type InsertCampaignFundraiser = z.infer<typeof insertCampaignFundraiserSchema>;
+export type CampaignFundraiser = typeof campaignFundraisers.$inferSelect;
 
 // Membership Tiers
 export const membershipTiers = pgTable("membership_tiers", {

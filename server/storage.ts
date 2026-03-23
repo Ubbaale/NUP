@@ -21,6 +21,7 @@ import {
   type EventTicket, type InsertEventTicket, eventTickets,
   type Campaign, type InsertCampaign, campaigns,
   type CampaignDonation, type InsertCampaignDonation, campaignDonations,
+  type CampaignFundraiser, type InsertCampaignFundraiser, campaignFundraisers,
   type MembershipTier, type InsertMembershipTier, membershipTiers,
   type MemberSubscription, type InsertMemberSubscription, memberSubscriptions,
   type AuctionItem, type InsertAuctionItem, auctionItems,
@@ -199,6 +200,13 @@ export interface IStorage {
   deleteCampaign(id: string): Promise<void>;
   createCampaignDonation(donation: InsertCampaignDonation): Promise<CampaignDonation>;
   getCampaignDonations(campaignId: string): Promise<CampaignDonation[]>;
+  
+  // Campaign Fundraisers
+  getCampaignFundraisers(campaignId: string): Promise<CampaignFundraiser[]>;
+  getCampaignFundraiserBySlug(slug: string): Promise<CampaignFundraiser | undefined>;
+  createCampaignFundraiser(fundraiser: InsertCampaignFundraiser): Promise<CampaignFundraiser>;
+  updateCampaignFundraiser(id: string, data: Partial<CampaignFundraiser>): Promise<CampaignFundraiser | undefined>;
+  getFundraiserDonations(fundraiserId: string): Promise<CampaignDonation[]>;
 
   // Membership Tiers
   getAllTiers(): Promise<MembershipTier[]>;
@@ -800,6 +808,7 @@ export class DatabaseStorage implements IStorage {
   }
   async deleteCampaign(id: string): Promise<void> {
     await db.delete(campaignDonations).where(eq(campaignDonations.campaignId, id));
+    await db.delete(campaignFundraisers).where(eq(campaignFundraisers.campaignId, id));
     await db.delete(campaigns).where(eq(campaigns.id, id));
   }
   async createCampaignDonation(insertDonation: InsertCampaignDonation): Promise<CampaignDonation> {
@@ -808,6 +817,26 @@ export class DatabaseStorage implements IStorage {
   }
   async getCampaignDonations(campaignId: string): Promise<CampaignDonation[]> {
     return db.select().from(campaignDonations).where(eq(campaignDonations.campaignId, campaignId)).orderBy(desc(campaignDonations.createdAt));
+  }
+
+  // Campaign Fundraisers
+  async getCampaignFundraisers(campaignId: string): Promise<CampaignFundraiser[]> {
+    return db.select().from(campaignFundraisers).where(eq(campaignFundraisers.campaignId, campaignId)).orderBy(desc(campaignFundraisers.raisedAmount));
+  }
+  async getCampaignFundraiserBySlug(slug: string): Promise<CampaignFundraiser | undefined> {
+    const [fundraiser] = await db.select().from(campaignFundraisers).where(eq(campaignFundraisers.slug, slug));
+    return fundraiser;
+  }
+  async createCampaignFundraiser(data: InsertCampaignFundraiser): Promise<CampaignFundraiser> {
+    const [fundraiser] = await db.insert(campaignFundraisers).values(data).returning();
+    return fundraiser;
+  }
+  async updateCampaignFundraiser(id: string, data: Partial<CampaignFundraiser>): Promise<CampaignFundraiser | undefined> {
+    const [fundraiser] = await db.update(campaignFundraisers).set(data).where(eq(campaignFundraisers.id, id)).returning();
+    return fundraiser;
+  }
+  async getFundraiserDonations(fundraiserId: string): Promise<CampaignDonation[]> {
+    return db.select().from(campaignDonations).where(eq(campaignDonations.fundraiserId, fundraiserId)).orderBy(desc(campaignDonations.createdAt));
   }
 
   // Membership Tiers

@@ -1918,10 +1918,20 @@ export async function registerRoutes(
     try {
       const campaign = await storage.getCampaignBySlug(req.params.slug);
       if (!campaign) return res.status(404).json({ error: "Campaign not found" });
-      const { donorName, email: donorEmail, amount, message, isAnonymous } = req.body;
+      const { donorName, email: donorEmail, amount, message, isAnonymous, fundraiserId } = req.body;
       if (!donorName || !donorEmail || !amount) return res.status(400).json({ error: "Name, email, and amount required" });
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount < 1) return res.status(400).json({ error: "Amount must be at least $1" });
+      let validFundraiserId: string | null = null;
+      if (fundraiserId) {
+        const frs = await storage.getCampaignFundraisers(campaign.id);
+        const matchedFr = frs.find(f => f.id === fundraiserId);
+        if (!matchedFr) return res.status(400).json({ error: "Invalid fundraiser for this campaign" });
+        validFundraiserId = fundraiserId;
+      }
       const donation = await storage.createCampaignDonation({
         campaignId: campaign.id,
+        fundraiserId: validFundraiserId,
         donorName,
         email: donorEmail,
         amount: String(amount),
@@ -1933,6 +1943,17 @@ export async function registerRoutes(
         raisedAmount: newRaised,
         donorCount: (campaign.donorCount || 0) + 1,
       });
+      if (validFundraiserId) {
+        const frs = await storage.getCampaignFundraisers(campaign.id);
+        const fr = frs.find(f => f.id === validFundraiserId);
+        if (fr) {
+          const frNewRaised = (Number(fr.raisedAmount) + Number(amount)).toFixed(2);
+          await storage.updateCampaignFundraiser(validFundraiserId, {
+            raisedAmount: frNewRaised,
+            donorCount: (fr.donorCount || 0) + 1,
+          });
+        }
+      }
 
       email.sendDonationReceipt({
         donorEmail,
@@ -1978,6 +1999,68 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to delete campaign" });
+    }
+  });
+
+  // ===== CAMPAIGN FUNDRAISERS (Peer-to-Peer) =====
+  app.get("/api/campaigns/:slug/fundraisers", async (req, res) => {
+    try {
+      const campaign = await storage.getCampaignBySlug(req.params.slug);
+      if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+      const fundraisers = await storage.getCampaignFundraisers(campaign.id);
+      res.json(fundraisers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch fundraisers" });
+    }
+  });
+
+  app.get("/api/fundraisers/:slug", async (req, res) => {
+    try {
+      const fundraiser = await storage.getCampaignFundraiserBySlug(req.params.slug);
+      if (!fundraiser) return res.status(404).json({ error: "Fundraiser not found" });
+      const { email, ...publicData } = fundraiser;
+      res.json(publicData);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch fundraiser" });
+    }
+  });
+
+  app.get("/api/fundraisers/:slug/donations", async (req, res) => {
+    try {
+      const fundraiser = await storage.getCampaignFundraiserBySlug(req.params.slug);
+      if (!fundraiser) return res.status(404).json({ error: "Fundraiser not found" });
+      const donations = await storage.getFundraiserDonations(fundraiser.id);
+      const publicDonations = donations.map(({ email, ...rest }) => rest);
+      res.json(publicDonations);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch donations" });
+    }
+  });
+
+  app.post("/api/campaigns/:slug/fundraisers", async (req, res) => {
+    try {
+      const campaign = await storage.getCampaignBySlug(req.params.slug);
+      if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+      if (!campaign.isActive) return res.status(400).json({ error: "Campaign is not active" });
+      const { fullName, email, personalMessage, goalAmount, photoUrl } = req.body;
+      if (!fullName || !email) return res.status(400).json({ error: "Name and email are required" });
+      if (goalAmount && (isNaN(Number(goalAmount)) || Number(goalAmount) < 50)) return res.status(400).json({ error: "Goal must be at least $50" });
+      const slug = fullName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now().toString(36);
+      const existing = await storage.getCampaignFundraiserBySlug(slug);
+      if (existing) return res.status(400).json({ error: "Please try again" });
+      const fundraiser = await storage.createCampaignFundraiser({
+        campaignId: campaign.id,
+        fullName,
+        email,
+        slug,
+        personalMessage: personalMessage || null,
+        goalAmount: goalAmount ? String(goalAmount) : "500",
+        photoUrl: photoUrl || null,
+        isActive: true,
+      });
+      res.status(201).json(fundraiser);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create fundraiser page" });
     }
   });
 

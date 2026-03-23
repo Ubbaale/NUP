@@ -34,6 +34,7 @@ import VirtualEvents from "@/pages/VirtualEvents";
 import VirtualEventDetail from "@/pages/VirtualEventDetail";
 import CampaignsList from "@/pages/Campaigns";
 import CampaignDetail from "@/pages/CampaignDetail";
+import FundraiserPage from "@/pages/FundraiserPage";
 import Auctions from "@/pages/Auctions";
 import AuctionDetail from "@/pages/AuctionDetail";
 import ProductDetail from "@/pages/ProductDetail";
@@ -104,6 +105,7 @@ function Router() {
       <Route path="/events/:slug" component={VirtualEventDetail} />
       <Route path="/campaigns" component={CampaignsList} />
       <Route path="/campaigns/:slug" component={CampaignDetail} />
+      <Route path="/fundraise/:slug" component={FundraiserPage} />
       <Route path="/auctions" component={Auctions} />
       <Route path="/auctions/:slug" component={AuctionDetail} />
       <Route path="/about" component={AboutUs} />
