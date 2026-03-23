@@ -2319,6 +2319,77 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/subscriptions", requireAdmin, async (req, res) => {
+    try {
+      const subs = await storage.getAllSubscriptions();
+      res.json(subs);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/subscriptions/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteSubscription(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/subscriptions/:id", requireAdmin, async (req, res) => {
+    try {
+      const updated = await storage.updateSubscription(req.params.id, req.body);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/newsletter/send", requireAdmin, async (req, res) => {
+    try {
+      const { subject, content, testEmail } = req.body;
+      if (!subject || !content) {
+        return res.status(400).json({ error: "Subject and content are required" });
+      }
+
+      if (testEmail) {
+        const sent = await email.sendNewsletter({
+          to: testEmail,
+          subject: `[TEST] ${subject}`,
+          content,
+          unsubscribeId: "test",
+        });
+        return res.json({ sent: sent ? 1 : 0, failed: sent ? 0 : 1, total: 1, isTest: true });
+      }
+
+      const subscribers = await storage.getAllSubscriptions();
+      const activeSubscribers = subscribers.filter(s => s.isActive);
+
+      if (activeSubscribers.length === 0) {
+        return res.status(400).json({ error: "No active subscribers" });
+      }
+
+      let sent = 0;
+      let failed = 0;
+
+      for (const sub of activeSubscribers) {
+        const success = await email.sendNewsletter({
+          to: sub.email,
+          subject,
+          content,
+          unsubscribeId: sub.id,
+        });
+        if (success) sent++;
+        else failed++;
+      }
+
+      res.json({ sent, failed, total: activeSubscribers.length });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to send newsletter" });
+    }
+  });
+
   app.get("/api/manifesto/download", (req, res) => {
     const filePath = path.join(process.cwd(), "uploads", "documents", "NUP-Manifesto-2026-2031.pdf");
     if (!fs.existsSync(filePath)) {

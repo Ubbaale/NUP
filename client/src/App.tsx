@@ -54,6 +54,7 @@ import MembershipTiersAdmin from "@/pages/MembershipTiersAdmin";
 import OrdersAdmin from "@/pages/OrdersAdmin";
 import Gallery from "@/pages/Gallery";
 import GalleryAdmin from "@/pages/GalleryAdmin";
+import NewsletterAdmin from "@/pages/NewsletterAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -126,6 +127,7 @@ function Router() {
       <Route path="/admin/tiers">{() => <AdminRoute component={MembershipTiersAdmin} />}</Route>
       <Route path="/admin/orders">{() => <AdminRoute component={OrdersAdmin} />}</Route>
       <Route path="/admin/gallery">{() => <AdminRoute component={GalleryAdmin} />}</Route>
+      <Route path="/admin/newsletter">{() => <AdminRoute component={NewsletterAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

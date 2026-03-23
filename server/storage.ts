@@ -149,6 +149,9 @@ export interface IStorage {
   // Subscriptions
   createSubscription(sub: InsertSubscription): Promise<Subscription>;
   getSubscriptionByEmail(email: string): Promise<Subscription | undefined>;
+  getAllSubscriptions(): Promise<Subscription[]>;
+  updateSubscription(id: string, data: Partial<Subscription>): Promise<Subscription | undefined>;
+  deleteSubscription(id: string): Promise<void>;
   
   // Council Members
   getCouncilMembersByRegion(regionId: string): Promise<CouncilMember[]>;
@@ -636,6 +639,19 @@ export class DatabaseStorage implements IStorage {
   async getSubscriptionByEmail(email: string): Promise<Subscription | undefined> {
     const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.email, email));
     return sub;
+  }
+
+  async getAllSubscriptions(): Promise<Subscription[]> {
+    return db.select().from(subscriptions).orderBy(desc(subscriptions.subscribedAt));
+  }
+
+  async updateSubscription(id: string, data: Partial<Subscription>): Promise<Subscription | undefined> {
+    const [sub] = await db.update(subscriptions).set(data).where(eq(subscriptions.id, id)).returning();
+    return sub;
+  }
+
+  async deleteSubscription(id: string): Promise<void> {
+    await db.delete(subscriptions).where(eq(subscriptions.id, id));
   }
 
   // Council Members

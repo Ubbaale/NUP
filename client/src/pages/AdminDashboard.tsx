@@ -14,6 +14,7 @@ import {
   IdCard,
   LogOut,
   CalendarDays,
+  Newspaper,
   Target,
   FileText,
   Heart,
@@ -119,6 +120,12 @@ const adminSections = [
     description: "View, search, filter, and export all registered members",
     href: "/admin/members",
     icon: IdCard,
+  },
+  {
+    title: "Newsletter",
+    description: "Compose, preview, and send newsletters to subscribers",
+    href: "/admin/newsletter",
+    icon: Newspaper,
   },
 ];
 

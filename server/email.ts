@@ -181,6 +181,31 @@ export async function sendMembershipWelcome(params: {
   return sendEmail(params.email, subject, html);
 }
 
+export async function sendNewsletter(params: {
+  to: string;
+  subject: string;
+  content: string;
+  unsubscribeId: string;
+}): Promise<boolean> {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+      <div style="background: #b91c1c; color: white; padding: 24px; text-align: center;">
+        <h1 style="margin: 0; font-size: 24px;">NUP Diaspora</h1>
+        <p style="margin: 8px 0 0; opacity: 0.9;">National Unity Platform — People Power</p>
+      </div>
+      <div style="padding: 32px 24px;">
+        ${params.content}
+      </div>
+      <div style="background: #f3f4f6; padding: 16px 24px; text-align: center; font-size: 12px; color: #888;">
+        NUP Diaspora — National Unity Platform<br>
+        <a href="https://diasporanup.org" style="color: #b91c1c;">diasporanup.org</a><br>
+        <p style="margin-top: 8px; font-size: 11px;">You received this because you subscribed to our newsletter.</p>
+      </div>
+    </div>
+  `;
+  return sendEmail(params.to, params.subject, html);
+}
+
 export async function sendMemberRegistration(params: {
   email: string;
   fullName: string;

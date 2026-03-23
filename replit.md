@@ -73,6 +73,17 @@ Chapter and region coordinators can manage their own information via self-servic
 - The order items JSON includes the design URL and notes so admin can view/download the customer's artwork in the Orders admin panel
 - Cart hook (`use-cart.ts`) extended with `addCustomDesignToCart()` and `removeCustomDesign()` methods
 
+## Newsletter System
+- Admin page at `/admin/newsletter` with two tabs: **Compose** and **Subscribers**
+- **Compose tab**: Subject line, content textarea (paragraphs auto-formatted), live preview with NUP branding
+- **Send Test**: Send a preview to any email address before sending to all subscribers
+- **Send to All**: Sends to all active subscribers with confirmation dialog
+- **Subscribers tab**: View, search, activate/deactivate, and delete subscribers
+- Newsletter emails use the NUP Diaspora branded template (red header, footer)
+- Subscribers come from the footer newsletter signup form (`POST /api/subscriptions`)
+- Admin routes: `GET /api/subscriptions`, `DELETE /api/subscriptions/:id`, `PATCH /api/subscriptions/:id`, `POST /api/newsletter/send`
+- Email sending uses the existing Nodemailer/SMTP configuration from `server/email.ts`
+
 ## SEO & Meta Tags
 - **react-helmet-async** used for per-page dynamic meta tags (title, description, keywords, Open Graph, Twitter Cards)
 - `HelmetProvider` wraps the entire app in `App.tsx`
