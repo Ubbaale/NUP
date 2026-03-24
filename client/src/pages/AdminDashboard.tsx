@@ -22,6 +22,8 @@ import {
   Crown,
   ShoppingCart,
   ImageIcon,
+  HandHeart,
+  Rss,
 } from "lucide-react";
 
 const adminSections = [
@@ -126,6 +128,18 @@ const adminSections = [
     description: "Compose, preview, and send newsletters to subscribers",
     href: "/admin/newsletter",
     icon: Newspaper,
+  },
+  {
+    title: "Fundraisers",
+    description: "View and manage peer-to-peer fundraising pages",
+    href: "/admin/fundraisers",
+    icon: HandHeart,
+  },
+  {
+    title: "News",
+    description: "View live news feed and trigger manual refreshes",
+    href: "/admin/news",
+    icon: Rss,
   },
 ];
 

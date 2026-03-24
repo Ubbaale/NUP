@@ -57,6 +57,8 @@ import OrdersAdmin from "@/pages/OrdersAdmin";
 import Gallery from "@/pages/Gallery";
 import GalleryAdmin from "@/pages/GalleryAdmin";
 import NewsletterAdmin from "@/pages/NewsletterAdmin";
+import FundraisersAdmin from "@/pages/FundraisersAdmin";
+import NewsAdmin from "@/pages/NewsAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -132,6 +134,8 @@ function Router() {
       <Route path="/admin/orders">{() => <AdminRoute component={OrdersAdmin} />}</Route>
       <Route path="/admin/gallery">{() => <AdminRoute component={GalleryAdmin} />}</Route>
       <Route path="/admin/newsletter">{() => <AdminRoute component={NewsletterAdmin} />}</Route>
+      <Route path="/admin/fundraisers">{() => <AdminRoute component={FundraisersAdmin} />}</Route>
+      <Route path="/admin/news">{() => <AdminRoute component={NewsAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );
