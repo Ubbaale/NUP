@@ -59,6 +59,8 @@ import GalleryAdmin from "@/pages/GalleryAdmin";
 import NewsletterAdmin from "@/pages/NewsletterAdmin";
 import FundraisersAdmin from "@/pages/FundraisersAdmin";
 import NewsAdmin from "@/pages/NewsAdmin";
+import FallenHeroes from "@/pages/FallenHeroes";
+import FallenHeroesAdmin from "@/pages/FallenHeroesAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -113,6 +115,7 @@ function Router() {
       <Route path="/auctions" component={Auctions} />
       <Route path="/auctions/:slug" component={AuctionDetail} />
       <Route path="/about" component={AboutUs} />
+      <Route path="/fallen-heroes" component={FallenHeroes} />
       <Route path="/portal/chapter/:slug" component={ChapterPortal} />
       <Route path="/portal/region/:slug" component={RegionPortal} />
       <Route path="/admin">{() => <AdminRoute component={AdminDashboard} />}</Route>
@@ -136,6 +139,7 @@ function Router() {
       <Route path="/admin/newsletter">{() => <AdminRoute component={NewsletterAdmin} />}</Route>
       <Route path="/admin/fundraisers">{() => <AdminRoute component={FundraisersAdmin} />}</Route>
       <Route path="/admin/news">{() => <AdminRoute component={NewsAdmin} />}</Route>
+      <Route path="/admin/fallen-heroes">{() => <AdminRoute component={FallenHeroesAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

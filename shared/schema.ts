@@ -608,3 +608,21 @@ export const galleryPhotos = pgTable("gallery_photos", {
 export const insertGalleryPhotoSchema = createInsertSchema(galleryPhotos).omit({ id: true, createdAt: true });
 export type InsertGalleryPhoto = z.infer<typeof insertGalleryPhotoSchema>;
 export type GalleryPhoto = typeof galleryPhotos.$inferSelect;
+
+export const fallenHeroes = pgTable("fallen_heroes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  photoUrl: text("photo_url"),
+  dateOfBirth: text("date_of_birth"),
+  dateOfDeath: text("date_of_death"),
+  biography: text("biography"),
+  location: text("location"),
+  causeOfDeath: text("cause_of_death"),
+  sortOrder: integer("sort_order").default(0),
+  featured: boolean("featured").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertFallenHeroSchema = createInsertSchema(fallenHeroes).omit({ id: true, createdAt: true });
+export type InsertFallenHero = z.infer<typeof insertFallenHeroSchema>;
+export type FallenHero = typeof fallenHeroes.$inferSelect;

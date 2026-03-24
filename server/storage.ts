@@ -29,6 +29,7 @@ import {
   type RaffleTicket, type InsertRaffleTicket, raffleTickets,
   type ReturnRequest, type InsertReturnRequest, returnRequests,
   type GalleryPhoto, type InsertGalleryPhoto, galleryPhotos,
+  type FallenHero, type InsertFallenHero, fallenHeroes,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -125,6 +126,13 @@ export interface IStorage {
   getGalleryPhoto(id: string): Promise<GalleryPhoto | undefined>;
   updateGalleryPhoto(id: string, data: Partial<InsertGalleryPhoto>): Promise<GalleryPhoto | undefined>;
   deleteGalleryPhoto(id: string): Promise<void>;
+
+  // Fallen Heroes
+  createFallenHero(hero: InsertFallenHero): Promise<FallenHero>;
+  getAllFallenHeroes(): Promise<FallenHero[]>;
+  getFallenHero(id: string): Promise<FallenHero | undefined>;
+  updateFallenHero(id: string, data: Partial<InsertFallenHero>): Promise<FallenHero | undefined>;
+  deleteFallenHero(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -570,6 +578,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGalleryPhoto(id: string): Promise<void> {
     await db.delete(galleryPhotos).where(eq(galleryPhotos.id, id));
+  }
+
+  // Fallen Heroes
+  async createFallenHero(hero: InsertFallenHero): Promise<FallenHero> {
+    const [h] = await db.insert(fallenHeroes).values(hero).returning();
+    return h;
+  }
+
+  async getAllFallenHeroes(): Promise<FallenHero[]> {
+    return db.select().from(fallenHeroes).orderBy(asc(fallenHeroes.sortOrder), desc(fallenHeroes.createdAt));
+  }
+
+  async getFallenHero(id: string): Promise<FallenHero | undefined> {
+    const [h] = await db.select().from(fallenHeroes).where(eq(fallenHeroes.id, id));
+    return h;
+  }
+
+  async updateFallenHero(id: string, data: Partial<InsertFallenHero>): Promise<FallenHero | undefined> {
+    const [h] = await db.update(fallenHeroes).set(data).where(eq(fallenHeroes.id, id)).returning();
+    return h;
+  }
+
+  async deleteFallenHero(id: string): Promise<void> {
+    await db.delete(fallenHeroes).where(eq(fallenHeroes.id, id));
   }
 
   // Product Ratings

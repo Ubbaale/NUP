@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema, insertGalleryPhotoSchema } from "@shared/schema";
+import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema, insertGalleryPhotoSchema, insertFallenHeroSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -1442,6 +1442,45 @@ export async function registerRoutes(
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete gallery photo" });
+    }
+  });
+
+  // ===== FALLEN HEROES =====
+  app.get("/api/fallen-heroes", async (req, res) => {
+    try {
+      const heroes = await storage.getAllFallenHeroes();
+      res.json(heroes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch fallen heroes" });
+    }
+  });
+
+  app.post("/api/fallen-heroes", requireAdmin, async (req, res) => {
+    try {
+      const data = insertFallenHeroSchema.parse(req.body);
+      const hero = await storage.createFallenHero(data);
+      res.json(hero);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create fallen hero" });
+    }
+  });
+
+  app.patch("/api/fallen-heroes/:id", requireAdmin, async (req, res) => {
+    try {
+      const hero = await storage.updateFallenHero(req.params.id, req.body);
+      if (!hero) return res.status(404).json({ error: "Not found" });
+      res.json(hero);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update fallen hero" });
+    }
+  });
+
+  app.delete("/api/fallen-heroes/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteFallenHero(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete fallen hero" });
     }
   });
 

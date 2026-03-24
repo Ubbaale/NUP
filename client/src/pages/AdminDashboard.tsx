@@ -24,6 +24,7 @@ import {
   ImageIcon,
   HandHeart,
   Rss,
+  Flame,
 } from "lucide-react";
 
 const adminSections = [
@@ -140,6 +141,12 @@ const adminSections = [
     description: "View live news feed and trigger manual refreshes",
     href: "/admin/news",
     icon: Rss,
+  },
+  {
+    title: "Fallen Heroes",
+    description: "Honor and remember those who made the ultimate sacrifice",
+    href: "/admin/fallen-heroes",
+    icon: Flame,
   },
 ];
 
