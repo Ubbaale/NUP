@@ -8,6 +8,7 @@ import { WorldMap } from "@/components/WorldMap";
 import { SEO } from "@/components/SEO";
 
 import { ConferenceCard } from "@/components/ConferenceCard";
+import { ConventionFlyer } from "@/components/ConventionFlyer";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { 
@@ -70,6 +71,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative">
+      <ConventionFlyer />
       <SEO
         title="Home"
         description="National Unity Platform (NUP) Diaspora connects Ugandans worldwide for democracy, freedom, and good governance. Join People Power chapters, attend conventions, support campaigns, and stand for a better Uganda."
