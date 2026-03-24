@@ -535,6 +535,54 @@ const CHAPTER_LANDMARK_IMAGES: Record<string, string> = {
   "nup-montreal": "/images/chapters/montreal-landmark.png",
 };
 
+const CAMPAIGNS_DATA = [
+  {
+    title: "NUP Youth Empowerment Program",
+    slug: "youth-empowerment",
+    description: "Empower the next generation of Ugandan leaders through skills training and mentorship.",
+    goalAmount: "30000",
+    category: "youth",
+    startDate: new Date("2026-03-01"),
+    endDate: new Date("2026-09-30"),
+    isActive: true,
+  },
+  {
+    title: "Legal Defense Fund for Political Prisoners",
+    slug: "legal-defense-fund",
+    description: "Provide legal representation to NUP members who have been unjustly detained.",
+    goalAmount: "100000",
+    category: "legal",
+    startDate: new Date("2026-02-01"),
+    endDate: new Date("2026-12-31"),
+    isActive: true,
+  },
+  {
+    title: "Fund Voter Education in Rural Uganda",
+    slug: "voter-education-rural",
+    description: "Help us bring voter education materials and training to rural communities across Uganda.",
+    goalAmount: "50000",
+    category: "civic-education",
+    startDate: new Date("2026-01-01"),
+    endDate: new Date("2026-06-30"),
+    isActive: true,
+  },
+];
+
+async function seedMissingCampaigns() {
+  const existing = await storage.getAllCampaigns();
+  const existingSlugs = new Set(existing.map(c => c.slug));
+  let created = 0;
+  for (const campaignData of CAMPAIGNS_DATA) {
+    if (!existingSlugs.has(campaignData.slug)) {
+      await storage.createCampaign(campaignData as any);
+      created++;
+    }
+  }
+  if (created > 0) {
+    console.log(`  Seeded ${created} missing campaigns.`);
+  }
+}
+
 async function seedChapterImages() {
   let updated = 0;
   for (const [slug, imageUrl] of Object.entries(CHAPTER_LANDMARK_IMAGES)) {
@@ -557,6 +605,7 @@ export async function seedDatabase() {
       await seedMissingChapters(await storage.getAllRegions());
       await seedMissingProductImages();
       await seedChapterImages();
+      await seedMissingCampaigns();
       console.log("Database already seeded, skipping...");
       return;
     }
