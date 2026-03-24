@@ -6,7 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChapterCard } from "@/components/ChapterCard";
-import { ArrowLeft, Globe2, Mail, Phone, Users, MapPin } from "lucide-react";
+import { ArrowLeft, Globe2, Mail, Phone, Users, MapPin, Globe, ExternalLink } from "lucide-react";
+import { SiFacebook, SiInstagram, SiYoutube, SiWhatsapp } from "react-icons/si";
 import type { Region, Chapter, CouncilMember } from "@shared/schema";
 
 export default function RegionDetail() {
@@ -83,7 +84,49 @@ export default function RegionDetail() {
                   {region.contactPhone}
                 </a>
               )}
+              {region.websiteUrl && (
+                <a href={region.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="link-region-website">
+                  <Globe className="w-4 h-4" />
+                  {region.websiteUrl.replace(/^https?:\/\//, '')}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
+
+            {(region.facebookUrl || region.twitterUrl || region.instagramUrl || region.youtubeUrl || region.whatsappLink) && (
+              <div className="flex flex-wrap gap-3 mt-4">
+                {region.facebookUrl && (
+                  <a href={region.facebookUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition-colors" data-testid="link-region-facebook">
+                    <SiFacebook className="w-4 h-4" />
+                    Facebook
+                  </a>
+                )}
+                {region.instagramUrl && (
+                  <a href={region.instagramUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#E4405F]/10 text-[#E4405F] hover:bg-[#E4405F]/20 transition-colors" data-testid="link-region-instagram">
+                    <SiInstagram className="w-4 h-4" />
+                    Instagram
+                  </a>
+                )}
+                {region.youtubeUrl && (
+                  <a href={region.youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF0000]/10 text-[#FF0000] hover:bg-[#FF0000]/20 transition-colors" data-testid="link-region-youtube">
+                    <SiYoutube className="w-4 h-4" />
+                    YouTube
+                  </a>
+                )}
+                {region.whatsappLink && (
+                  <a href={region.whatsappLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors" data-testid="link-region-whatsapp">
+                    <SiWhatsapp className="w-4 h-4" />
+                    WhatsApp
+                  </a>
+                )}
+                {region.twitterUrl && (
+                  <a href={region.twitterUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground/10 text-foreground hover:bg-foreground/20 transition-colors" data-testid="link-region-twitter">
+                    <span className="font-bold text-base">𝕏</span>
+                    Twitter/X
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {region.leaderName && (

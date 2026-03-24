@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, MapPin, Mail, Phone, Calendar, Users, Clock, Building } from "lucide-react";
+import { ArrowLeft, MapPin, Mail, Phone, Calendar, Users, Clock, Building, Globe, ExternalLink } from "lucide-react";
+import { SiFacebook, SiInstagram, SiYoutube, SiWhatsapp } from "react-icons/si";
 import { format } from "date-fns";
 import type { Chapter, Activity, ChapterLeader } from "@shared/schema";
 
@@ -153,8 +154,62 @@ export default function ChapterDetail() {
                     </div>
                   </div>
                 )}
+                {chapter.websiteUrl && (
+                  <div className="flex items-start gap-3">
+                    <Globe className="w-5 h-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="font-medium">Website</p>
+                      <a href={chapter.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1" data-testid="link-chapter-website">
+                        {chapter.websiteUrl.replace(/^https?:\/\//, '')}
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {(chapter.facebookUrl || chapter.twitterUrl || chapter.instagramUrl || chapter.youtubeUrl || chapter.whatsappLink) && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <h2 className="font-semibold">Connect With Us</h2>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-3">
+                    {chapter.facebookUrl && (
+                      <a href={chapter.facebookUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition-colors" data-testid="link-chapter-facebook">
+                        <SiFacebook className="w-5 h-5" />
+                        Facebook
+                      </a>
+                    )}
+                    {chapter.instagramUrl && (
+                      <a href={chapter.instagramUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#E4405F]/10 text-[#E4405F] hover:bg-[#E4405F]/20 transition-colors" data-testid="link-chapter-instagram">
+                        <SiInstagram className="w-5 h-5" />
+                        Instagram
+                      </a>
+                    )}
+                    {chapter.youtubeUrl && (
+                      <a href={chapter.youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF0000]/10 text-[#FF0000] hover:bg-[#FF0000]/20 transition-colors" data-testid="link-chapter-youtube">
+                        <SiYoutube className="w-5 h-5" />
+                        YouTube
+                      </a>
+                    )}
+                    {chapter.whatsappLink && (
+                      <a href={chapter.whatsappLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors" data-testid="link-chapter-whatsapp">
+                        <SiWhatsapp className="w-5 h-5" />
+                        WhatsApp
+                      </a>
+                    )}
+                    {chapter.twitterUrl && (
+                      <a href={chapter.twitterUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground/10 text-foreground hover:bg-foreground/20 transition-colors" data-testid="link-chapter-twitter">
+                        <span className="font-bold text-lg">𝕏</span>
+                        Twitter/X
+                      </a>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {leaders && leaders.length > 0 && (
               <Card className="mb-8">
