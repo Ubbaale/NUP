@@ -173,6 +173,93 @@ const NA_CHAPTERS_DATA = [
   },
 ];
 
+const CANADA_CHAPTERS_DATA = [
+  {
+    name: "NUP Toronto Chapter",
+    slug: "nup-toronto",
+    city: "Toronto",
+    country: "Canada",
+    iconEmoji: "🏙️",
+    description: "The Toronto chapter serves as the central hub for NUP activities in Eastern Canada, bringing together Ugandans across the Greater Toronto Area to advocate for democracy and good governance in Uganda. Regular community meetings, cultural events, and political education sessions keep the diaspora connected and engaged.",
+    leaderName: "Hassan Jjuko",
+    leaderTitle: "Chapter Coordinator",
+    contactEmail: "toronto@diasporanup.org",
+    contactPhone: "+14379914052",
+    meetingSchedule: "Bi-weekly on Saturdays",
+    isActive: true,
+  },
+  {
+    name: "NUP Ottawa Chapter",
+    slug: "nup-ottawa",
+    city: "Ottawa",
+    country: "Canada",
+    iconEmoji: "🏛️",
+    description: "Based in Canada's capital city, the Ottawa chapter leverages its proximity to Parliament Hill to advocate for Uganda's democratic transition. The chapter engages with Canadian lawmakers and human rights organizations to amplify NUP's message on the international stage.",
+    leaderName: "Michael Kyobe Mbogo",
+    leaderTitle: "Chapter Coordinator",
+    contactEmail: "ottawa@diasporanup.org",
+    contactPhone: "+16132194437",
+    meetingSchedule: "Monthly on first Saturday",
+    isActive: true,
+  },
+  {
+    name: "NUP Niagara Chapter",
+    slug: "nup-niagara",
+    city: "Niagara",
+    country: "Canada",
+    iconEmoji: "🌊",
+    description: "The Niagara chapter unites Ugandans in the Niagara region, organizing community events and advocacy campaigns. Strategically located near the US-Canada border, the chapter collaborates closely with American NUP chapters for cross-border solidarity events.",
+    leaderName: "Samuel Luggya",
+    leaderTitle: "Chapter Coordinator",
+    contactEmail: "niagara@diasporanup.org",
+    contactPhone: "+14373889352",
+    meetingSchedule: "Monthly meetings",
+    isActive: true,
+  },
+  {
+    name: "NUP Cornwall Chapter",
+    slug: "nup-cornwall",
+    city: "Cornwall",
+    country: "Canada",
+    iconEmoji: "🌉",
+    description: "The Cornwall chapter connects Ugandans in Eastern Ontario along the St. Lawrence River corridor. Despite being a smaller community, the chapter maintains strong ties with neighboring chapters and plays a vital role in grassroots organizing for the People Power movement.",
+    leaderName: "Abaasi Mugisha",
+    leaderTitle: "Chapter Coordinator",
+    contactEmail: "cornwall@diasporanup.org",
+    contactPhone: "+1(437) 328-3134",
+    meetingSchedule: "Monthly meetings",
+    isActive: true,
+  },
+  {
+    name: "NUP Alberta Chapter",
+    slug: "nup-alberta",
+    city: "Alberta",
+    country: "Canada",
+    iconEmoji: "🏔️",
+    description: "The Alberta chapter represents Ugandans across Western Canada, from Calgary to Edmonton and beyond. Set against the backdrop of the Rocky Mountains, this chapter organizes community gatherings, fundraising events, and political awareness campaigns to support Uganda's democratic movement.",
+    leaderName: "Charles Kyabaggu",
+    leaderTitle: "Chapter Coordinator",
+    contactEmail: "alberta@diasporanup.org",
+    contactPhone: "+1780 200-6505",
+    meetingSchedule: "Bi-weekly meetings",
+    isActive: true,
+  },
+  {
+    name: "NUP Montréal Chapter",
+    slug: "nup-montreal",
+    city: "Montréal",
+    country: "Canada",
+    iconEmoji: "⚜️",
+    description: "The Montréal chapter brings together Ugandans in Quebec, blending the vibrant francophone culture with the People Power spirit. The chapter organizes bilingual events, cultural celebrations, and advocacy campaigns, making it a unique bridge between Canada's French and English-speaking Ugandan communities.",
+    leaderName: "Norman Kawogo",
+    leaderTitle: "Chapter Coordinator",
+    contactEmail: "montreal@diasporanup.org",
+    contactPhone: "+1(438) 680-2923",
+    meetingSchedule: "Monthly on second Saturday",
+    isActive: true,
+  },
+];
+
 async function seedMissingChapters(existingRegions: Region[]) {
   const naRegion = existingRegions.find(r => r.slug === "north-america");
   if (!naRegion) return;
@@ -220,12 +307,35 @@ async function seedMissingChapters(existingRegions: Region[]) {
     }
   }
 
-  const allChapters = await storage.getAllChapters();
-  const coordinatorChapters = allChapters.filter(c => c.leaderTitle === "Chapter Coordinator");
-  if (coordinatorChapters.length > 0) {
-    console.log(`Updating ${coordinatorChapters.length} chapters from "Chapter Coordinator" to "Chapter Leader"...`);
-    for (const chapter of coordinatorChapters) {
-      await storage.updateChapter(chapter.id, { leaderTitle: "Chapter Leader" });
+  const canadaRegion = existingRegions.find(r => r.slug === "canada");
+  if (canadaRegion) {
+    const existingCanadaChapters = await storage.getChaptersByRegion(canadaRegion.id);
+    const existingCanadaSlugs = new Set(existingCanadaChapters.map(c => c.slug));
+    const existingCanadaCities = new Set(existingCanadaChapters.map(c => c.city?.toLowerCase()));
+
+    const missingCanadaChapters = CANADA_CHAPTERS_DATA.filter(c =>
+      !existingCanadaSlugs.has(c.slug) && !existingCanadaCities.has(c.city.toLowerCase())
+    );
+
+    if (missingCanadaChapters.length > 0) {
+      console.log(`Adding ${missingCanadaChapters.length} missing Canada chapters...`);
+      for (const chapterData of missingCanadaChapters) {
+        await storage.createChapter({ ...chapterData, regionId: canadaRegion.id });
+        console.log(`  Added: ${chapterData.name}`);
+      }
+    }
+
+    for (const chData of CANADA_CHAPTERS_DATA) {
+      const existing = existingCanadaChapters.find(c => c.slug === chData.slug || c.city?.toLowerCase() === chData.city.toLowerCase());
+      if (existing && (existing.leaderName !== chData.leaderName || existing.contactPhone !== chData.contactPhone)) {
+        await storage.updateChapter(existing.id, {
+          leaderName: chData.leaderName,
+          leaderTitle: chData.leaderTitle,
+          contactPhone: chData.contactPhone,
+          description: chData.description,
+        });
+        console.log(`  Updated: ${chData.name} with correct leader info`);
+      }
     }
   }
 }
@@ -413,6 +523,12 @@ const CHAPTER_LANDMARK_IMAGES: Record<string, string> = {
   "nup-ohio": "/images/chapters/columbus-landmark.jpg",
   "nup-texas-ok": "/images/chapters/houston-landmark.jpg",
   "nup-washington-state": "/images/chapters/seattle-landmark.jpg",
+  "nup-toronto": "/images/chapters/toronto-landmark.png",
+  "nup-ottawa": "/images/chapters/ottawa-landmark.png",
+  "nup-niagara": "/images/chapters/niagara-landmark.png",
+  "nup-cornwall": "/images/chapters/cornwall-landmark.png",
+  "nup-alberta": "/images/chapters/alberta-landmark.png",
+  "nup-montreal": "/images/chapters/montreal-landmark.png",
 };
 
 async function seedChapterImages() {
