@@ -327,12 +327,15 @@ async function seedMissingChapters(existingRegions: Region[]) {
 
     for (const chData of CANADA_CHAPTERS_DATA) {
       const existing = existingCanadaChapters.find(c => c.slug === chData.slug || c.city?.toLowerCase() === chData.city.toLowerCase());
-      if (existing && (existing.leaderName !== chData.leaderName || existing.contactPhone !== chData.contactPhone)) {
+      if (existing && (existing.leaderName !== chData.leaderName || existing.contactPhone !== chData.contactPhone || existing.slug !== chData.slug)) {
         await storage.updateChapter(existing.id, {
           leaderName: chData.leaderName,
           leaderTitle: chData.leaderTitle,
           contactPhone: chData.contactPhone,
           description: chData.description,
+          slug: chData.slug,
+          name: chData.name,
+          iconEmoji: chData.iconEmoji,
         });
         console.log(`  Updated: ${chData.name} with correct leader info`);
       }
@@ -524,6 +527,7 @@ const CHAPTER_LANDMARK_IMAGES: Record<string, string> = {
   "nup-texas-ok": "/images/chapters/houston-landmark.jpg",
   "nup-washington-state": "/images/chapters/seattle-landmark.jpg",
   "nup-toronto": "/images/chapters/toronto-landmark.png",
+  "toronto": "/images/chapters/toronto-landmark.png",
   "nup-ottawa": "/images/chapters/ottawa-landmark.png",
   "nup-niagara": "/images/chapters/niagara-landmark.png",
   "nup-cornwall": "/images/chapters/cornwall-landmark.png",
