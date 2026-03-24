@@ -201,8 +201,15 @@ function PastConventions() {
   );
 }
 
+function parseMetadata(metaStr?: string | null): any {
+  if (!metaStr) return {};
+  try { return JSON.parse(metaStr); } catch { return {}; }
+}
+
 function Convention2026Page({ conference }: { conference: Conference }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const meta = parseMetadata(conference.metadata);
+  const scheduleData = meta.schedule || SCHEDULE_DATA;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -238,14 +245,16 @@ function Convention2026Page({ conference }: { conference: Conference }) {
             </Button>
           </Link>
           <h2 className="text-xl md:text-2xl font-medium text-white/90 mb-3 tracking-wide" data-testid="text-conference-theme">
-            Building a New Uganda Together &nbsp; Los Angeles 2026
+            {conference.theme || "NUP Diaspora Convention"} &nbsp; {conference.city} {conference.year}
           </h2>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-white drop-shadow-lg" data-testid="text-conference-title">
-            August 13th-17th
+            {conference.startDate && conference.endDate
+              ? `${format(new Date(conference.startDate), "MMMM d")}–${format(new Date(conference.endDate), "d")}`
+              : conference.title}
           </h1>
 
           <div className="mb-8">
-            <CountdownTimer targetDate={new Date("2026-08-13T00:00:00")} />
+            <CountdownTimer targetDate={new Date(conference.startDate)} />
           </div>
 
           <div className="flex items-center justify-center gap-2 mb-8" data-testid="slide-indicators">
@@ -265,24 +274,30 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="bg-white text-red-900 hover:bg-white/90 font-bold text-lg px-8 shadow-xl" asChild data-testid="button-register-convention">
-              <a href="https://buy.stripe.com/fZucN60BC3SKcLR9eYaR20j" target="_blank" rel="noopener noreferrer">
-                Pay for Convention
-                <ExternalLink className="w-5 h-5 ml-2" />
-              </a>
-            </Button>
-            <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8" asChild data-testid="button-reserve-hotel">
-              <a href="https://book.passkey.com/go/NUPD2026" target="_blank" rel="noopener noreferrer">
-                <Hotel className="w-5 h-5 mr-2" />
-                Reserve a Hotel
-              </a>
-            </Button>
-            <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8" asChild data-testid="button-boat-cruise">
-              <a href="https://buy.stripe.com/9AQ4k10e1cW96Ri14e" target="_blank" rel="noopener noreferrer">
-                <Ship className="w-5 h-5 mr-2" />
-                Pay for Boat Cruise
-              </a>
-            </Button>
+            {conference.registrationUrl && (
+              <Button size="lg" className="bg-white text-red-900 hover:bg-white/90 font-bold text-lg px-8 shadow-xl" asChild data-testid="button-register-convention">
+                <a href={conference.registrationUrl} target="_blank" rel="noopener noreferrer">
+                  Pay for Convention
+                  <ExternalLink className="w-5 h-5 ml-2" />
+                </a>
+              </Button>
+            )}
+            {meta.hotelBookingUrl && (
+              <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8" asChild data-testid="button-reserve-hotel">
+                <a href={meta.hotelBookingUrl} target="_blank" rel="noopener noreferrer">
+                  <Hotel className="w-5 h-5 mr-2" />
+                  Reserve a Hotel
+                </a>
+              </Button>
+            )}
+            {meta.boatCruiseUrl && (
+              <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8" asChild data-testid="button-boat-cruise">
+                <a href={meta.boatCruiseUrl} target="_blank" rel="noopener noreferrer">
+                  <Ship className="w-5 h-5 mr-2" />
+                  Pay for Boat Cruise
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -291,18 +306,9 @@ function Convention2026Page({ conference }: { conference: Conference }) {
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
           <div className="lg:col-span-2">
             <h2 className="text-3xl font-bold mb-4">A Call to Unity and Purpose</h2>
-            <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-              The National Unity Platform (NUP) invites Ugandans in the Diaspora and friends of Uganda to the NUP Diaspora Convention 2026, taking place in Los Angeles, California. This historic gathering comes at a defining moment as Uganda approaches a pivotal national election.
-            </p>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              The convention will bring together visionary leaders, activists, and partners from across the globe to reflect, strategize, and strengthen our shared mission to build a New Uganda founded on democracy, justice, and good governance.
-            </p>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              California, home to innovation, diversity, and global influence provides the ideal setting for this year's convention. Los Angeles, a crossroads of cultures and ideas, reflects the resilience and creativity of the Ugandan Diaspora, making it the perfect backdrop for a global dialogue on freedom, leadership, and transformation.
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              The Ugandan Diaspora continues to play a vital role in shaping Uganda's future through education, healthcare, business, and community initiatives. Our unity and advocacy remain central to the peaceful transition toward a new generation of leadership under Robert Ssentamu Kyagulanyi (Bobi Wine) and the National Unity Platform.
-            </p>
+            {conference.description && conference.description.split("\n\n").map((para, i) => (
+              <p key={i} className="text-muted-foreground leading-relaxed mb-6">{para}</p>
+            ))}
           </div>
 
           <div className="space-y-4">
@@ -313,34 +319,46 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                   Registration Fees
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Early Bird</span>
-                    <Badge variant="default" className="text-lg px-3">$280</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Partial Payment</span>
-                    <Badge variant="outline" className="text-lg px-3">2 × $150</Badge>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Boat Cruise</span>
-                    <Badge variant="secondary" className="text-lg px-3">$220</Badge>
-                  </div>
+                  {meta.earlyBirdPrice && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Early Bird</span>
+                      <Badge variant="default" className="text-lg px-3">${meta.earlyBirdPrice}</Badge>
+                    </div>
+                  )}
+                  {meta.installmentPrice && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Partial Payment</span>
+                      <Badge variant="outline" className="text-lg px-3">2 × ${meta.installmentPrice}</Badge>
+                    </div>
+                  )}
+                  {meta.boatCruisePrice && (
+                    <>
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Boat Cruise</span>
+                        <Badge variant="secondary" className="text-lg px-3">${meta.boatCruisePrice}</Badge>
+                      </div>
+                    </>
+                  )}
                   <p className="text-xs text-muted-foreground mt-2">
                     Registration fees are non-refundable. Swaps accommodated if pre-approved.
                   </p>
                 </div>
                 <div className="mt-4 space-y-2">
-                  <Button className="w-full" size="sm" asChild>
-                    <a href="https://buy.stripe.com/fZucN60BC3SKcLR9eYaR20j" target="_blank" rel="noopener noreferrer">
-                      Pay Full Registration <ExternalLink className="w-3 h-3 ml-1" />
-                    </a>
-                  </Button>
-                  <Button className="w-full" variant="outline" size="sm" asChild>
-                    <a href="https://buy.stripe.com/bIYaIp1i59JX7Vm6ov" target="_blank" rel="noopener noreferrer">
-                      Pay in 2 Installments <ExternalLink className="w-3 h-3 ml-1" />
-                    </a>
-                  </Button>
+                  {conference.registrationUrl && (
+                    <Button className="w-full" size="sm" asChild>
+                      <a href={conference.registrationUrl} target="_blank" rel="noopener noreferrer">
+                        Pay Full Registration <ExternalLink className="w-3 h-3 ml-1" />
+                      </a>
+                    </Button>
+                  )}
+                  {meta.installmentUrl && (
+                    <Button className="w-full" variant="outline" size="sm" asChild>
+                      <a href={meta.installmentUrl} target="_blank" rel="noopener noreferrer">
+                        Pay in 2 Installments <ExternalLink className="w-3 h-3 ml-1" />
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -351,13 +369,16 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                   <MapPin className="w-5 h-5 text-primary" />
                   Venue
                 </h3>
-                <p className="font-medium">Hilton Los Angeles Airport Hotel</p>
-                <p className="text-sm text-muted-foreground mt-1">5711 West Century Boulevard</p>
-                <p className="text-sm text-muted-foreground">Los Angeles, CA 90045</p>
-                <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
-                  <Phone className="w-3 h-3" />
-                  <span>(310) 410-4000</span>
-                </div>
+                <p className="font-medium">{meta.hotelName || conference.location}</p>
+                {meta.hotelAddress && (
+                  <p className="text-sm text-muted-foreground mt-1">{meta.hotelAddress}</p>
+                )}
+                {meta.hotelPhone && (
+                  <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
+                    <Phone className="w-3 h-3" />
+                    <span>{meta.hotelPhone}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -368,18 +389,24 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                   Contact
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3 h-3 text-muted-foreground" />
-                    <a href="mailto:conventions@diasporanup.org" className="text-primary hover:underline">conventions@diasporanup.org</a>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3 h-3 text-muted-foreground" />
-                    <a href="mailto:info@diasporanup.org" className="text-primary hover:underline">info@diasporanup.org</a>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-3 h-3 text-muted-foreground" />
-                    <span>651 278 6724</span>
-                  </div>
+                  {meta.contactEmail && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3 h-3 text-muted-foreground" />
+                      <a href={`mailto:${meta.contactEmail}`} className="text-primary hover:underline">{meta.contactEmail}</a>
+                    </div>
+                  )}
+                  {meta.contactEmail2 && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3 h-3 text-muted-foreground" />
+                      <a href={`mailto:${meta.contactEmail2}`} className="text-primary hover:underline">{meta.contactEmail2}</a>
+                    </div>
+                  )}
+                  {meta.contactPhone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3 h-3 text-muted-foreground" />
+                      <span>{meta.contactPhone}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -411,10 +438,12 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           </div>
         </section>
 
+        {(meta.hotelRate1 || meta.hotelRate2) && (
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-2 text-center">Hotel & Accommodation</h2>
           <p className="text-center text-muted-foreground mb-8">Special rates negotiated for convention delegates</p>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {meta.hotelRate1 && (
             <Card className="border-primary/20">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -422,23 +451,28 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                     <Hotel className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-bold">Standard King / 2 Doubles</h3>
-                    <p className="text-sm text-muted-foreground">Breakfast for one included</p>
+                    <h3 className="font-bold">{meta.hotelRate1Desc?.split("—")[0]?.trim() || "Room Option 1"}</h3>
+                    {meta.hotelRate1Desc?.includes("—") && (
+                      <p className="text-sm text-muted-foreground">{meta.hotelRate1Desc.split("—")[1]?.trim()}</p>
+                    )}
                   </div>
                 </div>
-                <p className="text-4xl font-bold text-primary mb-2">$179<span className="text-lg font-normal text-muted-foreground">/night</span></p>
+                <p className="text-4xl font-bold text-primary mb-2">${meta.hotelRate1}<span className="text-lg font-normal text-muted-foreground">/night</span></p>
                 <ul className="text-sm text-muted-foreground space-y-1 mb-4">
                   <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500" /> Complimentary WiFi</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500" /> Breakfast for 1 guest</li>
                   <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500" /> NUP group discount rate</li>
                 </ul>
+                {meta.hotelBookingUrl && (
                 <Button className="w-full" asChild>
-                  <a href="https://book.passkey.com/go/NUPD2026" target="_blank" rel="noopener noreferrer">
+                  <a href={meta.hotelBookingUrl} target="_blank" rel="noopener noreferrer">
                     Reserve Room <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
                 </Button>
+                )}
               </CardContent>
             </Card>
+            )}
+            {meta.hotelRate2 && (
             <Card className="border-primary/20">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -446,28 +480,33 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                     <Hotel className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-bold">Standard King / 2 Doubles</h3>
-                    <p className="text-sm text-muted-foreground">Breakfast for two included</p>
+                    <h3 className="font-bold">{meta.hotelRate2Desc?.split("—")[0]?.trim() || "Room Option 2"}</h3>
+                    {meta.hotelRate2Desc?.includes("—") && (
+                      <p className="text-sm text-muted-foreground">{meta.hotelRate2Desc.split("—")[1]?.trim()}</p>
+                    )}
                   </div>
                 </div>
-                <p className="text-4xl font-bold text-primary mb-2">$189<span className="text-lg font-normal text-muted-foreground">/night</span></p>
+                <p className="text-4xl font-bold text-primary mb-2">${meta.hotelRate2}<span className="text-lg font-normal text-muted-foreground">/night</span></p>
                 <ul className="text-sm text-muted-foreground space-y-1 mb-4">
                   <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500" /> Complimentary WiFi</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500" /> Breakfast for 2 guests</li>
                   <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-green-500" /> NUP group discount rate</li>
                 </ul>
+                {meta.hotelBookingUrl && (
                 <Button className="w-full" asChild>
-                  <a href="https://book.passkey.com/go/NUPD2026" target="_blank" rel="noopener noreferrer">
+                  <a href={meta.hotelBookingUrl} target="_blank" rel="noopener noreferrer">
                     Reserve Room <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
                 </Button>
+                )}
               </CardContent>
             </Card>
+            )}
           </div>
           <p className="text-center text-sm text-muted-foreground mt-4">
-            Rooms are limited and available first-come, first-served. If you experience difficulties, call the hotel at <strong>(310) 410-4000</strong>.
+            Rooms are limited and available first-come, first-served.{meta.hotelPhone && <> If you experience difficulties, call the hotel at <strong>{meta.hotelPhone}</strong>.</>}
           </p>
         </section>
+        )}
 
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-2 text-center">Boat Cruise Experience</h2>
@@ -508,30 +547,33 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                   Join fellow Ugandans and friends of Uganda aboard a luxury City Cruises vessel departing from the scenic Marina del Rey. Enjoy breathtaking ocean views, live entertainment, music, dinner, and conversations with NUP leaders and convention guests.
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
-                  <Badge className="bg-white/20 text-white border-white/30 text-xl px-5 py-2">$220</Badge>
+                  <Badge className="bg-white/20 text-white border-white/30 text-xl px-5 py-2">${meta.boatCruisePrice || "220"}</Badge>
+                  {meta.boatCruiseUrl && (
                   <Button size="lg" className="bg-white text-blue-900 hover:bg-white/90 font-bold" asChild>
-                    <a href="https://buy.stripe.com/9AQ4k10e1cW96Ri14e" target="_blank" rel="noopener noreferrer">
+                    <a href={meta.boatCruiseUrl} target="_blank" rel="noopener noreferrer">
                       Buy Boat Cruise Ticket <ExternalLink className="w-4 h-4 ml-2" />
                     </a>
                   </Button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        {scheduleData.length > 0 && (
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-2 text-center">Event Schedule</h2>
-          <p className="text-center text-muted-foreground mb-8">Four days of leadership, advocacy, and celebration</p>
+          <p className="text-center text-muted-foreground mb-8">{scheduleData.length} days of leadership, advocacy, and celebration</p>
           <Tabs defaultValue="day-0" className="max-w-4xl mx-auto">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
-              {SCHEDULE_DATA.map((day, i) => (
+            <TabsList className={`grid w-full mb-6`} style={{ gridTemplateColumns: `repeat(${scheduleData.length}, 1fr)` }}>
+              {scheduleData.map((day: any, i: number) => (
                 <TabsTrigger key={i} value={`day-${i}`} className="text-xs sm:text-sm" data-testid={`tab-day-${i}`}>
                   {day.day.split(",")[0]}
                 </TabsTrigger>
               ))}
             </TabsList>
-            {SCHEDULE_DATA.map((day, i) => (
+            {scheduleData.map((day: any, i: number) => (
               <TabsContent key={i} value={`day-${i}`}>
                 <Card>
                   <CardHeader>
@@ -540,12 +582,10 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {day.events.map((event, j) => {
-                        const IconComponent = event.icon;
-                        return (
+                      {day.events.map((event: any, j: number) => (
                           <div key={j} className="flex gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors" data-testid={`event-${i}-${j}`}>
                             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              {IconComponent ? <IconComponent className="w-5 h-5 text-primary" /> : <Clock className="w-5 h-5 text-primary" />}
+                              <Clock className="w-5 h-5 text-primary" />
                             </div>
                             <div className="flex-1">
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
@@ -555,8 +595,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                               {event.desc && <p className="text-sm text-muted-foreground mt-1">{event.desc}</p>}
                             </div>
                           </div>
-                        );
-                      })}
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -564,6 +603,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
             ))}
           </Tabs>
         </section>
+        )}
 
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-2 text-center">International Delegates</h2>
@@ -593,39 +633,47 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                   For international delegates unable to pay online, use Western Union or MoneyGram:
                 </p>
                 <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-1">
-                  <p className="font-medium">Elvis Balikalaba</p>
-                  <p className="text-muted-foreground">656 Weaver Blvd, Anoka, MN 55303</p>
-                  <p className="text-muted-foreground">Tel: +1 651 208 3354</p>
-                  <p className="text-muted-foreground">elvis100b@gmail.com</p>
+                  <p className="font-medium">{meta.altPaymentName || "Contact organizers"}</p>
+                  {meta.altPaymentAddress && <p className="text-muted-foreground">{meta.altPaymentAddress}</p>}
+                  {meta.altPaymentPhone && <p className="text-muted-foreground">Tel: {meta.altPaymentPhone}</p>}
+                  {meta.altPaymentEmail && <p className="text-muted-foreground">{meta.altPaymentEmail}</p>}
                 </div>
+                {meta.contactEmail && (
                 <p className="text-xs text-muted-foreground mt-3">
-                  Email <a href="mailto:conventions@diasporanup.org" className="text-primary hover:underline">conventions@diasporanup.org</a> after payment for your invitation letter.
+                  Email <a href={`mailto:${meta.contactEmail}`} className="text-primary hover:underline">{meta.contactEmail}</a> after payment for your invitation letter.
                 </p>
+                )}
               </CardContent>
             </Card>
           </div>
         </section>
 
         <section className="text-center py-12 bg-gradient-to-br from-red-900 via-red-800 to-red-950 text-white rounded-2xl px-8 mb-16">
-          <h2 className="text-3xl font-bold mb-4">Join Us in Los Angeles</h2>
+          <h2 className="text-3xl font-bold mb-4">Join Us in {conference.city}</h2>
           <p className="text-white/80 max-w-2xl mx-auto mb-8 text-lg">
             Be part of this historic gathering. Register today and help build a New Uganda together.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {conference.registrationUrl && (
             <Button size="lg" className="bg-white text-red-900 hover:bg-white/90 font-bold text-lg px-8" asChild>
-              <a href="https://buy.stripe.com/fZucN60BC3SKcLR9eYaR20j" target="_blank" rel="noopener noreferrer">
+              <a href={conference.registrationUrl} target="_blank" rel="noopener noreferrer">
                 Register Now <ExternalLink className="w-5 h-5 ml-2" />
               </a>
             </Button>
+            )}
+            {meta.hotelBookingUrl && (
             <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/10 font-bold text-lg px-8" asChild>
-              <a href="https://book.passkey.com/go/NUPD2026" target="_blank" rel="noopener noreferrer">
+              <a href={meta.hotelBookingUrl} target="_blank" rel="noopener noreferrer">
                 <Hotel className="w-5 h-5 mr-2" /> Book Hotel
               </a>
             </Button>
+            )}
           </div>
+          {meta.conventionChairman && (
           <p className="text-white/60 text-sm mt-6">
-            Convention Chairman: Joseph William Ssenkumba
+            Convention Chairman: {meta.conventionChairman}
           </p>
+          )}
         </section>
 
         <PastConventions />

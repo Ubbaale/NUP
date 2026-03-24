@@ -148,6 +148,7 @@ export const conferences = pgTable("conferences", {
   imageUrl: text("image_url"),
   isUpcoming: boolean("is_upcoming").notNull().default(true),
   speakers: text("speakers"), // JSON array of speaker names/details
+  metadata: text("metadata"), // JSON object for convention-specific details
 });
 
 export const insertConferenceSchema = createInsertSchema(conferences).omit({ id: true });
