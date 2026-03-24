@@ -1,12 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, HandHeart, Users, DollarSign, ExternalLink, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowLeft, HandHeart, Users, DollarSign, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import type { Campaign } from "@shared/schema";
 
 interface Fundraiser {
@@ -25,25 +31,46 @@ interface Fundraiser {
 
 export default function FundraisersAdmin() {
   const { toast } = useToast();
+  const [createOpen, setCreateOpen] = useState(false);
   const { data: campaigns, isLoading: loadingCampaigns } = useQuery<Campaign[]>({
     queryKey: ["/api/campaigns"],
   });
 
   const activeCampaigns = campaigns?.filter(c => c.isActive) || [];
+  const allCampaigns = campaigns || [];
 
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-5xl">
-        <div className="flex items-center gap-3 mb-6">
-          <Link href="/admin">
-            <Button variant="ghost" size="icon" data-testid="button-back-admin">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-fundraisers-admin-title">Fundraisers</h1>
-            <p className="text-sm text-muted-foreground">Manage peer-to-peer fundraisers across all campaigns</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Link href="/admin">
+              <Button variant="ghost" size="icon" data-testid="button-back-admin">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold" data-testid="text-fundraisers-admin-title">Fundraisers</h1>
+              <p className="text-sm text-muted-foreground">Manage peer-to-peer fundraisers across all campaigns</p>
+            </div>
           </div>
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2" data-testid="button-create-fundraiser-admin">
+                <Plus className="w-4 h-4" />
+                Create Fundraiser
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create Fundraiser</DialogTitle>
+              </DialogHeader>
+              <CreateFundraiserForm
+                campaigns={allCampaigns}
+                onSuccess={() => setCreateOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {loadingCampaigns ? (
@@ -66,6 +93,117 @@ export default function FundraisersAdmin() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function CreateFundraiserForm({ campaigns, onSuccess }: { campaigns: Campaign[]; onSuccess: () => void }) {
+  const { toast } = useToast();
+  const [selectedCampaign, setSelectedCampaign] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [goalAmount, setGoalAmount] = useState("500");
+  const [personalMessage, setPersonalMessage] = useState("");
+
+  const activeCampaigns = campaigns.filter(c => c.isActive);
+  const selectedSlug = activeCampaigns.find(c => c.id === selectedCampaign)?.slug;
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedSlug) throw new Error("Select a campaign");
+      const res = await apiRequest("POST", `/api/campaigns/${selectedSlug}/fundraisers`, {
+        fullName,
+        email,
+        goalAmount,
+        personalMessage: personalMessage || null,
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/campaigns"] });
+      activeCampaigns.forEach(c => {
+        queryClient.invalidateQueries({ queryKey: ["/api/campaigns", c.slug, "fundraisers"] });
+      });
+      toast({
+        title: "Fundraiser Created",
+        description: `Fundraiser page created for ${fullName}. Link: /fundraise/${data.slug}`,
+      });
+      setFullName("");
+      setEmail("");
+      setGoalAmount("500");
+      setPersonalMessage("");
+      setSelectedCampaign("");
+      onSuccess();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message || "Failed to create fundraiser.", variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="space-y-2">
+        <Label>Campaign</Label>
+        <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
+          <SelectTrigger data-testid="select-fundraiser-campaign">
+            <SelectValue placeholder="Select a campaign" />
+          </SelectTrigger>
+          <SelectContent>
+            {activeCampaigns.map(c => (
+              <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Full Name</Label>
+        <Input
+          value={fullName}
+          onChange={e => setFullName(e.target.value)}
+          placeholder="e.g. John Mukasa"
+          data-testid="input-admin-fundraiser-name"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Email</Label>
+        <Input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="e.g. john@example.com"
+          data-testid="input-admin-fundraiser-email"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Fundraising Goal ($)</Label>
+        <Input
+          type="number"
+          value={goalAmount}
+          onChange={e => setGoalAmount(e.target.value)}
+          min="50"
+          placeholder="500"
+          data-testid="input-admin-fundraiser-goal"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Personal Message (optional)</Label>
+        <Textarea
+          value={personalMessage}
+          onChange={e => setPersonalMessage(e.target.value)}
+          placeholder="Write a message on their behalf..."
+          rows={3}
+          data-testid="input-admin-fundraiser-message"
+        />
+      </div>
+      <Button
+        className="w-full gap-2"
+        onClick={() => createMutation.mutate()}
+        disabled={createMutation.isPending || !selectedCampaign || !fullName || !email}
+        data-testid="button-submit-admin-fundraiser"
+      >
+        <HandHeart className="w-4 h-4" />
+        {createMutation.isPending ? "Creating..." : "Create Fundraiser Page"}
+      </Button>
     </div>
   );
 }
