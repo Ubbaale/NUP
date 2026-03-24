@@ -49,24 +49,24 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Quick Links</h4>
             <nav className="flex flex-col gap-2">
-              <Link href="/regions" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Global Regions</Link>
-              <Link href="/conferences" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Conferences</Link>
-              <Link href="/membership" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Become a Member</Link>
-              <Link href="/store" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Party Store</Link>
-              <Link href="/donate" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Donate</Link>
+              <Link href="/regions" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Global Regions</Link>
+              <Link href="/conferences" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Conferences</Link>
+              <Link href="/membership" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Become a Member</Link>
+              <Link href="/store" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Party Store</Link>
+              <Link href="/donate" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Donate</Link>
             </nav>
           </div>
 
           <div>
             <h4 className="font-semibold mb-4">Explore</h4>
             <nav className="flex flex-col gap-2">
-              <Link href="/fundraise" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Fundraise</Link>
-              <Link href="/campaigns" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Campaigns</Link>
-              <Link href="/blog" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Blog</Link>
-              <Link href="/auctions" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Auctions</Link>
-              <Link href="/songs" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Songs</Link>
-              <Link href="/gallery" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Gallery</Link>
-              <Link href="/fallen-heroes" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Fallen Heroes</Link>
+              <Link href="/fundraise" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Fundraise</Link>
+              <Link href="/campaigns" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Campaigns</Link>
+              <Link href="/blog" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Blog</Link>
+              <Link href="/auctions" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Auctions</Link>
+              <Link href="/songs" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Songs</Link>
+              <Link href="/gallery" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Gallery</Link>
+              <Link href="/fallen-heroes" className="text-muted-foreground hover:text-foreground text-sm font-semibold transition-colors">Fallen Heroes</Link>
             </nav>
           </div>
 
