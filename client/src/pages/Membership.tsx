@@ -381,7 +381,7 @@ export default function Membership() {
                 <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
               </div>
               <div className="text-center">
-                <img src={presidentSignature} alt="Party President Signature" className="h-10 w-auto object-contain mx-auto -mb-1" />
+                <img src={presidentSignature} alt="Party President Signature" className="h-12 w-auto object-contain mx-auto -mb-1" style={{ mixBlendMode: "multiply" }} />
                 <div className="border-b-2 border-gray-400 dark:border-gray-600 w-32 mb-1" />
                 <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
               </div>
@@ -753,7 +753,7 @@ export default function Membership() {
                               <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
                             </div>
                             <div className="text-center">
-                              <img src={presidentSignature} alt="Party President Signature" className="h-10 w-auto object-contain mx-auto -mb-1" />
+                              <img src={presidentSignature} alt="Party President Signature" className="h-12 w-auto object-contain mx-auto -mb-1" style={{ mixBlendMode: "multiply" }} />
                               <div className="border-b-2 border-gray-400 dark:border-gray-600 w-32 mb-1" />
                               <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
                             </div>
