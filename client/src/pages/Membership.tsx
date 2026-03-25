@@ -276,20 +276,18 @@ export default function Membership() {
     const m = member as any;
     return (
       <div className="max-w-2xl mx-auto rounded-lg overflow-hidden shadow-xl border-2 border-gray-300 dark:border-gray-700 bg-[#faf9f6] dark:bg-gray-950" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
-        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-5 py-2.5">
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <img src={nupLogo} alt="NUP" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
-              <div>
-                <p className="text-white font-bold text-sm tracking-wide uppercase">National Unity Platform</p>
-                <p className="text-red-200 text-[9px] tracking-widest uppercase">Diaspora Membership Card</p>
-              </div>
+            <img src={nupLogo} alt="NUP" className="w-14 h-14 rounded-full border-2 border-white/50 object-contain bg-white p-0.5" />
+            <div className="text-center flex-1 px-2">
+              <p className="text-white font-bold text-lg tracking-wide uppercase">National Unity Platform</p>
+              <p className="text-red-200 text-xs tracking-widest uppercase">Diaspora Membership Card</p>
             </div>
             <div className="flex items-center gap-2">
               <Badge className={member.isActive ? "bg-white text-red-700 hover:bg-white/90 text-xs" : "bg-white/20 text-white text-xs"}>
                 {member.isActive ? "Active" : "Inactive"}
               </Badge>
-              <img src={peoplePowerLogo} alt="People Power" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
+              <img src={peoplePowerLogo} alt="People Power" className="w-14 h-14 rounded-full border-2 border-white/50 object-contain bg-white p-0.5" />
             </div>
           </div>
         </div>
@@ -335,9 +333,9 @@ export default function Membership() {
                 {showEmail ? member.email : "••••@••••"}
               </p>
             </div>
-            <div className="pt-2 flex items-end gap-3">
-              <img src={peoplePowerLogo} alt="People Power" className="w-14 h-14 object-contain" />
-              <img src={nupLogo} alt="NUP" className="w-14 h-14 object-contain" />
+            <div className="pt-3 flex items-end gap-0">
+              <svg viewBox="0 0 60 50" className="w-12 h-10"><polygon points="5,45 30,5 30,45" fill="#1E3A5F" /></svg>
+              <svg viewBox="0 0 80 60" className="w-20 h-14 -ml-2"><polygon points="0,55 40,0 80,55" fill="#DC2626" /></svg>
             </div>
           </div>
 
@@ -494,16 +492,14 @@ export default function Membership() {
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)}>
                     <div className="rounded-lg overflow-hidden shadow-2xl border-2 border-gray-300 dark:border-gray-700 bg-[#faf9f6] dark:bg-gray-950" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
-                      <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-5 py-2.5">
+                      <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-4 py-3">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img src={nupLogo} alt="NUP" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
-                            <div>
-                              <p className="text-white font-bold text-sm tracking-wide uppercase">National Unity Platform</p>
-                              <p className="text-red-200 text-[9px] tracking-widest uppercase">Diaspora Membership Registration</p>
-                            </div>
+                          <img src={nupLogo} alt="NUP" className="w-14 h-14 rounded-full border-2 border-white/50 object-contain bg-white p-0.5" />
+                          <div className="text-center flex-1 px-2">
+                            <p className="text-white font-bold text-lg tracking-wide uppercase">National Unity Platform</p>
+                            <p className="text-red-200 text-xs tracking-widest uppercase">Diaspora Membership Registration</p>
                           </div>
-                          <img src={peoplePowerLogo} alt="People Power" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
+                          <img src={peoplePowerLogo} alt="People Power" className="w-14 h-14 rounded-full border-2 border-white/50 object-contain bg-white p-0.5" />
                         </div>
                       </div>
 
@@ -596,9 +592,9 @@ export default function Membership() {
                             )} />
                           </div>
 
-                          <div className="pt-2 flex items-end gap-3">
-                            <img src={peoplePowerLogo} alt="People Power" className="w-14 h-14 object-contain" />
-                            <img src={nupLogo} alt="NUP" className="w-14 h-14 object-contain" />
+                          <div className="pt-3 flex items-end gap-0">
+                            <svg viewBox="0 0 60 50" className="w-12 h-10"><polygon points="5,45 30,5 30,45" fill="#1E3A5F" /></svg>
+                            <svg viewBox="0 0 80 60" className="w-20 h-14 -ml-2"><polygon points="0,55 40,0 80,55" fill="#DC2626" /></svg>
                           </div>
                         </div>
 
