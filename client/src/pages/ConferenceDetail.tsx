@@ -38,6 +38,7 @@ import chicagoGroupImg from "@assets/chicago-convention-group.jpeg";
 import chicagoDelegate1Img from "@assets/chicago-convention-delegate1.jpeg";
 import chicagoDelegate2Img from "@assets/chicago-convention-delegate2.jpeg";
 import bostonMarriottImg from "@assets/boston-marriott-burlington.webp";
+import bostonCommitteeImg from "@assets/IMG_0757_1774407291853.jpeg";
 import chicagoFlyerImg from "@assets/chicago-flyer-poster.jpeg";
 import davidSsejinjaImg from "@assets/david-ssejinja-speaker.jpg";
 import katieLoweSpeakerImg from "@assets/katie-lowe-speaker.jpg";
@@ -859,7 +860,7 @@ const CHICAGO_SPEAKERS = [
   { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination", photo: null },
 ];
 
-function PastConventionPage({ conference, schedule, speakersList, highlights, venue, heroImages, venueImage }: {
+function PastConventionPage({ conference, schedule, speakersList, highlights, venue, heroImages, venueImage, organizingCommitteeImage }: {
   conference: Conference;
   schedule: typeof BOSTON_SCHEDULE;
   speakersList: typeof BOSTON_SPEAKERS;
@@ -867,6 +868,7 @@ function PastConventionPage({ conference, schedule, speakersList, highlights, ve
   venue: { name: string; address: string; details: string[] };
   heroImages?: { src: string; alt: string }[];
   venueImage?: string;
+  organizingCommitteeImage?: string;
 }) {
   const [activeDay, setActiveDay] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -1046,6 +1048,26 @@ function PastConventionPage({ conference, schedule, speakersList, highlights, ve
           </div>
         </section>
 
+        {organizingCommitteeImage && (
+          <section className="mb-16">
+            <h2 className="text-3xl font-bold mb-3 text-center">Organizing Committee</h2>
+            <Separator className="w-20 mx-auto mb-8" />
+            <Card className="overflow-hidden">
+              <img
+                src={organizingCommitteeImage}
+                alt="Convention Organizing Committee"
+                className="w-full h-auto object-cover"
+                data-testid="img-organizing-committee"
+              />
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">
+                  The dedicated team behind the convention — working tirelessly to bring the NUP Diaspora community together.
+                </p>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-3 text-center">Venue</h2>
           <Separator className="w-20 mx-auto mb-8" />
@@ -1100,6 +1122,7 @@ function Boston2025Page({ conference }: { conference: Conference }) {
         { src: nupBoatCruise2Img, alt: "Delegates networking on the boat cruise" },
       ]}
       venueImage={bostonMarriottImg}
+      organizingCommitteeImage={bostonCommitteeImg}
       highlights={[
         { icon: Users, title: "5th Annual", desc: "The fifth gathering of NUP Diaspora from across the globe" },
         { icon: Heart, title: "Women's Empowerment", desc: "Workshop led by First Lady Barbie Kyagulanyi" },
