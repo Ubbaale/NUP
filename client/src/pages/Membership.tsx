@@ -273,119 +273,113 @@ export default function Membership() {
   };
 
   function MemberCard({ member, showEmail }: { member: Member; showEmail?: boolean }) {
+    const m = member as any;
     return (
-      <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-red-200 dark:border-red-900/50 max-w-xl mx-auto">
-        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-3">
+      <div className="max-w-2xl mx-auto rounded-lg overflow-hidden shadow-xl border-2 border-gray-300 dark:border-gray-700 bg-[#faf9f6] dark:bg-gray-950" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-5 py-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={nupLogo} alt="NUP" className="w-10 h-10 rounded-full border-2 border-white/30 object-cover bg-white" />
+            <div className="flex items-center gap-2">
+              <img src={nupLogo} alt="NUP" className="w-8 h-8 rounded-full border border-white/30 object-cover bg-white" />
               <div>
-                <p className="text-white font-extrabold text-sm tracking-wide uppercase">National Unity Platform</p>
-                <p className="text-red-100 text-[10px] tracking-widest uppercase">Diaspora Membership Card</p>
+                <p className="text-white font-bold text-sm tracking-wide uppercase">National Unity Platform</p>
+                <p className="text-red-200 text-[9px] tracking-widest uppercase">Diaspora Membership Card</p>
               </div>
             </div>
-            <Badge className={member.isActive ? "bg-white text-red-700 hover:bg-white/90" : "bg-white/20 text-white"}>
+            <Badge className={member.isActive ? "bg-white text-red-700 hover:bg-white/90 text-xs" : "bg-white/20 text-white text-xs"}>
               {member.isActive ? "Active" : "Inactive"}
             </Badge>
           </div>
         </div>
-        <div className="h-1 bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600" />
-        <div className="bg-white dark:bg-gray-950 px-6 py-5 space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-red-50 dark:bg-red-950/30 rounded-full flex items-center justify-center border-2 border-red-200 dark:border-red-800">
-              <CheckCircle className="w-7 h-7 text-red-600" />
+
+        <div className="grid grid-cols-2 divide-x divide-gray-300 dark:divide-gray-700">
+          <div className="p-5 space-y-3">
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Card No.</span>
+              <div className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 flex items-center justify-between">
+                <span className="font-mono text-base font-bold text-blue-800 dark:text-blue-400" data-testid="text-membership-id">{member.membershipId}</span>
+                <Button variant="ghost" size="icon" className="w-6 h-6 -mr-1" onClick={() => copyToClipboard(member.membershipId)} data-testid="button-copy-id">
+                  <Copy className="w-3 h-3" />
+                </Button>
+              </div>
             </div>
             <div>
-              <h3 className="font-bold text-xl" data-testid="text-member-name">
-                {member.firstName} {member.lastName}
-              </h3>
-              <p className="text-sm text-muted-foreground capitalize">{member.membershipType} Member</p>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Date of Issue</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString("en-GB") : "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Name</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-bold text-lg text-blue-800 dark:text-blue-400 uppercase" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="text-member-name">
+                {member.lastName} {member.firstName}
+              </p>
+            </div>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Phone Number</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {member.phone || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Date of Birth (DD/MM/YYYY)</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {member.dateOfBirth ? new Date(member.dateOfBirth).toLocaleDateString("en-GB") : "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Email</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400 text-sm break-all" data-testid="text-member-email" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {showEmail ? member.email : "••••@••••"}
+              </p>
+            </div>
+            <div className="pt-2 flex items-end gap-3">
+              <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#DC2626" /></svg>
+              <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#1E3A5F" /></svg>
             </div>
           </div>
 
-          <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-3 text-center border border-red-100 dark:border-red-900/30">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Membership No.</p>
-            <div className="flex items-center justify-center gap-2">
-              <p className="font-mono text-2xl font-bold text-red-700 dark:text-red-400" data-testid="text-membership-id">
-                {member.membershipId}
-              </p>
-              <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => copyToClipboard(member.membershipId)} data-testid="button-copy-id">
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {showEmail && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Email</p>
-                <p className="font-medium" data-testid="text-member-email">{member.email}</p>
-              </div>
-            )}
-            <div className="space-y-0.5">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Location</p>
-              <p className="font-medium">{member.city ? `${member.city}, ` : ""}{member.country}</p>
-            </div>
-            {member.phone && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Phone</p>
-                <p className="font-medium">{member.phone}</p>
-              </div>
-            )}
-            {member.dateOfBirth && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Date of Birth</p>
-                <p className="font-medium">{new Date(member.dateOfBirth).toLocaleDateString()}</p>
-              </div>
-            )}
-            {(member as any).sex && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Sex</p>
-                <p className="font-medium">{(member as any).sex}</p>
-              </div>
-            )}
-            {(member as any).nationality && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Nationality</p>
-                <p className="font-medium">{(member as any).nationality}</p>
-              </div>
-            )}
-            {getRegionName(member.regionId) && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Region</p>
-                <p className="font-medium">{getRegionName(member.regionId)}</p>
-              </div>
-            )}
-            {getChapterName(member.chapterId) && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Chapter</p>
-                <p className="font-medium">{getChapterName(member.chapterId)}</p>
-              </div>
-            )}
-          </div>
-          {(member as any).mailingAddress && (
-            <div className="border-t border-dashed border-red-200 dark:border-red-900/30 pt-3 mt-1">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Mailing Address</p>
-              <p className="font-medium text-sm">
-                {(member as any).mailingAddress}
-                {(member as any).mailingCity && <>, {(member as any).mailingCity}</>}
-                {(member as any).mailingState && <>, {(member as any).mailingState}</>}
-                {(member as any).mailingZip && <> {(member as any).mailingZip}</>}
-                {(member as any).mailingCountry && <>, {(member as any).mailingCountry}</>}
+          <div className="p-5 space-y-3">
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Country</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400 uppercase" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {member.country}
               </p>
             </div>
-          )}
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {member.joinedAt && (
-              <div className="space-y-0.5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Member Since</p>
-                <p className="font-medium">{new Date(member.joinedAt).toLocaleDateString()}</p>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Region</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400 uppercase" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {getRegionName(member.regionId) || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Chapter</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400 uppercase" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {getChapterName(member.chapterId) || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">City / State</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400 uppercase" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {[member.city, m.mailingState].filter(Boolean).join(", ") || "—"}
+              </p>
+            </div>
+            <div>
+              <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Mailing Address</span>
+              <p className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5 font-medium text-blue-800 dark:text-blue-400" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>
+                {m.mailingAddress ? `${m.mailingAddress}${m.mailingCity ? `, ${m.mailingCity}` : ""}${m.mailingZip ? ` ${m.mailingZip}` : ""}` : "—"}
+              </p>
+            </div>
+            <div className="pt-4 flex items-end justify-between">
+              <div className="text-center">
+                <div className="border-b-2 border-gray-400 dark:border-gray-600 w-28 mb-1" />
+                <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
               </div>
-            )}
+              <div className="text-center">
+                <div className="border-b-2 border-gray-400 dark:border-gray-600 w-20 mb-1" />
+                <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-2">
-          <p className="text-red-100 text-[10px] text-center tracking-wide">People Power — Our Power</p>
         </div>
       </div>
     );
@@ -493,117 +487,125 @@ export default function Membership() {
                   </Button>
                 </div>
               ) : (
-                <div className="max-w-xl mx-auto">
+                <div className="max-w-2xl mx-auto">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-red-200 dark:border-red-900/50">
-                      <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-4">
+                    <div className="rounded-lg overflow-hidden shadow-2xl border-2 border-gray-300 dark:border-gray-700 bg-[#faf9f6] dark:bg-gray-950" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                      <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-5 py-2.5">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <img src={nupLogo} alt="NUP" className="w-12 h-12 rounded-full border-2 border-white/30 object-cover bg-white" />
+                          <div className="flex items-center gap-2">
+                            <img src={nupLogo} alt="NUP" className="w-8 h-8 rounded-full border border-white/30 object-cover bg-white" />
                             <div>
-                              <p className="text-white font-extrabold text-lg tracking-wide uppercase">National Unity Platform</p>
-                              <p className="text-red-100 text-xs tracking-widest uppercase">Diaspora Membership Card</p>
+                              <p className="text-white font-bold text-sm tracking-wide uppercase">National Unity Platform</p>
+                              <p className="text-red-200 text-[9px] tracking-widest uppercase">Diaspora Membership Registration</p>
                             </div>
                           </div>
-                          <img src={peoplePowerLogo} alt="People Power" className="w-11 h-11 rounded-full border-2 border-white/30 object-cover" />
+                          <img src={peoplePowerLogo} alt="People Power" className="w-9 h-9 rounded-full border border-white/30 object-cover" />
                         </div>
                       </div>
 
-                      <div className="h-1.5 bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x divide-gray-300 dark:divide-gray-700">
+                        <div className="p-5 space-y-4">
+                          <div>
+                            <span className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Card No.</span>
+                            <div className="border-b-2 border-gray-400 dark:border-gray-600 pb-0.5 mt-0.5">
+                              <span className="font-mono text-sm text-gray-400 italic">Auto-assigned on registration</span>
+                            </div>
+                          </div>
 
-                      <div className="bg-white dark:bg-gray-950 px-6 py-6 space-y-5">
-                        <div className="flex items-center gap-2 mb-1">
-                          <IdCard className="w-4 h-4 text-red-600" />
-                          <span className="text-xs font-semibold text-red-600 uppercase tracking-wider">Member Registration</span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
                           <FormField control={form.control} name="lastName" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Surname</FormLabel>
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Name (Surname)</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="Doe" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-last-name" />
+                                <Input {...field} placeholder="KAKONGE" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-bold text-blue-800 dark:text-blue-400 uppercase h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-last-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )} />
+
                           <FormField control={form.control} name="firstName" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Other Names</FormLabel>
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Other Names</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="John" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-first-name" />
+                                <Input {...field} placeholder="SUDAISI" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-bold text-blue-800 dark:text-blue-400 uppercase h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-first-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )} />
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-4">
-                          <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Date of Birth</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-sm" data-testid="input-dob" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={form.control} name="sex" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Sex</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-sex">
-                                    <SelectValue placeholder="Select" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Male">Male</SelectItem>
-                                  <SelectItem value="Female">Female</SelectItem>
-                                  <SelectItem value="Other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={form.control} name="nationality" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Nationality</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Ugandan" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-nationality" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                        </div>
-
-                        <FormField control={form.control} name="email" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Email Address</FormLabel>
-                            <FormControl>
-                              <Input type="email" {...field} placeholder="john@example.com" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-email" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-
-                        <div className="grid grid-cols-2 gap-4">
                           <FormField control={form.control} name="phone" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Phone (Optional)</FormLabel>
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Phone Number</FormLabel>
                               <FormControl>
-                                <Input type="tel" {...field} placeholder="+1 (555) 123-4567" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-phone" />
+                                <Input type="tel" {...field} placeholder="+1 (555) 123-4567" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-phone" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )} />
+
+                          <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Date of Birth (DD/MM/YYYY)</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" data-testid="input-dob" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+
+                          <FormField control={form.control} name="email" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Email Address</FormLabel>
+                              <FormControl>
+                                <Input type="email" {...field} placeholder="john@example.com" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-email" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <FormField control={form.control} name="sex" render={({ field }) => (
+                              <FormItem className="space-y-0">
+                                <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Sex</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 shadow-none h-8" data-testid="select-sex">
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Male">Male</SelectItem>
+                                    <SelectItem value="Female">Female</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="nationality" render={({ field }) => (
+                              <FormItem className="space-y-0">
+                                <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Nationality</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Ugandan" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-nationality" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+
+                          <div className="pt-2 flex items-end gap-3">
+                            <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#DC2626" /></svg>
+                            <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#1E3A5F" /></svg>
+                          </div>
+                        </div>
+
+                        <div className="p-5 space-y-4 border-t md:border-t-0 border-gray-300 dark:border-gray-700">
                           <FormField control={form.control} name="country" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Country of Residence</FormLabel>
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Country</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-country">
+                                  <SelectTrigger className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 shadow-none h-8 uppercase" data-testid="select-country">
                                     <SelectValue placeholder="Select country" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -616,24 +618,13 @@ export default function Membership() {
                               <FormMessage />
                             </FormItem>
                           )} />
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField control={form.control} name="city" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">City (Optional)</FormLabel>
-                              <FormControl>
-                                <Input {...field} placeholder="Your city" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-city" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
                           <FormField control={form.control} name="regionId" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Region (Optional)</FormLabel>
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Region</FormLabel>
                               <Select onValueChange={(val) => { field.onChange(val); form.setValue("chapterId", ""); }} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-region">
+                                  <SelectTrigger className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 shadow-none h-8 uppercase" data-testid="select-region">
                                     <SelectValue placeholder="Select region" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -646,15 +637,13 @@ export default function Membership() {
                               <FormMessage />
                             </FormItem>
                           )} />
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
                           <FormField control={form.control} name="chapterId" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Chapter (Optional)</FormLabel>
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Chapter</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value} disabled={!selectedRegionId || !chaptersForRegion?.length}>
                                 <FormControl>
-                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-chapter">
+                                  <SelectTrigger className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 shadow-none h-8 uppercase" data-testid="select-chapter">
                                     <SelectValue placeholder={!selectedRegionId ? "Select region first" : chaptersForRegion?.length ? "Select chapter" : "No chapters available"} />
                                   </SelectTrigger>
                                 </FormControl>
@@ -667,12 +656,75 @@ export default function Membership() {
                               <FormMessage />
                             </FormItem>
                           )} />
+
+                          <FormField control={form.control} name="city" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">City / State</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Your city" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 uppercase h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-city" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+
+                          <FormField control={form.control} name="mailingAddress" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Mailing Address</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="123 Main St, Apt 4" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-mailing-address" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <FormField control={form.control} name="mailingCity" render={({ field }) => (
+                              <FormItem className="space-y-0">
+                                <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Mail City</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="City" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-mailing-city" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="mailingState" render={({ field }) => (
+                              <FormItem className="space-y-0">
+                                <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">State</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="State" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-mailing-state" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <FormField control={form.control} name="mailingZip" render={({ field }) => (
+                              <FormItem className="space-y-0">
+                                <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Zip Code</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="12345" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-mailing-zip" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="mailingCountry" render={({ field }) => (
+                              <FormItem className="space-y-0">
+                                <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Country</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Country" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-mailing-country" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+
                           <FormField control={form.control} name="membershipType" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Membership Type</FormLabel>
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Membership Type</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-membership-type">
+                                  <SelectTrigger className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 shadow-none h-8" data-testid="select-membership-type">
                                     <SelectValue placeholder="Select type" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -685,99 +737,43 @@ export default function Membership() {
                               <FormMessage />
                             </FormItem>
                           )} />
-                        </div>
 
-                        <div className="pt-3 border-t border-dashed border-red-200 dark:border-red-900/30">
-                          <div className="flex items-center gap-2 mb-3">
-                            <MapPin className="w-4 h-4 text-red-600" />
-                            <span className="text-xs font-semibold text-red-600 uppercase tracking-wider">Mailing Address</span>
+                          <div className="pt-1 flex items-end justify-between">
+                            <div className="text-center">
+                              <div className="border-b-2 border-gray-400 dark:border-gray-600 w-28 mb-1" />
+                              <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
+                            </div>
+                            <div className="text-center">
+                              <div className="border-b-2 border-gray-400 dark:border-gray-600 w-20 mb-1" />
+                              <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
+                            </div>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mb-3">Provide your mailing address so we can send you a physical membership card</p>
+                        </div>
+                      </div>
 
-                          <FormField control={form.control} name="mailingAddress" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Street Address</FormLabel>
+                      <div className="border-t border-gray-300 dark:border-gray-700 p-4 space-y-3 bg-gray-50/50 dark:bg-gray-900/50">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="existing-card-toggle" className="text-xs font-medium">I have an existing membership card</Label>
+                            <p className="text-[10px] text-muted-foreground">Enter your physical card number if you have one</p>
+                          </div>
+                          <Switch id="existing-card-toggle" checked={hasExistingCard} onCheckedChange={(checked) => { setHasExistingCard(checked); if (!checked) form.setValue("cardNumber", ""); }} data-testid="switch-existing-card" />
+                        </div>
+                        {hasExistingCard && (
+                          <FormField control={form.control} name="cardNumber" render={({ field }) => (
+                            <FormItem className="space-y-0">
+                              <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold">Existing Card Number</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="123 Main St, Apt 4" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-address" />
+                                <Input {...field} placeholder="Enter your card number" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-blue-800 dark:text-blue-400 h-8" data-testid="input-card-number" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )} />
+                        )}
 
-                          <div className="grid grid-cols-2 gap-4 mt-3">
-                            <FormField control={form.control} name="mailingCity" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">City</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="City" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-city" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )} />
-                            <FormField control={form.control} name="mailingState" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">State / Province</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="State" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-state" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )} />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 mt-3">
-                            <FormField control={form.control} name="mailingZip" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Zip / Postal Code</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="12345" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-zip" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )} />
-                            <FormField control={form.control} name="mailingCountry" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Country</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="Country" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-country" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )} />
-                          </div>
-                        </div>
-
-                        <div className="pt-2 space-y-3">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="space-y-0.5">
-                              <Label htmlFor="existing-card-toggle" className="text-xs font-medium">I have an existing membership card</Label>
-                              <p className="text-[10px] text-muted-foreground">Enter your physical card number if you have one</p>
-                            </div>
-                            <Switch id="existing-card-toggle" checked={hasExistingCard} onCheckedChange={(checked) => { setHasExistingCard(checked); if (!checked) form.setValue("cardNumber", ""); }} data-testid="switch-existing-card" />
-                          </div>
-                          {hasExistingCard && (
-                            <FormField control={form.control} name="cardNumber" render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Card Number</FormLabel>
-                                <FormControl>
-                                  <Input {...field} placeholder="Enter your card number" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-card-number" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )} />
-                          )}
-                        </div>
-
-                        <div className="bg-muted/30 rounded-lg p-3 text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Membership No. will be assigned upon registration</p>
-                          <p className="font-mono text-lg text-muted-foreground/40 font-bold mt-1">NUP-XX-XXXXXX</p>
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-4">
                         <Button
                           type="submit"
-                          className="w-full bg-white text-red-700 hover:bg-red-50 font-bold text-base h-12 shadow-lg"
+                          className="w-full bg-red-700 hover:bg-red-800 text-white font-bold text-base h-12 shadow-lg"
                           disabled={registerMutation.isPending}
                           data-testid="button-register"
                         >
@@ -787,7 +783,6 @@ export default function Membership() {
                             <><UserPlus className="w-5 h-5 mr-2" /> Register as Member</>
                           )}
                         </Button>
-                        <p className="text-red-100 text-[10px] text-center mt-2 tracking-wide">People Power — Our Power</p>
                       </div>
                     </div>
                   </form>
