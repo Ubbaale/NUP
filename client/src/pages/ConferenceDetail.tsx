@@ -39,6 +39,16 @@ import chicagoDelegate1Img from "@assets/chicago-convention-delegate1.jpeg";
 import chicagoDelegate2Img from "@assets/chicago-convention-delegate2.jpeg";
 import bostonMarriottImg from "@assets/boston-marriott-burlington.webp";
 import bostonCommitteeImg from "@assets/IMG_0757_1774407291853.jpeg";
+import bostonGallery1Img from "@assets/773fc454-f6b7-4927-96c3-9b6dd42a668d_1774407768204.jpeg";
+import bostonGallery2Img from "@assets/f68e9197-1c2b-4472-8927-0a7acd548652_1774407768204.jpeg";
+import bostonGallery3Img from "@assets/b27f82a2-30c7-4394-9a19-4555f6a293f1_1774407768204.jpeg";
+import bostonGallery4Img from "@assets/2b1f77f4-29db-46dd-ac1a-25d817062c16_1774407768204.jpeg";
+import bostonGallery5Img from "@assets/IMG_4101_1774407768204.jpeg";
+import bostonGallery6Img from "@assets/IMG_4045_1774407768204.jpeg";
+import bostonGallery7Img from "@assets/IMG_4022_1774407768204.jpeg";
+import bostonGallery8Img from "@assets/IMG_4050_1774407768204.jpeg";
+import bostonGallery9Img from "@assets/7b35a902-c9a7-4c59-bb44-ede36f2dd642_1774407768204.jpeg";
+import bostonGallery10Img from "@assets/IMG_4305_1774407768204.jpeg";
 import chicagoFlyerImg from "@assets/chicago-flyer-poster.jpeg";
 import davidSsejinjaImg from "@assets/david-ssejinja-speaker.jpg";
 import katieLoweSpeakerImg from "@assets/katie-lowe-speaker.jpg";
@@ -860,7 +870,7 @@ const CHICAGO_SPEAKERS = [
   { name: "Dr. Daniel Kawuma", role: "Diaspora Team Leader", desc: "NUP Diaspora leadership coordination", photo: null },
 ];
 
-function PastConventionPage({ conference, schedule, speakersList, highlights, venue, heroImages, venueImage, organizingCommitteeImage }: {
+function PastConventionPage({ conference, schedule, speakersList, highlights, venue, heroImages, venueImage, organizingCommitteeImage, galleryImages }: {
   conference: Conference;
   schedule: typeof BOSTON_SCHEDULE;
   speakersList: typeof BOSTON_SPEAKERS;
@@ -869,6 +879,7 @@ function PastConventionPage({ conference, schedule, speakersList, highlights, ve
   heroImages?: { src: string; alt: string }[];
   venueImage?: string;
   organizingCommitteeImage?: string;
+  galleryImages?: { src: string; alt: string }[];
 }) {
   const [activeDay, setActiveDay] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -1068,6 +1079,42 @@ function PastConventionPage({ conference, schedule, speakersList, highlights, ve
           </section>
         )}
 
+        {galleryImages && galleryImages.length > 0 && (
+          <section className="mb-16">
+            <h2 className="text-3xl font-bold mb-3 text-center">Convention Gallery</h2>
+            <Separator className="w-20 mx-auto mb-8" />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {galleryImages.map((img, i) => (
+                <div
+                  key={i}
+                  className={`overflow-hidden rounded-xl cursor-pointer group ${
+                    i === 0 ? "col-span-2 row-span-2" : ""
+                  }`}
+                  data-testid={`gallery-img-${i}`}
+                  onClick={() => {
+                    const overlay = document.createElement("div");
+                    overlay.className = "fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 cursor-pointer";
+                    overlay.onclick = () => overlay.remove();
+                    const image = document.createElement("img");
+                    image.src = img.src;
+                    image.alt = img.alt;
+                    image.className = "max-w-full max-h-[90vh] object-contain rounded-lg";
+                    overlay.appendChild(image);
+                    document.body.appendChild(overlay);
+                  }}
+                >
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    className="w-full h-full object-cover aspect-square group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-sm text-muted-foreground mt-4">Click any photo to view full size</p>
+          </section>
+        )}
+
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-3 text-center">Venue</h2>
           <Separator className="w-20 mx-auto mb-8" />
@@ -1123,6 +1170,18 @@ function Boston2025Page({ conference }: { conference: Conference }) {
       ]}
       venueImage={bostonMarriottImg}
       organizingCommitteeImage={bostonCommitteeImg}
+      galleryImages={[
+        { src: bostonGallery1Img, alt: "NUP delegates group photo at convention meeting" },
+        { src: bostonGallery2Img, alt: "Bobi Wine arriving at the convention" },
+        { src: bostonGallery3Img, alt: "Joel Ssenyonyi performing on stage" },
+        { src: bostonGallery4Img, alt: "Bobi Wine and Barbie Kyagulanyi with delegates" },
+        { src: bostonGallery5Img, alt: "Gala dinner guests at the convention" },
+        { src: bostonGallery6Img, alt: "Delegates greeting at the Celebrate Ballroom" },
+        { src: bostonGallery7Img, alt: "Buganda Ntege supporters at outdoor event" },
+        { src: bostonGallery8Img, alt: "Convention registration and check-in" },
+        { src: bostonGallery9Img, alt: "Barbie Kyagulanyi and Joel Ssenyonyi during ceremony" },
+        { src: bostonGallery10Img, alt: "Gala dinner with speaker addressing delegates" },
+      ]}
       highlights={[
         { icon: Users, title: "5th Annual", desc: "The fifth gathering of NUP Diaspora from across the globe" },
         { icon: Heart, title: "Women's Empowerment", desc: "Workshop led by First Lady Barbie Kyagulanyi" },
