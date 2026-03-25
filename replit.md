@@ -109,6 +109,17 @@ Chapter and region coordinators can manage their own information via self-servic
   - `POST /api/campaigns/:slug/donate` — Now accepts optional `fundraiserId` to attribute donation
 - **Frontend pages**: `FundraiserPage.tsx` (individual fundraiser page), updated `CampaignDetail.tsx` with leaderboard + signup dialog
 
+## Membership Card-Style Registration
+- The membership registration form at `/membership` is styled to visually resemble filling out an actual NUP membership card
+- Red gradient header with NUP logo, "National Unity Platform" title, and People Power logo
+- Red/yellow/blue gradient stripe below header (matching NUP brand colors)
+- Underline-style form inputs (bottom border only) for a card-fill-in feel
+- Fields match the physical card: Surname, Other Names, Date of Birth, Sex, Nationality, Email, Phone, Country, City, Region, Chapter, Membership Type
+- Membership number placeholder "NUP-XX-XXXXXX" shown before registration
+- White submit button on red footer with "People Power — Our Power" tagline
+- The MemberCard display component uses matching NUP card styling after registration
+- Database `members` table includes `sex` and `nationality` columns (added via ALTER TABLE)
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.
 - **Drizzle ORM**: Used for database interaction.

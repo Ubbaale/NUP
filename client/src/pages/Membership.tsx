@@ -31,11 +31,14 @@ import {
   Globe2,
   Building,
   CreditCard,
+  Loader2,
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Region, Chapter, Member } from "@shared/schema";
+import nupLogo from "@/assets/images/nup-official-logo.png";
+import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
 
 const COUNTRIES = [
   "United States",
@@ -77,6 +80,8 @@ const registrationSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
   dateOfBirth: z.string().optional(),
+  sex: z.string().optional(),
+  nationality: z.string().optional(),
   country: z.string().min(1, "Please select your country"),
   city: z.string().optional(),
   regionId: z.string().optional(),
@@ -114,6 +119,8 @@ export default function Membership() {
       email: "",
       phone: "",
       dateOfBirth: "",
+      sex: "",
+      nationality: "",
       country: "",
       city: "",
       regionId: "",
@@ -257,22 +264,26 @@ export default function Membership() {
 
   function MemberCard({ member, showEmail }: { member: Member; showEmail?: boolean }) {
     return (
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 overflow-hidden">
-        <div className="bg-primary px-6 py-3">
+      <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-red-200 dark:border-red-900/50 max-w-xl mx-auto">
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-white/80 text-xs font-medium uppercase tracking-wider">NUP Diaspora</span>
-            <Badge
-              variant={member.isActive ? "default" : "secondary"}
-              className={member.isActive ? "bg-white text-primary" : ""}
-            >
-              {member.isActive ? "Active Member" : "Inactive"}
+            <div className="flex items-center gap-3">
+              <img src={nupLogo} alt="NUP" className="w-10 h-10 rounded-full border-2 border-white/30 object-cover bg-white" />
+              <div>
+                <p className="text-white font-extrabold text-sm tracking-wide uppercase">National Unity Platform</p>
+                <p className="text-red-100 text-[10px] tracking-widest uppercase">Diaspora Membership Card</p>
+              </div>
+            </div>
+            <Badge className={member.isActive ? "bg-white text-red-700 hover:bg-white/90" : "bg-white/20 text-white"}>
+              {member.isActive ? "Active" : "Inactive"}
             </Badge>
           </div>
         </div>
-        <CardContent className="pt-6 space-y-4">
+        <div className="h-1 bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600" />
+        <div className="bg-white dark:bg-gray-950 px-6 py-5 space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-7 h-7 text-primary" />
+            <div className="w-14 h-14 bg-red-50 dark:bg-red-950/30 rounded-full flex items-center justify-center border-2 border-red-200 dark:border-red-800">
+              <CheckCircle className="w-7 h-7 text-red-600" />
             </div>
             <div>
               <h3 className="font-bold text-xl" data-testid="text-member-name">
@@ -282,93 +293,77 @@ export default function Membership() {
             </div>
           </div>
 
-          <div className="bg-background rounded-lg p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Membership ID</p>
+          <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-3 text-center border border-red-100 dark:border-red-900/30">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Membership No.</p>
             <div className="flex items-center justify-center gap-2">
-              <p className="font-mono text-2xl font-bold text-primary" data-testid="text-membership-id">
+              <p className="font-mono text-2xl font-bold text-red-700 dark:text-red-400" data-testid="text-membership-id">
                 {member.membershipId}
               </p>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-8 h-8"
-                onClick={() => copyToClipboard(member.membershipId)}
-                data-testid="button-copy-id"
-              >
+              <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => copyToClipboard(member.membershipId)} data-testid="button-copy-id">
                 <Copy className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          <Separator />
-
           <div className="grid grid-cols-2 gap-3 text-sm">
             {showEmail && (
-              <div className="flex items-start gap-2">
-                <Mail className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground text-xs">Email</p>
-                  <p className="font-medium" data-testid="text-member-email">{member.email}</p>
-                </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Email</p>
+                <p className="font-medium" data-testid="text-member-email">{member.email}</p>
               </div>
             )}
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-muted-foreground text-xs">Location</p>
-                <p className="font-medium">
-                  {member.city ? `${member.city}, ` : ""}{member.country}
-                </p>
-              </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Location</p>
+              <p className="font-medium">{member.city ? `${member.city}, ` : ""}{member.country}</p>
             </div>
             {member.phone && (
-              <div className="flex items-start gap-2">
-                <Phone className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground text-xs">Phone</p>
-                  <p className="font-medium">{member.phone}</p>
-                </div>
-              </div>
-            )}
-            {getRegionName(member.regionId) && (
-              <div className="flex items-start gap-2">
-                <Globe2 className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground text-xs">Region</p>
-                  <p className="font-medium">{getRegionName(member.regionId)}</p>
-                </div>
-              </div>
-            )}
-            {getChapterName(member.chapterId) && (
-              <div className="flex items-start gap-2">
-                <Building className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground text-xs">Chapter</p>
-                  <p className="font-medium">{getChapterName(member.chapterId)}</p>
-                </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Phone</p>
+                <p className="font-medium">{member.phone}</p>
               </div>
             )}
             {member.dateOfBirth && (
-              <div className="flex items-start gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground text-xs">Date of Birth</p>
-                  <p className="font-medium">{new Date(member.dateOfBirth).toLocaleDateString()}</p>
-                </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Date of Birth</p>
+                <p className="font-medium">{new Date(member.dateOfBirth).toLocaleDateString()}</p>
+              </div>
+            )}
+            {(member as any).sex && (
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Sex</p>
+                <p className="font-medium">{(member as any).sex}</p>
+              </div>
+            )}
+            {(member as any).nationality && (
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Nationality</p>
+                <p className="font-medium">{(member as any).nationality}</p>
+              </div>
+            )}
+            {getRegionName(member.regionId) && (
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Region</p>
+                <p className="font-medium">{getRegionName(member.regionId)}</p>
+              </div>
+            )}
+            {getChapterName(member.chapterId) && (
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Chapter</p>
+                <p className="font-medium">{getChapterName(member.chapterId)}</p>
               </div>
             )}
             {member.joinedAt && (
-              <div className="flex items-start gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground text-xs">Member Since</p>
-                  <p className="font-medium">{new Date(member.joinedAt).toLocaleDateString()}</p>
-                </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Member Since</p>
+                <p className="font-medium">{new Date(member.joinedAt).toLocaleDateString()}</p>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-2">
+          <p className="text-red-100 text-[10px] text-center tracking-wide">People Power — Our Power</p>
+        </div>
+      </div>
     );
   }
 
@@ -474,203 +469,186 @@ export default function Membership() {
                   </Button>
                 </div>
               ) : (
-                <Card>
-                  <CardHeader>
-                    <h2 className="text-xl font-bold flex items-center gap-2">
-                      <Users className="w-5 h-5 text-primary" />
-                      Member Registration
-                    </h2>
-                    <CardDescription>
-                      Fill out the form below to become a registered member of NUP Diaspora
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="firstName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>First Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="John" {...field} data-testid="input-first-name" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="lastName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Last Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Doe" {...field} data-testid="input-last-name" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                <div className="max-w-xl mx-auto">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-red-200 dark:border-red-900/50">
+                      <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <img src={nupLogo} alt="NUP" className="w-12 h-12 rounded-full border-2 border-white/30 object-cover bg-white" />
+                            <div>
+                              <p className="text-white font-extrabold text-lg tracking-wide uppercase">National Unity Platform</p>
+                              <p className="text-red-100 text-xs tracking-widest uppercase">Diaspora Membership Card</p>
+                            </div>
+                          </div>
+                          <img src={peoplePowerLogo} alt="People Power" className="w-11 h-11 rounded-full border-2 border-white/30 object-cover" />
+                        </div>
+                      </div>
+
+                      <div className="h-1.5 bg-gradient-to-r from-red-600 via-yellow-400 to-blue-600" />
+
+                      <div className="bg-white dark:bg-gray-950 px-6 py-6 space-y-5">
+                        <div className="flex items-center gap-2 mb-1">
+                          <IdCard className="w-4 h-4 text-red-600" />
+                          <span className="text-xs font-semibold text-red-600 uppercase tracking-wider">Member Registration</span>
                         </div>
 
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField control={form.control} name="lastName" render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email Address</FormLabel>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Surname</FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="john@example.com" {...field} data-testid="input-email" />
+                                <Input {...field} placeholder="Doe" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-last-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
-                          )}
-                        />
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Phone Number (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input type="tel" placeholder="+1 (555) 123-4567" {...field} data-testid="input-phone" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="dateOfBirth"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Date of Birth (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input type="date" {...field} data-testid="input-dob" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="country"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Country</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-country">
-                                      <SelectValue placeholder="Select country" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {COUNTRIES.map((c) => (
-                                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="city"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>City (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="New York" {...field} data-testid="input-city" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <Separator />
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="regionId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Region (Optional)</FormLabel>
-                                <Select
-                                  onValueChange={(val) => {
-                                    field.onChange(val);
-                                    form.setValue("chapterId", "");
-                                  }}
-                                  value={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-region">
-                                      <SelectValue placeholder="Select region" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {regions?.map((r) => (
-                                      <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="chapterId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Chapter (Optional)</FormLabel>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                  disabled={!selectedRegionId || !chaptersForRegion?.length}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-chapter">
-                                      <SelectValue placeholder={
-                                        !selectedRegionId
-                                          ? "Select region first"
-                                          : chaptersForRegion?.length
-                                            ? "Select chapter"
-                                            : "No chapters available"
-                                      } />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {chaptersForRegion?.map((c) => (
-                                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <FormField
-                          control={form.control}
-                          name="membershipType"
-                          render={({ field }) => (
+                          )} />
+                          <FormField control={form.control} name="firstName" render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Membership Type</FormLabel>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Other Names</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="John" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-first-name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                          <FormField control={form.control} name="dateOfBirth" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Date of Birth</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium text-sm" data-testid="input-dob" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="sex" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Sex</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-membership-type">
+                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-sex">
+                                    <SelectValue placeholder="Select" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Male">Male</SelectItem>
+                                  <SelectItem value="Female">Female</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="nationality" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Nationality</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Ugandan" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-nationality" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+
+                        <FormField control={form.control} name="email" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Email Address</FormLabel>
+                            <FormControl>
+                              <Input type="email" {...field} placeholder="john@example.com" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-email" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField control={form.control} name="phone" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Phone (Optional)</FormLabel>
+                              <FormControl>
+                                <Input type="tel" {...field} placeholder="+1 (555) 123-4567" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-phone" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="country" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Country of Residence</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-country">
+                                    <SelectValue placeholder="Select country" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {COUNTRIES.map((c) => (
+                                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField control={form.control} name="city" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">City (Optional)</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Your city" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-city" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="regionId" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Region (Optional)</FormLabel>
+                              <Select onValueChange={(val) => { field.onChange(val); form.setValue("chapterId", ""); }} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-region">
+                                    <SelectValue placeholder="Select region" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {regions?.map((r) => (
+                                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField control={form.control} name="chapterId" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Chapter (Optional)</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value} disabled={!selectedRegionId || !chaptersForRegion?.length}>
+                                <FormControl>
+                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-chapter">
+                                    <SelectValue placeholder={!selectedRegionId ? "Select region first" : chaptersForRegion?.length ? "Select chapter" : "No chapters available"} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {chaptersForRegion?.map((c) => (
+                                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="membershipType" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Membership Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium shadow-none" data-testid="select-membership-type">
                                     <SelectValue placeholder="Select type" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -682,69 +660,55 @@ export default function Membership() {
                               </Select>
                               <FormMessage />
                             </FormItem>
-                          )}
-                        />
+                          )} />
+                        </div>
 
-                        <Separator />
-
-                        <div className="space-y-4">
+                        <div className="pt-2 space-y-3">
                           <div className="flex items-center justify-between gap-4">
                             <div className="space-y-0.5">
-                              <Label htmlFor="existing-card-toggle" className="text-sm font-medium">I have an existing membership card</Label>
-                              <p className="text-xs text-muted-foreground">
-                                If you already have a physical NUP membership card, enter your card number below
-                              </p>
+                              <Label htmlFor="existing-card-toggle" className="text-xs font-medium">I have an existing membership card</Label>
+                              <p className="text-[10px] text-muted-foreground">Enter your physical card number if you have one</p>
                             </div>
-                            <Switch
-                              id="existing-card-toggle"
-                              checked={hasExistingCard}
-                              onCheckedChange={(checked) => {
-                                setHasExistingCard(checked);
-                                if (!checked) {
-                                  form.setValue("cardNumber", "");
-                                }
-                              }}
-                              data-testid="switch-existing-card"
-                            />
+                            <Switch id="existing-card-toggle" checked={hasExistingCard} onCheckedChange={(checked) => { setHasExistingCard(checked); if (!checked) form.setValue("cardNumber", ""); }} data-testid="switch-existing-card" />
                           </div>
-
                           {hasExistingCard && (
-                            <FormField
-                              control={form.control}
-                              name="cardNumber"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Card Number</FormLabel>
-                                  <FormControl>
-                                    <div className="relative">
-                                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                      <Input
-                                        placeholder="Enter your card number"
-                                        className="pl-10"
-                                        {...field}
-                                        data-testid="input-card-number"
-                                      />
-                                    </div>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            <FormField control={form.control} name="cardNumber" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Card Number</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Enter your card number" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-card-number" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
                           )}
                         </div>
 
+                        <div className="bg-muted/30 rounded-lg p-3 text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Membership No. will be assigned upon registration</p>
+                          <p className="font-mono text-lg text-muted-foreground/40 font-bold mt-1">NUP-XX-XXXXXX</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-6 py-4">
                         <Button
                           type="submit"
-                          className="w-full"
+                          className="w-full bg-white text-red-700 hover:bg-red-50 font-bold text-base h-12 shadow-lg"
                           disabled={registerMutation.isPending}
                           data-testid="button-register"
                         >
-                          {registerMutation.isPending ? "Registering..." : "Register as Member"}
+                          {registerMutation.isPending ? (
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Registering...</>
+                          ) : (
+                            <><UserPlus className="w-5 h-5 mr-2" /> Register as Member</>
+                          )}
                         </Button>
-                      </form>
-                    </Form>
-                  </CardContent>
-                </Card>
+                        <p className="text-red-100 text-[10px] text-center mt-2 tracking-wide">People Power — Our Power</p>
+                      </div>
+                    </div>
+                  </form>
+                </Form>
+              </div>
               )}
             </TabsContent>
 

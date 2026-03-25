@@ -12,6 +12,8 @@ export const members = pgTable("members", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   dateOfBirth: text("date_of_birth"),
+  sex: text("sex"),
+  nationality: text("nationality"),
   country: text("country").notNull(),
   city: text("city"),
   regionId: varchar("region_id"),
