@@ -24,6 +24,7 @@ export default function HumanRightsReportsAdmin() {
     year: "",
     url: "",
     description: "",
+    imageUrl: "",
     status: "approved",
     source: "manual",
   });
@@ -93,7 +94,7 @@ export default function HumanRightsReportsAdmin() {
   function resetForm() {
     setShowForm(false);
     setEditId(null);
-    setForm({ organization: "", title: "", year: "", url: "", description: "", status: "approved", source: "manual" });
+    setForm({ organization: "", title: "", year: "", url: "", description: "", imageUrl: "", status: "approved", source: "manual" });
   }
 
   function startEdit(report: HumanRightsReport) {
@@ -104,6 +105,7 @@ export default function HumanRightsReportsAdmin() {
       year: report.year,
       url: report.url,
       description: report.description || "",
+      imageUrl: report.imageUrl || "",
       status: report.status,
       source: report.source,
     });
@@ -249,6 +251,20 @@ export default function HumanRightsReportsAdmin() {
                 />
               </div>
               <div>
+                <Label>Image URL (optional)</Label>
+                <Input
+                  value={form.imageUrl}
+                  onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                  data-testid="input-image-url"
+                />
+                {form.imageUrl && (
+                  <div className="mt-2 rounded-lg overflow-hidden border w-24 h-24">
+                    <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+              <div>
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                   <SelectTrigger data-testid="select-status">
@@ -301,6 +317,9 @@ export default function HumanRightsReportsAdmin() {
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/40 transition-colors group"
                     data-testid={`admin-report-${report.id}`}
                   >
+                    {report.imageUrl && (
+                      <img src={report.imageUrl} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
+                    )}
                     <span className="text-xs font-bold bg-muted px-2 py-1 rounded min-w-[52px] text-center shrink-0">
                       {report.year}
                     </span>

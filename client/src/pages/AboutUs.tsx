@@ -303,6 +303,9 @@ export default function AboutUs() {
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/60 transition-colors group"
                           data-testid={`link-hr-report-${orgIdx}-${rIdx}`}
                         >
+                          {report.imageUrl && (
+                            <img src={report.imageUrl} alt="" className="w-9 h-9 rounded object-cover shrink-0" />
+                          )}
                           <span className="text-xs font-bold bg-muted px-2 py-1 rounded min-w-[52px] text-center shrink-0">
                             {report.year}
                           </span>

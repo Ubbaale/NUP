@@ -634,6 +634,7 @@ export const humanRightsReports = pgTable("human_rights_reports", {
   year: text("year").notNull(),
   url: text("url").notNull(),
   description: text("description"),
+  imageUrl: text("image_url"),
   status: text("status").notNull().default("approved"),
   source: text("source").notNull().default("manual"),
   sortOrder: integer("sort_order").default(0),
