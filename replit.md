@@ -118,7 +118,10 @@ Chapter and region coordinators can manage their own information via self-servic
 - Membership number placeholder "NUP-XX-XXXXXX" shown before registration
 - White submit button on red footer with "People Power — Our Power" tagline
 - The MemberCard display component uses matching NUP card styling after registration
-- Database `members` table includes `sex` and `nationality` columns (added via ALTER TABLE)
+- Database `members` table includes `sex`, `nationality`, `mailingAddress`, `mailingCity`, `mailingState`, `mailingZip`, `mailingCountry` columns
+- Mailing address section on the card has a dashed border separator, MapPin icon, and explanatory text about physical card delivery
+- MemberCard display shows the full mailing address when provided, separated by a dashed line
+- All member data (including mailing address, chapter, region) is stored in the backend and retrievable via the Search tab
 
 ## External Dependencies
 - **PostgreSQL**: Primary database for all application data.

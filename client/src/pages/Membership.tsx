@@ -87,6 +87,11 @@ const registrationSchema = z.object({
   regionId: z.string().optional(),
   chapterId: z.string().optional(),
   membershipType: z.string().default("regular"),
+  mailingAddress: z.string().optional(),
+  mailingCity: z.string().optional(),
+  mailingState: z.string().optional(),
+  mailingZip: z.string().optional(),
+  mailingCountry: z.string().optional(),
   cardNumber: z.string().optional(),
 });
 
@@ -126,6 +131,11 @@ export default function Membership() {
       regionId: "",
       chapterId: "",
       membershipType: "regular",
+      mailingAddress: "",
+      mailingCity: "",
+      mailingState: "",
+      mailingZip: "",
+      mailingCountry: "",
       cardNumber: "",
     },
   });
@@ -352,6 +362,20 @@ export default function Membership() {
                 <p className="font-medium">{getChapterName(member.chapterId)}</p>
               </div>
             )}
+          </div>
+          {(member as any).mailingAddress && (
+            <div className="border-t border-dashed border-red-200 dark:border-red-900/30 pt-3 mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Mailing Address</p>
+              <p className="font-medium text-sm">
+                {(member as any).mailingAddress}
+                {(member as any).mailingCity && <>, {(member as any).mailingCity}</>}
+                {(member as any).mailingState && <>, {(member as any).mailingState}</>}
+                {(member as any).mailingZip && <> {(member as any).mailingZip}</>}
+                {(member as any).mailingCountry && <>, {(member as any).mailingCountry}</>}
+              </p>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3 text-sm">
             {member.joinedAt && (
               <div className="space-y-0.5">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Member Since</p>
@@ -661,6 +685,66 @@ export default function Membership() {
                               <FormMessage />
                             </FormItem>
                           )} />
+                        </div>
+
+                        <div className="pt-3 border-t border-dashed border-red-200 dark:border-red-900/30">
+                          <div className="flex items-center gap-2 mb-3">
+                            <MapPin className="w-4 h-4 text-red-600" />
+                            <span className="text-xs font-semibold text-red-600 uppercase tracking-wider">Mailing Address</span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mb-3">Provide your mailing address so we can send you a physical membership card</p>
+
+                          <FormField control={form.control} name="mailingAddress" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Street Address</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="123 Main St, Apt 4" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-address" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+
+                          <div className="grid grid-cols-2 gap-4 mt-3">
+                            <FormField control={form.control} name="mailingCity" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">City</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="City" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-city" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="mailingState" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">State / Province</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="State" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-state" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 mt-3">
+                            <FormField control={form.control} name="mailingZip" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Zip / Postal Code</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="12345" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-zip" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="mailingCountry" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Country</FormLabel>
+                                <FormControl>
+                                  <Input {...field} placeholder="Country" className="border-b-2 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-medium" data-testid="input-mailing-country" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
                         </div>
 
                         <div className="pt-2 space-y-3">
