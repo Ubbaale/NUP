@@ -39,6 +39,7 @@ import { Link } from "wouter";
 import type { Region, Chapter, Member } from "@shared/schema";
 import nupLogo from "@assets/national-unity-platform-nup-uganda-logo-png_seeklogo-547758_1774417367012.png";
 import peoplePowerLogo from "@assets/download_(5)_1774417367011.png";
+import presidentSignature from "@assets/image_1774419387376.png";
 
 const COUNTRIES = [
   "United States",
@@ -380,7 +381,7 @@ export default function Membership() {
                 <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
               </div>
               <div className="text-center">
-                <p className="text-blue-800 dark:text-blue-400 text-lg italic -mb-1" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>Robert Kyagulanyi</p>
+                <img src={presidentSignature} alt="Party President Signature" className="h-10 w-auto object-contain mx-auto -mb-1" />
                 <div className="border-b-2 border-gray-400 dark:border-gray-600 w-32 mb-1" />
                 <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
               </div>
@@ -752,7 +753,7 @@ export default function Membership() {
                               <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
                             </div>
                             <div className="text-center">
-                              <p className="text-blue-800 dark:text-blue-400 text-lg italic -mb-1" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>Robert Kyagulanyi</p>
+                              <img src={presidentSignature} alt="Party President Signature" className="h-10 w-auto object-contain mx-auto -mb-1" />
                               <div className="border-b-2 border-gray-400 dark:border-gray-600 w-32 mb-1" />
                               <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
                             </div>
