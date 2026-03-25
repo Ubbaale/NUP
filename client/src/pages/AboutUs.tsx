@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { SEO } from "@/components/SEO";
+import type { HumanRightsReport } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -57,68 +59,14 @@ const keyDiscussions = [
   },
 ];
 
-const humanRightsReports = [
-  {
-    org: "U.S. Department of State",
-    color: "bg-blue-600",
-    reports: [
-      { year: "2024", title: "Country Report on Human Rights Practices: Uganda", url: "https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/uganda/" },
-      { year: "2023", title: "Country Report on Human Rights Practices: Uganda", url: "https://www.state.gov/wp-content/uploads/2024/02/528267_UGANDA-2023-HUMAN-RIGHTS-REPORT.pdf" },
-      { year: "2022", title: "Country Report on Human Rights Practices: Uganda", url: "https://www.state.gov/reports/2022-country-reports-on-human-rights-practices/uganda/" },
-      { year: "2021", title: "Country Report on Human Rights Practices: Uganda", url: "https://www.state.gov/reports/2021-country-reports-on-human-rights-practices/uganda/" },
-      { year: "2020", title: "Country Report on Human Rights Practices: Uganda", url: "https://www.state.gov/reports/2020-country-reports-on-human-rights-practices/uganda/" },
-      { year: "2019", title: "Country Report on Human Rights Practices: Uganda", url: "https://2017-2021.state.gov/reports/2019-country-reports-on-human-rights-practices/uganda/index.html" },
-    ],
-  },
-  {
-    org: "Human Rights Watch",
-    color: "bg-green-700",
-    reports: [
-      { year: "2025", title: "World Report 2025: Uganda", url: "https://www.hrw.org/world-report/2025/country-chapters/uganda" },
-      { year: "2024", title: "World Report 2024: Uganda", url: "https://www.hrw.org/world-report/2024/country-chapters/uganda" },
-      { year: "2023", title: "World Report 2023: Uganda", url: "https://www.hrw.org/world-report/2023/country-chapters/uganda" },
-      { year: "2022", title: "World Report 2022: Uganda", url: "https://www.hrw.org/world-report/2022/country-chapters/uganda" },
-      { year: "2021", title: "World Report 2021: Uganda", url: "https://www.hrw.org/world-report/2021/country-chapters/uganda" },
-      { year: "2020", title: "World Report 2020: Uganda", url: "https://www.hrw.org/world-report/2020/country-chapters/uganda" },
-      { year: "2019", title: "World Report 2019: Uganda", url: "https://www.hrw.org/world-report/2019/country-chapters/uganda" },
-    ],
-  },
-  {
-    org: "Amnesty International",
-    color: "bg-yellow-600",
-    reports: [
-      { year: "2024/25", title: "Uganda: Human Rights Report", url: "https://www.amnesty.org/en/location/africa/east-africa-the-horn-and-great-lakes/uganda/report-uganda/" },
-      { year: "2023", title: "Uganda Country Profile", url: "https://www.amnestyusa.org/countries/uganda/" },
-    ],
-  },
-  {
-    org: "Freedom House",
-    color: "bg-purple-700",
-    reports: [
-      { year: "2025", title: "Freedom in the World: Uganda", url: "https://freedomhouse.org/country/uganda/freedom-world/2025" },
-      { year: "2024", title: "Freedom in the World: Uganda", url: "https://freedomhouse.org/country/uganda/freedom-world/2024" },
-      { year: "2023", title: "Freedom in the World: Uganda", url: "https://freedomhouse.org/country/uganda/freedom-world/2023" },
-      { year: "2022", title: "Freedom in the World: Uganda", url: "https://freedomhouse.org/country/uganda/freedom-world/2022" },
-      { year: "2021", title: "Freedom in the World: Uganda", url: "https://freedomhouse.org/country/uganda/freedom-world/2021" },
-      { year: "2020", title: "Freedom in the World: Uganda", url: "https://freedomhouse.org/country/uganda/freedom-world/2020" },
-      { year: "2019", title: "Freedom in the World: Uganda", url: "https://freedomhouse.org/country/uganda/freedom-world/2019" },
-    ],
-  },
-  {
-    org: "United Nations (OHCHR)",
-    color: "bg-sky-600",
-    reports: [
-      { year: "Ongoing", title: "OHCHR Uganda Country Page", url: "https://www.ohchr.org/en/countries/uganda" },
-    ],
-  },
-  {
-    org: "European Parliament",
-    color: "bg-indigo-600",
-    reports: [
-      { year: "2026", title: "Resolution on Human Rights Violations in Uganda", url: "https://www.europarl.europa.eu/news/en/press-room/20260205IPR33628/human-rights-violations-in-iran-turkiye-and-uganda" },
-    ],
-  },
-];
+const ORG_COLORS: Record<string, string> = {
+  "U.S. Department of State": "bg-blue-600",
+  "Human Rights Watch": "bg-green-700",
+  "Amnesty International": "bg-yellow-600",
+  "Freedom House": "bg-purple-700",
+  "United Nations (OHCHR)": "bg-sky-600",
+  "European Parliament": "bg-indigo-600",
+};
 
 function AccordionItem({ item, isExpanded, onToggle, testId }: { item: { title: string; description: string }; isExpanded: boolean; onToggle: () => void; testId: string }) {
   return (
@@ -148,6 +96,15 @@ function AccordionItem({ item, isExpanded, onToggle, testId }: { item: { title: 
 export default function AboutUs() {
   const [expandedAction, setExpandedAction] = useState<number | null>(null);
   const [expandedDiscussion, setExpandedDiscussion] = useState<number | null>(null);
+  const { data: dbReports = [] } = useQuery<HumanRightsReport[]>({
+    queryKey: ["/api/human-rights-reports"],
+  });
+
+  const groupedReports = dbReports.reduce<Record<string, HumanRightsReport[]>>((acc, r) => {
+    if (!acc[r.organization]) acc[r.organization] = [];
+    acc[r.organization].push(r);
+    return acc;
+  }, {});
 
   return (
     <div className="min-h-screen">
@@ -328,18 +285,18 @@ export default function AboutUs() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {humanRightsReports.map((org, orgIdx) => (
-              <motion.div key={org.org} {...fadeIn} transition={{ delay: orgIdx * 0.1 }}>
+            {Object.entries(groupedReports).map(([orgName, orgReports], orgIdx) => (
+              <motion.div key={orgName} {...fadeIn} transition={{ delay: orgIdx * 0.1 }}>
                 <Card className="h-full hover:shadow-lg transition-shadow" data-testid={`card-hr-org-${orgIdx}`}>
                   <CardContent className="pt-6 pb-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <span className={`w-3 h-3 rounded-full ${org.color} shrink-0`} />
-                      <h3 className="font-bold text-lg">{org.org}</h3>
+                      <span className={`w-3 h-3 rounded-full ${ORG_COLORS[orgName] || "bg-gray-500"} shrink-0`} />
+                      <h3 className="font-bold text-lg">{orgName}</h3>
                     </div>
                     <div className="space-y-2">
-                      {org.reports.map((report, rIdx) => (
+                      {orgReports.map((report, rIdx) => (
                         <a
-                          key={rIdx}
+                          key={report.id}
                           href={report.url}
                           target="_blank"
                           rel="noopener noreferrer"

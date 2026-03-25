@@ -626,3 +626,20 @@ export const fallenHeroes = pgTable("fallen_heroes", {
 export const insertFallenHeroSchema = createInsertSchema(fallenHeroes).omit({ id: true, createdAt: true });
 export type InsertFallenHero = z.infer<typeof insertFallenHeroSchema>;
 export type FallenHero = typeof fallenHeroes.$inferSelect;
+
+export const humanRightsReports = pgTable("human_rights_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organization: text("organization").notNull(),
+  title: text("title").notNull(),
+  year: text("year").notNull(),
+  url: text("url").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("approved"),
+  source: text("source").notNull().default("manual"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertHumanRightsReportSchema = createInsertSchema(humanRightsReports).omit({ id: true, createdAt: true });
+export type InsertHumanRightsReport = z.infer<typeof insertHumanRightsReportSchema>;
+export type HumanRightsReport = typeof humanRightsReports.$inferSelect;

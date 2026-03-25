@@ -148,6 +148,12 @@ const adminSections = [
     href: "/admin/fallen-heroes",
     icon: Flame,
   },
+  {
+    title: "Human Rights Reports",
+    description: "Manage and auto-discover reports from international organizations",
+    href: "/admin/human-rights-reports",
+    icon: FileText,
+  },
 ];
 
 export default function AdminDashboard() {

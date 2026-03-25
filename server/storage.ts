@@ -30,6 +30,7 @@ import {
   type ReturnRequest, type InsertReturnRequest, returnRequests,
   type GalleryPhoto, type InsertGalleryPhoto, galleryPhotos,
   type FallenHero, type InsertFallenHero, fallenHeroes,
+  type HumanRightsReport, type InsertHumanRightsReport, humanRightsReports,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -133,6 +134,16 @@ export interface IStorage {
   getFallenHero(id: string): Promise<FallenHero | undefined>;
   updateFallenHero(id: string, data: Partial<InsertFallenHero>): Promise<FallenHero | undefined>;
   deleteFallenHero(id: string): Promise<void>;
+
+  // Human Rights Reports
+  createHumanRightsReport(report: InsertHumanRightsReport): Promise<HumanRightsReport>;
+  getAllHumanRightsReports(): Promise<HumanRightsReport[]>;
+  getApprovedHumanRightsReports(): Promise<HumanRightsReport[]>;
+  getPendingHumanRightsReports(): Promise<HumanRightsReport[]>;
+  getHumanRightsReport(id: string): Promise<HumanRightsReport | undefined>;
+  getHumanRightsReportByUrl(url: string): Promise<HumanRightsReport | undefined>;
+  updateHumanRightsReport(id: string, data: Partial<InsertHumanRightsReport>): Promise<HumanRightsReport | undefined>;
+  deleteHumanRightsReport(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -602,6 +613,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFallenHero(id: string): Promise<void> {
     await db.delete(fallenHeroes).where(eq(fallenHeroes.id, id));
+  }
+
+  async createHumanRightsReport(report: InsertHumanRightsReport): Promise<HumanRightsReport> {
+    const [r] = await db.insert(humanRightsReports).values(report).returning();
+    return r;
+  }
+
+  async getAllHumanRightsReports(): Promise<HumanRightsReport[]> {
+    return db.select().from(humanRightsReports).orderBy(desc(humanRightsReports.year), asc(humanRightsReports.organization));
+  }
+
+  async getApprovedHumanRightsReports(): Promise<HumanRightsReport[]> {
+    return db.select().from(humanRightsReports).where(eq(humanRightsReports.status, "approved")).orderBy(desc(humanRightsReports.year), asc(humanRightsReports.organization));
+  }
+
+  async getPendingHumanRightsReports(): Promise<HumanRightsReport[]> {
+    return db.select().from(humanRightsReports).where(eq(humanRightsReports.status, "pending")).orderBy(desc(humanRightsReports.year));
+  }
+
+  async getHumanRightsReport(id: string): Promise<HumanRightsReport | undefined> {
+    const [r] = await db.select().from(humanRightsReports).where(eq(humanRightsReports.id, id));
+    return r;
+  }
+
+  async getHumanRightsReportByUrl(url: string): Promise<HumanRightsReport | undefined> {
+    const [r] = await db.select().from(humanRightsReports).where(eq(humanRightsReports.url, url));
+    return r;
+  }
+
+  async updateHumanRightsReport(id: string, data: Partial<InsertHumanRightsReport>): Promise<HumanRightsReport | undefined> {
+    const [r] = await db.update(humanRightsReports).set(data).where(eq(humanRightsReports.id, id)).returning();
+    return r;
+  }
+
+  async deleteHumanRightsReport(id: string): Promise<void> {
+    await db.delete(humanRightsReports).where(eq(humanRightsReports.id, id));
   }
 
   // Product Ratings

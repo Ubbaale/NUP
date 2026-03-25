@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema, insertGalleryPhotoSchema, insertFallenHeroSchema } from "@shared/schema";
+import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema, insertGalleryPhotoSchema, insertFallenHeroSchema, insertHumanRightsReportSchema } from "@shared/schema";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -202,6 +202,163 @@ const fundraiserPhotoUpload = multer({
   },
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+
+const RSS_FEEDS = [
+  {
+    org: "Human Rights Watch",
+    feedUrl: "https://www.hrw.org/feeds/uganda.xml",
+    baseUrl: "https://www.hrw.org",
+    matchPatterns: ["uganda"],
+  },
+  {
+    org: "Amnesty International",
+    feedUrl: "https://www.amnesty.org/en/latest/news/?country=uganda&format=rss",
+    baseUrl: "https://www.amnesty.org",
+    matchPatterns: ["uganda"],
+  },
+  {
+    org: "Freedom House",
+    feedUrl: "https://freedomhouse.org/countries/uganda/feed",
+    baseUrl: "https://freedomhouse.org",
+    matchPatterns: ["uganda"],
+  },
+];
+
+async function scanHumanRightsFeeds(): Promise<{ added: number; skipped: number; errors: string[] }> {
+  let added = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const feed of RSS_FEEDS) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const response = await fetch(feed.feedUrl, {
+        signal: controller.signal,
+        headers: { "User-Agent": "NUP-Diaspora-HRReports/1.0" },
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        errors.push(`${feed.org}: HTTP ${response.status}`);
+        continue;
+      }
+
+      const xml = await response.text();
+      const items = parseRssItems(xml);
+
+      for (const item of items) {
+        const isRelevant = feed.matchPatterns.some(
+          (p) =>
+            item.title.toLowerCase().includes(p) ||
+            item.description.toLowerCase().includes(p)
+        );
+        if (!isRelevant) continue;
+
+        const existing = await storage.getHumanRightsReportByUrl(item.link);
+        if (existing) {
+          skipped++;
+          continue;
+        }
+
+        const year = item.pubDate
+          ? new Date(item.pubDate).getFullYear().toString()
+          : new Date().getFullYear().toString();
+
+        await storage.createHumanRightsReport({
+          organization: feed.org,
+          title: item.title,
+          year,
+          url: item.link,
+          description: item.description.slice(0, 500),
+          status: "pending",
+          source: "auto-feed",
+          sortOrder: 0,
+        });
+        added++;
+      }
+    } catch (err: any) {
+      errors.push(`${feed.org}: ${err.message}`);
+    }
+  }
+
+  return { added, skipped, errors };
+}
+
+function parseRssItems(xml: string): Array<{ title: string; link: string; description: string; pubDate: string }> {
+  const items: Array<{ title: string; link: string; description: string; pubDate: string }> = [];
+  const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null) {
+    const content = match[1];
+    const title = (content.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i) || [])[1]?.trim() || "";
+    const link = (content.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i) || [])[1]?.trim() || "";
+    const description = (content.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i) || [])[1]?.trim() || "";
+    const pubDate = (content.match(/<pubDate>([\s\S]*?)<\/pubDate>/i) || [])[1]?.trim() || "";
+    if (title && link) {
+      items.push({ title, link, description, pubDate });
+    }
+  }
+  return items;
+}
+
+async function seedHumanRightsReports() {
+  const existing = await storage.getAllHumanRightsReports();
+  if (existing.length > 0) return;
+
+  const seeds = [
+    { organization: "U.S. Department of State", title: "Country Report on Human Rights Practices: Uganda", year: "2024", url: "https://www.state.gov/reports/2024-country-reports-on-human-rights-practices/uganda/", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "U.S. Department of State", title: "Country Report on Human Rights Practices: Uganda", year: "2023", url: "https://www.state.gov/wp-content/uploads/2024/02/528267_UGANDA-2023-HUMAN-RIGHTS-REPORT.pdf", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "U.S. Department of State", title: "Country Report on Human Rights Practices: Uganda", year: "2022", url: "https://www.state.gov/reports/2022-country-reports-on-human-rights-practices/uganda/", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "U.S. Department of State", title: "Country Report on Human Rights Practices: Uganda", year: "2021", url: "https://www.state.gov/reports/2021-country-reports-on-human-rights-practices/uganda/", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "U.S. Department of State", title: "Country Report on Human Rights Practices: Uganda", year: "2020", url: "https://www.state.gov/reports/2020-country-reports-on-human-rights-practices/uganda/", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "U.S. Department of State", title: "Country Report on Human Rights Practices: Uganda", year: "2019", url: "https://2017-2021.state.gov/reports/2019-country-reports-on-human-rights-practices/uganda/index.html", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Human Rights Watch", title: "World Report 2025: Uganda", year: "2025", url: "https://www.hrw.org/world-report/2025/country-chapters/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Human Rights Watch", title: "World Report 2024: Uganda", year: "2024", url: "https://www.hrw.org/world-report/2024/country-chapters/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Human Rights Watch", title: "World Report 2023: Uganda", year: "2023", url: "https://www.hrw.org/world-report/2023/country-chapters/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Human Rights Watch", title: "World Report 2022: Uganda", year: "2022", url: "https://www.hrw.org/world-report/2022/country-chapters/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Human Rights Watch", title: "World Report 2021: Uganda", year: "2021", url: "https://www.hrw.org/world-report/2021/country-chapters/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Human Rights Watch", title: "World Report 2020: Uganda", year: "2020", url: "https://www.hrw.org/world-report/2020/country-chapters/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Human Rights Watch", title: "World Report 2019: Uganda", year: "2019", url: "https://www.hrw.org/world-report/2019/country-chapters/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Amnesty International", title: "Uganda: Human Rights Report", year: "2024/25", url: "https://www.amnesty.org/en/location/africa/east-africa-the-horn-and-great-lakes/uganda/report-uganda/", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Amnesty International", title: "Uganda Country Profile", year: "2023", url: "https://www.amnestyusa.org/countries/uganda/", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Freedom House", title: "Freedom in the World: Uganda", year: "2025", url: "https://freedomhouse.org/country/uganda/freedom-world/2025", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Freedom House", title: "Freedom in the World: Uganda", year: "2024", url: "https://freedomhouse.org/country/uganda/freedom-world/2024", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Freedom House", title: "Freedom in the World: Uganda", year: "2023", url: "https://freedomhouse.org/country/uganda/freedom-world/2023", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Freedom House", title: "Freedom in the World: Uganda", year: "2022", url: "https://freedomhouse.org/country/uganda/freedom-world/2022", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Freedom House", title: "Freedom in the World: Uganda", year: "2021", url: "https://freedomhouse.org/country/uganda/freedom-world/2021", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Freedom House", title: "Freedom in the World: Uganda", year: "2020", url: "https://freedomhouse.org/country/uganda/freedom-world/2020", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "Freedom House", title: "Freedom in the World: Uganda", year: "2019", url: "https://freedomhouse.org/country/uganda/freedom-world/2019", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "United Nations (OHCHR)", title: "OHCHR Uganda Country Page", year: "Ongoing", url: "https://www.ohchr.org/en/countries/uganda", status: "approved", source: "manual", sortOrder: 0 },
+    { organization: "European Parliament", title: "Resolution on Human Rights Violations in Uganda", year: "2026", url: "https://www.europarl.europa.eu/news/en/press-room/20260205IPR33628/human-rights-violations-in-iran-turkiye-and-uganda", status: "approved", source: "manual", sortOrder: 0 },
+  ];
+
+  for (const seed of seeds) {
+    await storage.createHumanRightsReport(seed);
+  }
+  console.log(`Seeded ${seeds.length} human rights reports`);
+}
+
+let feedScanInterval: ReturnType<typeof setInterval> | null = null;
+
+function startAutoFeedScanner() {
+  seedHumanRightsReports().catch(console.error);
+
+  scanHumanRightsFeeds()
+    .then((r) => console.log(`Initial feed scan: ${r.added} new, ${r.skipped} skipped, ${r.errors.length} errors`))
+    .catch(console.error);
+
+  feedScanInterval = setInterval(async () => {
+    try {
+      const result = await scanHumanRightsFeeds();
+      if (result.added > 0) {
+        console.log(`Auto feed scan: ${result.added} new reports found`);
+      }
+    } catch (err) {
+      console.error("Auto feed scan error:", err);
+    }
+  }, 24 * 60 * 60 * 1000);
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -1484,6 +1641,92 @@ export async function registerRoutes(
     }
   });
 
+  // ===== HUMAN RIGHTS REPORTS =====
+  app.get("/api/human-rights-reports", async (req, res) => {
+    try {
+      const reports = await storage.getApprovedHumanRightsReports();
+      res.json(reports);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch reports" });
+    }
+  });
+
+  app.get("/api/human-rights-reports/all", requireAdmin, async (req, res) => {
+    try {
+      const reports = await storage.getAllHumanRightsReports();
+      res.json(reports);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch reports" });
+    }
+  });
+
+  app.get("/api/human-rights-reports/pending", requireAdmin, async (req, res) => {
+    try {
+      const reports = await storage.getPendingHumanRightsReports();
+      res.json(reports);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch pending reports" });
+    }
+  });
+
+  app.post("/api/human-rights-reports", requireAdmin, async (req, res) => {
+    try {
+      const data = insertHumanRightsReportSchema.parse(req.body);
+      const report = await storage.createHumanRightsReport(data);
+      res.json(report);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create report" });
+    }
+  });
+
+  app.patch("/api/human-rights-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.updateHumanRightsReport(req.params.id, req.body);
+      if (!report) return res.status(404).json({ error: "Not found" });
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update report" });
+    }
+  });
+
+  app.delete("/api/human-rights-reports/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteHumanRightsReport(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete report" });
+    }
+  });
+
+  app.post("/api/human-rights-reports/scan-feeds", requireAdmin, async (req, res) => {
+    try {
+      const results = await scanHumanRightsFeeds();
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Feed scan failed" });
+    }
+  });
+
+  app.post("/api/human-rights-reports/approve/:id", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.updateHumanRightsReport(req.params.id, { status: "approved" });
+      if (!report) return res.status(404).json({ error: "Not found" });
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to approve report" });
+    }
+  });
+
+  app.post("/api/human-rights-reports/reject/:id", requireAdmin, async (req, res) => {
+    try {
+      const report = await storage.updateHumanRightsReport(req.params.id, { status: "rejected" });
+      if (!report) return res.status(404).json({ error: "Not found" });
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reject report" });
+    }
+  });
+
   // ===== LEADER IMAGES =====
   app.use("/uploads/leaders", (await import("express")).default.static(path.join(process.cwd(), "uploads", "leaders")));
   app.use("/uploads/products", (await import("express")).default.static(path.join(process.cwd(), "uploads", "products")));
@@ -2544,6 +2787,8 @@ export async function registerRoutes(
       res.status(500).json({ error: error.message || "Failed to send newsletter" });
     }
   });
+
+  startAutoFeedScanner();
 
   app.get("/api/manifesto/download", (req, res) => {
     const filePath = path.join(process.cwd(), "uploads", "documents", "NUP-Manifesto-2026-2031.pdf");
