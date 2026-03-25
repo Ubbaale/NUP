@@ -333,9 +333,13 @@ export default function Membership() {
                 {showEmail ? member.email : "••••@••••"}
               </p>
             </div>
-            <div className="pt-3 flex items-end gap-0">
-              <svg viewBox="0 0 60 50" className="w-12 h-10"><polygon points="5,45 30,5 30,45" fill="#1E3A5F" /></svg>
-              <svg viewBox="0 0 80 60" className="w-20 h-14 -ml-2"><polygon points="0,55 40,0 80,55" fill="#DC2626" /></svg>
+            <div className="pt-3">
+              <svg viewBox="0 0 200 80" className="w-full max-w-[260px] h-auto">
+                <polygon points="0,10 40,40 0,70" fill="#1E3A5F" />
+                <polygon points="55,80 55,30 105,80" fill="#1E3A5F" />
+                <polygon points="95,0 175,80 95,80" fill="#DC2626" />
+                <polygon points="105,0 175,0 175,70" fill="#DC2626" />
+              </svg>
             </div>
           </div>
 
@@ -592,9 +596,13 @@ export default function Membership() {
                             )} />
                           </div>
 
-                          <div className="pt-3 flex items-end gap-0">
-                            <svg viewBox="0 0 60 50" className="w-12 h-10"><polygon points="5,45 30,5 30,45" fill="#1E3A5F" /></svg>
-                            <svg viewBox="0 0 80 60" className="w-20 h-14 -ml-2"><polygon points="0,55 40,0 80,55" fill="#DC2626" /></svg>
+                          <div className="pt-3">
+                            <svg viewBox="0 0 200 80" className="w-full max-w-[260px] h-auto">
+                              <polygon points="0,10 40,40 0,70" fill="#1E3A5F" />
+                              <polygon points="55,80 55,30 105,80" fill="#1E3A5F" />
+                              <polygon points="95,0 175,80 95,80" fill="#DC2626" />
+                              <polygon points="105,0 175,0 175,70" fill="#DC2626" />
+                            </svg>
                           </div>
                         </div>
 
