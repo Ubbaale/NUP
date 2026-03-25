@@ -37,8 +37,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { Region, Chapter, Member } from "@shared/schema";
-import nupLogo from "@/assets/images/nup-official-logo.png";
-import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
+import nupLogo from "@assets/national-unity-platform-nup-uganda-logo-png_seeklogo-547758_1774417367012.png";
+import peoplePowerLogo from "@assets/download_(5)_1774417367011.png";
 
 const COUNTRIES = [
   "United States",
@@ -279,15 +279,18 @@ export default function Membership() {
         <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-5 py-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src={nupLogo} alt="NUP" className="w-8 h-8 rounded-full border border-white/30 object-cover bg-white" />
+              <img src={nupLogo} alt="NUP" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
               <div>
                 <p className="text-white font-bold text-sm tracking-wide uppercase">National Unity Platform</p>
                 <p className="text-red-200 text-[9px] tracking-widest uppercase">Diaspora Membership Card</p>
               </div>
             </div>
-            <Badge className={member.isActive ? "bg-white text-red-700 hover:bg-white/90 text-xs" : "bg-white/20 text-white text-xs"}>
-              {member.isActive ? "Active" : "Inactive"}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={member.isActive ? "bg-white text-red-700 hover:bg-white/90 text-xs" : "bg-white/20 text-white text-xs"}>
+                {member.isActive ? "Active" : "Inactive"}
+              </Badge>
+              <img src={peoplePowerLogo} alt="People Power" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
+            </div>
           </div>
         </div>
 
@@ -333,8 +336,8 @@ export default function Membership() {
               </p>
             </div>
             <div className="pt-2 flex items-end gap-3">
-              <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#DC2626" /></svg>
-              <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#1E3A5F" /></svg>
+              <img src={peoplePowerLogo} alt="People Power" className="w-14 h-14 object-contain" />
+              <img src={nupLogo} alt="NUP" className="w-14 h-14 object-contain" />
             </div>
           </div>
 
@@ -494,13 +497,13 @@ export default function Membership() {
                       <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 px-5 py-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <img src={nupLogo} alt="NUP" className="w-8 h-8 rounded-full border border-white/30 object-cover bg-white" />
+                            <img src={nupLogo} alt="NUP" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
                             <div>
                               <p className="text-white font-bold text-sm tracking-wide uppercase">National Unity Platform</p>
                               <p className="text-red-200 text-[9px] tracking-widest uppercase">Diaspora Membership Registration</p>
                             </div>
                           </div>
-                          <img src={peoplePowerLogo} alt="People Power" className="w-9 h-9 rounded-full border border-white/30 object-cover" />
+                          <img src={peoplePowerLogo} alt="People Power" className="w-10 h-10 rounded-full border-2 border-white/40 object-contain bg-white p-0.5" />
                         </div>
                       </div>
 
@@ -594,8 +597,8 @@ export default function Membership() {
                           </div>
 
                           <div className="pt-2 flex items-end gap-3">
-                            <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#DC2626" /></svg>
-                            <svg viewBox="0 0 40 40" className="w-10 h-10"><polygon points="5,35 20,5 35,35" fill="#1E3A5F" /></svg>
+                            <img src={peoplePowerLogo} alt="People Power" className="w-14 h-14 object-contain" />
+                            <img src={nupLogo} alt="NUP" className="w-14 h-14 object-contain" />
                           </div>
                         </div>
 
