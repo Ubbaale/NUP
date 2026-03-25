@@ -380,7 +380,8 @@ export default function Membership() {
                 <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
               </div>
               <div className="text-center">
-                <div className="border-b-2 border-gray-400 dark:border-gray-600 w-20 mb-1" />
+                <p className="text-blue-800 dark:text-blue-400 text-lg italic -mb-1" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>Robert Kyagulanyi</p>
+                <div className="border-b-2 border-gray-400 dark:border-gray-600 w-32 mb-1" />
                 <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
               </div>
             </div>
@@ -751,7 +752,8 @@ export default function Membership() {
                               <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Holder's Signature</span>
                             </div>
                             <div className="text-center">
-                              <div className="border-b-2 border-gray-400 dark:border-gray-600 w-20 mb-1" />
+                              <p className="text-blue-800 dark:text-blue-400 text-lg italic -mb-1" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>Robert Kyagulanyi</p>
+                              <div className="border-b-2 border-gray-400 dark:border-gray-600 w-32 mb-1" />
                               <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Party President</span>
                             </div>
                           </div>
