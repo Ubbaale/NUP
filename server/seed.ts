@@ -597,6 +597,104 @@ async function seedChapterImages() {
   }
 }
 
+async function upsertConferences() {
+  const convention2026Data = {
+    title: "NUP Diaspora Convention 2026",
+    slug: "convention-2026",
+    year: 2026,
+    location: "Hilton Los Angeles Airport Hotel, 5711 West Century Boulevard, Los Angeles, CA 90045",
+    city: "Los Angeles",
+    country: "USA",
+    startDate: new Date("2026-08-13"),
+    endDate: new Date("2026-08-17"),
+    description: "The National Unity Platform (NUP) invites Ugandans in the Diaspora and friends of Uganda to the NUP Diaspora Convention 2026, taking place in Los Angeles, California. This historic gathering comes at a defining moment as Uganda approaches a pivotal national election. The convention will bring together visionary leaders, activists, and partners from across the globe to reflect, strategize, and strengthen our shared mission to build a New Uganda founded on democracy, justice, and good governance.",
+    theme: "United for a Free Uganda",
+    registrationUrl: "https://buy.stripe.com/fZucN60BC3SKcLR9eYaR20j",
+    isUpcoming: true,
+    speakers: JSON.stringify(["President Robert Ssentamu Kyagulanyi (Bobi Wine)", "Danny K Davis", "Professor David Ssejinja", "Professor James Powell", "Professor Tim Szczepanski", "Katie Lowe"]),
+    metadata: JSON.stringify({
+      earlyBirdPrice: "280",
+      installmentPrice: "150",
+      installmentUrl: "https://buy.stripe.com/bIYaIp1i59JX7Vm6ov",
+      boatCruisePrice: "220",
+      boatCruiseUrl: "https://buy.stripe.com/9AQ4k10e1cW96Ri14e",
+      hotelBookingUrl: "https://book.passkey.com/go/NUPD2026",
+      hotelName: "Hilton Los Angeles Airport Hotel",
+      hotelAddress: "5711 West Century Boulevard, Los Angeles, CA 90045",
+      hotelPhone: "(310) 410-4000",
+      hotelRate1: "179",
+      hotelRate1Desc: "Standard King / 2 Doubles — Breakfast for one included",
+      hotelRate2: "189",
+      hotelRate2Desc: "Standard King / 2 Doubles — Breakfast for two included",
+      contactEmail: "conventions@diasporanup.org",
+      contactEmail2: "info@diasporanup.org",
+      contactPhone: "651 278 6724",
+      conventionChairman: "Joseph William Ssenkumba",
+      altPaymentName: "Elvis Balikalaba",
+      altPaymentAddress: "656 Weaver Blvd, Anoka, MN 55303",
+      altPaymentPhone: "+1 651 208 3354",
+      altPaymentEmail: "elvis100b@gmail.com",
+      schedule: [
+        {
+          day: "Thursday, August 13th",
+          title: "Arrival & Leadership",
+          events: [
+            { time: "8:00 AM – 2:00 PM", title: "Arrival of Delegates", desc: "Offsite meetings for Ugandan delegates" },
+            { time: "12:00 PM – 1:00 PM", title: "Convention Leadership Meetings", desc: "NUP Leadership and Convention organizing committee meeting" },
+            { time: "2:00 PM – 6:00 PM", title: "Empowering Leadership Training", desc: "Leadership training session" },
+            { time: "7:00 PM – 11:00 PM", title: "Patriot's Day Cup", desc: "Soccer game between Chicago Cranes and NUP Diaspora, followed by Picnic/BBQ" }
+          ]
+        },
+        {
+          day: "Friday, August 14th",
+          title: "Engaging the World for Democracy",
+          events: [
+            { time: "8:00 AM – 11:00 PM", title: "Delegate Registration", desc: "Registration Desk, 2nd floor" },
+            { time: "8:00 AM – 12:00 PM", title: "March for Democracy", desc: "Rally for Democracy Demonstration/Protest" },
+            { time: "10:00 AM – 12:00 PM", title: "United Forces for Change", desc: "Leaders Meeting" },
+            { time: "12:30 PM – 1:30 PM", title: "Muslim Prayer Session", desc: "" },
+            { time: "1:30 PM – 6:00 PM", title: "Opening Ceremony", desc: "Envisioning A New Uganda — Presentation of Papers" },
+            { time: "7:00 PM – 10:30 PM", title: "Celebrating Women's Excellence", desc: "Celebrating Women's Excellence and Achievements" },
+            { time: "10:30 PM – 1:00 AM", title: "Meet and Greet Cocktail", desc: "Fostering Connections" }
+          ]
+        },
+        {
+          day: "Saturday, August 15th",
+          title: "Building Bridges for Progress",
+          events: [
+            { time: "8:00 AM – 5:00 PM", title: "Delegate Registration", desc: "" },
+            { time: "8:30 AM – 9:30 AM", title: "General Session", desc: "Welcome remarks and Introduction of the Theme" },
+            { time: "9:30 AM – 12:00 PM", title: "Distinguished Speakers", desc: "Presentation by Panelists" },
+            { time: "10:00 AM – 12:00 PM", title: "Youth Session", desc: "Empowering the Youth" },
+            { time: "1:00 PM – 3:30 PM", title: "Ugandan Delegates", desc: "Our Collective Vision — Presentation by Ugandan Delegates" },
+            { time: "4:00 PM", title: "Departure for Boat Cruise", desc: "Buses depart from the Hotel" },
+            { time: "7:00 PM – 11:00 PM", title: "Boat Cruise", desc: "Heroes Celebration on Waters — Dinner and Entertainment" }
+          ]
+        },
+        {
+          day: "Sunday, August 16th",
+          title: "Solidarity & Celebration",
+          events: [
+            { time: "8:00 AM", title: "Patriots Day 2K Run", desc: "Supporting the Victims" },
+            { time: "10:00 AM – 12:00 PM", title: "Interdenominational Prayer", desc: "Prayers for the Victims and Patriots" },
+            { time: "1:00 PM – 3:00 PM", title: "Annual General Meeting", desc: "Solidifying Our Path" },
+            { time: "4:00 PM – 2:00 AM", title: "Closing Ceremony & Banquet", desc: "Culminating the Convention" }
+          ]
+        }
+      ]
+    }),
+  };
+
+  const existing = await storage.getConferenceBySlug("convention-2026");
+  if (existing) {
+    await storage.updateConference(existing.id, convention2026Data);
+    console.log("Updated convention-2026 with latest data");
+  } else {
+    await storage.createConference(convention2026Data);
+    console.log("Created convention-2026");
+  }
+}
+
 export async function seedDatabase() {
   try {
     const existingRegions = await storage.getAllRegions();
@@ -606,6 +704,7 @@ export async function seedDatabase() {
       await seedMissingProductImages();
       await seedChapterImages();
       await seedMissingCampaigns();
+      await upsertConferences();
       console.log("Database already seeded, skipping...");
       return;
     }
