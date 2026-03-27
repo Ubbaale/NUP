@@ -1872,7 +1872,7 @@ export async function registerRoutes(
         fileName: songFile.originalname,
         fileUrl: `/uploads/songs/${songFile.filename}`,
         description: description || null,
-        minimumDonation: minimumDonation || "20.00",
+        minimumDonation: minimumDonation || "200.00",
         price: price || "5.00",
         isFree: isFree === "on" || isFree === "true" || isFree === true,
         duration: null,
@@ -1933,8 +1933,8 @@ export async function registerRoutes(
       if (!donorName || !email || !amount) {
         return res.status(400).json({ error: "Name, email, and amount are required" });
       }
-      if (Number(amount) < 20) {
-        return res.status(400).json({ error: "Minimum donation for song access is $20" });
+      if (Number(amount) < 200) {
+        return res.status(400).json({ error: "Minimum donation for song access is $200" });
       }
       const donation = await storage.createDonation({
         donorName,

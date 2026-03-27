@@ -324,7 +324,7 @@ export const revolutionarySongs = pgTable("revolutionary_songs", {
   duration: integer("duration"),
   coverImageUrl: text("cover_image_url"),
   description: text("description"),
-  minimumDonation: decimal("minimum_donation", { precision: 10, scale: 2 }).notNull().default("20.00"),
+  minimumDonation: decimal("minimum_donation", { precision: 10, scale: 2 }).notNull().default("200.00"),
   price: decimal("price", { precision: 10, scale: 2 }).default("5.00"),
   isFree: boolean("is_free").notNull().default(false),
   downloadCount: integer("download_count").notNull().default(0),

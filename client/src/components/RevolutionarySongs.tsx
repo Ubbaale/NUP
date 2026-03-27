@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import type { RevolutionarySong } from "@shared/schema";
 
-const ALL_ACCESS_AMOUNTS = [20, 30, 50, 100];
+const ALL_ACCESS_AMOUNTS = [200, 300, 500, 1000];
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return "";
@@ -39,7 +39,7 @@ export default function RevolutionarySongs() {
 
   const [showAllAccessModal, setShowAllAccessModal] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState<string | null>(null);
-  const [donationAmount, setDonationAmount] = useState("20");
+  const [donationAmount, setDonationAmount] = useState("200");
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [donating, setDonating] = useState(false);
@@ -90,8 +90,8 @@ export default function RevolutionarySongs() {
       toast({ title: "Please fill all fields", variant: "destructive" });
       return;
     }
-    if (Number(donationAmount) < 20) {
-      toast({ title: "Minimum donation is $20", variant: "destructive" });
+    if (Number(donationAmount) < 200) {
+      toast({ title: "Minimum donation is $200", variant: "destructive" });
       return;
     }
     setDonating(true);
@@ -228,7 +228,7 @@ export default function RevolutionarySongs() {
           <h2 className="text-3xl font-bold mb-3">Songs of the Revolution</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Listen to and download powerful revolutionary songs. Some songs are free — others can be
-            purchased individually or unlocked all at once with a donation of $20 or more.
+            purchased individually or unlocked all at once with a donation of $200 or more.
           </p>
         </div>
 
@@ -257,7 +257,7 @@ export default function RevolutionarySongs() {
                 <div className="flex-1">
                   <h3 className="font-bold text-lg">Unlock All Songs</h3>
                   <p className="text-sm text-muted-foreground">
-                    Donate $20 or more to get full access to all songs for 1 month.
+                    Donate $200 or more to get full access to all songs for 1 month.
                     Or purchase individual songs below.
                   </p>
                 </div>
@@ -421,7 +421,7 @@ export default function RevolutionarySongs() {
               <Heart className="w-5 h-5 text-primary" /> Unlock All Songs
             </DialogTitle>
             <DialogDescription>
-              Donate $20 or more to unlock full access to all songs for 1 month.
+              Donate $200 or more to unlock full access to all songs for 1 month.
               Play and download every song, including new ones added during your access period.
             </DialogDescription>
           </DialogHeader>
@@ -446,11 +446,11 @@ export default function RevolutionarySongs() {
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="number"
-                  placeholder="Custom amount (min $20)"
+                  placeholder="Custom amount (min $200)"
                   value={donationAmount}
                   onChange={e => setDonationAmount(e.target.value)}
                   className="pl-10"
-                  min="20"
+                  min="200"
                   data-testid="input-song-donate-amount"
                 />
               </div>
@@ -484,7 +484,7 @@ export default function RevolutionarySongs() {
             <Button
               className="w-full"
               size="lg"
-              disabled={donating || Number(donationAmount) < 20}
+              disabled={donating || Number(donationAmount) < 200}
               onClick={handleAllAccessDonate}
               data-testid="button-confirm-song-donation"
             >
@@ -552,7 +552,7 @@ export default function RevolutionarySongs() {
             </div>
             <Separator />
             <div className="text-xs text-muted-foreground text-center">
-              Or <button className="text-primary underline" onClick={() => { setShowPurchaseModal(null); setShowAllAccessModal(true); }} data-testid="link-unlock-all">donate $20+ to unlock ALL songs</button>
+              Or <button className="text-primary underline" onClick={() => { setShowPurchaseModal(null); setShowAllAccessModal(true); }} data-testid="link-unlock-all">donate $200+ to unlock ALL songs</button>
             </div>
             <Button
               className="w-full"
