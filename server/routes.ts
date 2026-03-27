@@ -59,6 +59,32 @@ const coverUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+const songWithCoverUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const subdir = file.fieldname === "songFile" ? "songs" : "covers";
+      const dir = path.join(process.cwd(), "uploads", subdir);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === "songFile") {
+      const allowed = [".mp4", ".mp3", ".m4a", ".wav", ".ogg", ".aac"];
+      const ext = path.extname(file.originalname).toLowerCase();
+      if (allowed.includes(ext)) cb(null, true);
+      else cb(new Error("Only audio/video files (MP4, MP3, M4A, WAV, OGG, AAC) are allowed"));
+    } else {
+      cb(null, true);
+    }
+  },
+  limits: { fileSize: 100 * 1024 * 1024 },
+});
+
 const productImageUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -1825,9 +1851,15 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/songs", requireAdmin, songUpload.single("songFile"), async (req, res) => {
+  app.post("/api/songs", requireAdmin, songWithCoverUpload.fields([
+    { name: "songFile", maxCount: 1 },
+    { name: "coverImage", maxCount: 1 },
+  ]), async (req, res) => {
     try {
-      if (!req.file) {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+      const songFile = files?.songFile?.[0];
+      const coverFile = files?.coverImage?.[0];
+      if (!songFile) {
         return res.status(400).json({ error: "Song file is required" });
       }
       const { title, artist, description, minimumDonation, price, isFree } = req.body;
@@ -1837,14 +1869,14 @@ export async function registerRoutes(
       const song = await storage.createSong({
         title,
         artist,
-        fileName: req.file.originalname,
-        fileUrl: `/uploads/songs/${req.file.filename}`,
+        fileName: songFile.originalname,
+        fileUrl: `/uploads/songs/${songFile.filename}`,
         description: description || null,
         minimumDonation: minimumDonation || "20.00",
         price: price || "5.00",
         isFree: isFree === "on" || isFree === "true" || isFree === true,
         duration: null,
-        coverImageUrl: null,
+        coverImageUrl: coverFile ? `/uploads/covers/${coverFile.filename}` : null,
         isActive: true,
       });
       res.status(201).json(song);
