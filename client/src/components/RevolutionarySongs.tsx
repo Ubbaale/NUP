@@ -269,7 +269,7 @@ export default function RevolutionarySongs() {
           </Card>
         )}
 
-        {hasSongs && <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {hasSongs && <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
           {songs.map((song) => {
             const isPlaying = currentlyPlaying === song.id;
             const progress = playProgress[song.id] || 0;
@@ -280,12 +280,12 @@ export default function RevolutionarySongs() {
             return (
               <Card key={song.id} className={`transition-all overflow-hidden ${isPlaying ? "border-primary shadow-md ring-1 ring-primary/30" : "hover:shadow-md"}`} data-testid={`song-card-${song.id}`}>
                 <CardContent className="p-0">
-                  <div className="aspect-square bg-muted relative group">
+                  <div className="aspect-[4/3] bg-muted relative group">
                     {song.coverImageUrl ? (
                       <img src={song.coverImageUrl} alt={song.title} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                        <Music className="w-12 h-12 text-primary/30" />
+                        <Music className="w-10 h-10 text-primary/30" />
                       </div>
                     )}
                     <button
@@ -293,7 +293,7 @@ export default function RevolutionarySongs() {
                       className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/30 transition-all"
                       data-testid={`button-play-${song.id}`}
                     >
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                         accessible
                           ? isPlaying
                             ? "bg-primary text-primary-foreground shadow-lg scale-100"
