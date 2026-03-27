@@ -380,6 +380,40 @@ export default function RevolutionarySongs() {
             </Badge>
           </div>
         )}
+
+        <div className="mt-10 border-t pt-8 space-y-6" data-testid="section-songs-legal">
+            <div className="bg-muted/50 rounded-lg p-6 space-y-3">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Music className="w-4 h-4 text-primary" />
+                Artist Attribution & Rights
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                All songs featured on this platform are shared with the knowledge and permission of the
+                respective artists. NUP Diaspora acknowledges and credits each artist for their creative
+                contributions to the People Power movement. The rights to all musical works remain with
+                their original creators.
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                If you are an artist whose work appears here and you wish to discuss terms, request
+                modifications, or have your music removed, please contact us at{" "}
+                <a href="mailto:media@diasporanup.org" className="text-primary underline">media@diasporanup.org</a>.
+              </p>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-6 space-y-3">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Lock className="w-4 h-4 text-primary" />
+                Terms of Use
+              </h3>
+              <ul className="text-xs text-muted-foreground leading-relaxed space-y-2">
+                <li>Songs purchased or unlocked via donation are for <strong>personal, non-commercial use only</strong>.</li>
+                <li>Redistribution, resale, or public broadcast of downloaded songs is prohibited without written consent from the artist.</li>
+                <li>All-access passes and individual purchases grant access for <strong>one month</strong> from the date of transaction.</li>
+                <li>Donations and purchases support the NUP Diaspora movement and are non-refundable.</li>
+                <li>Ringtone formats (MP3, M4R) are provided as a convenience for personal device use only.</li>
+              </ul>
+            </div>
+          </div>
       </div>
 
       <Dialog open={showAllAccessModal} onOpenChange={setShowAllAccessModal}>
