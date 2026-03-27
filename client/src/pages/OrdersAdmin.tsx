@@ -11,8 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Truck, Eye, ArrowLeft, RotateCcw, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
-import type { Order } from "@shared/schema";
+import { Package, Search, Truck, Eye, ArrowLeft, RotateCcw, CheckCircle, XCircle, Clock, AlertTriangle, FlaskConical, ShieldCheck, ClipboardCheck } from "lucide-react";
+import type { Order, Product } from "@shared/schema";
 
 interface ReturnRequest {
   id: string;
@@ -59,9 +59,20 @@ export default function OrdersAdmin() {
   const [editCarrier, setEditCarrier] = useState("");
   const [editEstDelivery, setEditEstDelivery] = useState("");
   const [returnAdminNotes, setReturnAdminNotes] = useState("");
+  const [showTestOrderDialog, setShowTestOrderDialog] = useState(false);
+  const [testOrderProductId, setTestOrderProductId] = useState("");
+  const [testOrderNotes, setTestOrderNotes] = useState("");
+  const [testOrderQty, setTestOrderQty] = useState("1");
+  const [testOrderSize, setTestOrderSize] = useState("");
+  const [qualityNotesEdit, setQualityNotesEdit] = useState("");
+  const [showTestOnly, setShowTestOnly] = useState(false);
 
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ["/api/admin/orders"],
+  });
+
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
   });
 
   const { data: returnRequests = [] } = useQuery<ReturnRequest[]>({
@@ -101,13 +112,45 @@ export default function OrdersAdmin() {
     },
   });
 
+  const createTestOrderMutation = useMutation({
+    mutationFn: async (data: { items: any[]; notes: string }) => {
+      return apiRequest("POST", "/api/admin/test-order", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
+      toast({ title: "Test order created", description: "Sample order placed for quality verification." });
+      setShowTestOrderDialog(false);
+      setTestOrderProductId("");
+      setTestOrderNotes("");
+      setTestOrderQty("1");
+      setTestOrderSize("");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create test order.", variant: "destructive" });
+    },
+  });
+
+  const updateQualityMutation = useMutation({
+    mutationFn: async ({ id, qualityNotes, qualityChecked }: { id: string; qualityNotes: string; qualityChecked: boolean }) => {
+      return apiRequest("PATCH", `/api/admin/orders/${id}/quality`, { qualityNotes, qualityChecked });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/orders"] });
+      toast({ title: "Quality updated", description: "Quality check info has been saved." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update quality info.", variant: "destructive" });
+    },
+  });
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = searchQuery === "" ||
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesTestFilter = showTestOnly ? order.isTestOrder : true;
+    return matchesSearch && matchesStatus && matchesTestFilter;
   });
 
   const orderStats = {
@@ -127,6 +170,7 @@ export default function OrdersAdmin() {
     setEditTracking(order.trackingNumber || "");
     setEditCarrier(order.shippingCarrier || "");
     setEditEstDelivery(order.estimatedDelivery || "");
+    setQualityNotesEdit(order.qualityNotes || "");
   };
 
   const parseItems = (items: string) => {
@@ -148,7 +192,14 @@ export default function OrdersAdmin() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">Order #{selectedOrder.id.slice(0, 8)}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-xl">Order #{selectedOrder.id.slice(0, 8)}</CardTitle>
+                  {selectedOrder.isTestOrder && (
+                    <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" data-testid="badge-test-order">
+                      <FlaskConical className="w-3 h-3 mr-1" /> Test Order
+                    </Badge>
+                  )}
+                </div>
                 <Badge className={STATUS_COLORS[selectedOrder.status || "pending"]} data-testid="badge-order-status">
                   {selectedOrder.status || "pending"}
                 </Badge>
@@ -273,6 +324,61 @@ export default function OrdersAdmin() {
             </CardContent>
           </Card>
 
+          {selectedOrder.isTestOrder && (
+            <Card className="border-orange-200 dark:border-orange-800">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <ClipboardCheck className="w-5 h-5 text-orange-600" />
+                  Quality Control
+                  {selectedOrder.qualityChecked && (
+                    <Badge className="bg-green-100 text-green-800 ml-2">
+                      <ShieldCheck className="w-3 h-3 mr-1" /> Verified
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <Label>Quality Notes</Label>
+                  <Textarea
+                    placeholder="Document quality findings: fit, print accuracy, fabric, stitching, packaging..."
+                    value={qualityNotesEdit}
+                    onChange={(e) => setQualityNotesEdit(e.target.value)}
+                    className="mt-1"
+                    data-testid="input-quality-notes"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => updateQualityMutation.mutate({
+                      id: selectedOrder.id,
+                      qualityNotes: qualityNotesEdit,
+                      qualityChecked: false,
+                    })}
+                    variant="outline"
+                    disabled={updateQualityMutation.isPending}
+                    data-testid="button-save-quality-notes"
+                  >
+                    Save Notes
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => updateQualityMutation.mutate({
+                      id: selectedOrder.id,
+                      qualityNotes: qualityNotesEdit,
+                      qualityChecked: true,
+                    })}
+                    disabled={updateQualityMutation.isPending}
+                    data-testid="button-mark-quality-passed"
+                  >
+                    <ShieldCheck className="w-4 h-4 mr-1" /> Mark Quality Passed
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {orderReturns.length > 0 && (
             <Card>
               <CardHeader>
@@ -348,12 +454,87 @@ export default function OrdersAdmin() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto" data-testid="orders-admin-page">
-      <div className="flex items-center gap-3 mb-6">
-        <Package className="w-8 h-8 text-red-600" />
-        <div>
-          <h1 className="text-2xl font-bold">Order Management</h1>
-          <p className="text-muted-foreground">View and manage all store orders</p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Package className="w-8 h-8 text-red-600" />
+          <div>
+            <h1 className="text-2xl font-bold">Order Management</h1>
+            <p className="text-muted-foreground">View and manage all store orders</p>
+          </div>
         </div>
+        <Dialog open={showTestOrderDialog} onOpenChange={setShowTestOrderDialog}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2" data-testid="button-open-test-order">
+              <FlaskConical className="w-4 h-4" /> Place Test Order
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FlaskConical className="w-5 h-5 text-orange-600" />
+                Place Test Order for Quality Check
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-muted-foreground">
+                Create a sample order (no payment) to test product quality, print accuracy, and packaging before listing.
+              </p>
+              <div>
+                <Label>Product</Label>
+                <Select value={testOrderProductId} onValueChange={setTestOrderProductId}>
+                  <SelectTrigger data-testid="select-test-product">
+                    <SelectValue placeholder="Select a product..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name} — ${Number(p.price).toFixed(2)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Quantity</Label>
+                  <Input type="number" min="1" max="5" value={testOrderQty} onChange={(e) => setTestOrderQty(e.target.value)} data-testid="input-test-qty" />
+                </div>
+                <div>
+                  <Label>Size (optional)</Label>
+                  <Input value={testOrderSize} onChange={(e) => setTestOrderSize(e.target.value)} placeholder="S, M, L..." data-testid="input-test-size" />
+                </div>
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea
+                  placeholder="What to check: fit, print quality, stitching, colors..."
+                  value={testOrderNotes}
+                  onChange={(e) => setTestOrderNotes(e.target.value)}
+                  data-testid="input-test-notes"
+                />
+              </div>
+              <Button
+                className="w-full"
+                disabled={!testOrderProductId || createTestOrderMutation.isPending}
+                onClick={() => {
+                  const product = products.find(p => p.id === testOrderProductId);
+                  if (!product) return;
+                  createTestOrderMutation.mutate({
+                    items: [{
+                      productId: product.id,
+                      productName: product.name,
+                      price: product.price,
+                      quantity: parseInt(testOrderQty) || 1,
+                      selectedSize: testOrderSize || null,
+                    }],
+                    notes: testOrderNotes,
+                  });
+                }}
+                data-testid="button-create-test-order"
+              >
+                {createTestOrderMutation.isPending ? "Creating..." : "Create Test Order"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
@@ -429,6 +610,16 @@ export default function OrdersAdmin() {
             <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          variant={showTestOnly ? "default" : "outline"}
+          size="sm"
+          className="gap-1 whitespace-nowrap"
+          onClick={() => setShowTestOnly(!showTestOnly)}
+          data-testid="button-toggle-test-orders"
+        >
+          <FlaskConical className="w-4 h-4" />
+          {showTestOnly ? "Show All" : "Test Orders"}
+        </Button>
       </div>
 
       {isLoading ? (
@@ -462,6 +653,12 @@ export default function OrdersAdmin() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
+                      {order.isTestOrder && (
+                        <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                          <FlaskConical className="w-3 h-3 mr-1" /> QC
+                          {order.qualityChecked && <ShieldCheck className="w-3 h-3 ml-1" />}
+                        </Badge>
+                      )}
                       {hasPendingReturn && (
                         <Badge className="bg-yellow-100 text-yellow-800">
                           <RotateCcw className="w-3 h-3 mr-1" /> Return

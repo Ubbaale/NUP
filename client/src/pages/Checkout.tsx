@@ -499,6 +499,9 @@ export default function Checkout() {
                     <Star className="w-4 h-4 text-yellow-500" />
                     <span>Rate products after delivery</span>
                   </div>
+                  <a href="/store/policies" className="block text-xs text-primary hover:underline mt-3 text-center" data-testid="link-store-policies">
+                    View Store Policies — Shipping, Returns & Quality
+                  </a>
                 </CardContent>
               </Card>
             </div>

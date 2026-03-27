@@ -204,8 +204,11 @@ export const orders = pgTable("orders", {
   estimatedDelivery: text("estimated_delivery"),
   deliveredAt: timestamp("delivered_at"),
   shippingNotes: text("shipping_notes"),
-  printfulOrderId: text("printful_order_id"),       // Printful order ID once submitted
-  fulfillmentStatus: text("fulfillment_status").default("not_submitted"), // not_submitted, submitted, fulfilled, failed, not_configured
+  printfulOrderId: text("printful_order_id"),
+  fulfillmentStatus: text("fulfillment_status").default("not_submitted"),
+  isTestOrder: boolean("is_test_order").default(false),
+  qualityNotes: text("quality_notes"),
+  qualityChecked: boolean("quality_checked").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

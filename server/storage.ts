@@ -112,6 +112,7 @@ export interface IStorage {
   getOrdersByPrintfulStatus(status: string): Promise<Order[]>;
   updateOrderStatus(id: string, status: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined>;
   updateOrderFulfillment(id: string, printfulOrderId: string, fulfillmentStatus: string, trackingNumber?: string, shippingCarrier?: string, estimatedDelivery?: string): Promise<Order | undefined>;
+  updateOrderQuality(id: string, qualityNotes: string, qualityChecked: boolean): Promise<Order | undefined>;
   updateProductPrintful(id: string, printfulSyncVariantId: string, printfulProductId: string, baseCost?: string): Promise<Product | undefined>;
 
   // Return Requests
@@ -525,6 +526,11 @@ export class DatabaseStorage implements IStorage {
     if (shippingCarrier) updateData.shippingCarrier = shippingCarrier;
     if (estimatedDelivery) updateData.estimatedDelivery = estimatedDelivery;
     const [order] = await db.update(orders).set(updateData).where(eq(orders.id, id)).returning();
+    return order;
+  }
+
+  async updateOrderQuality(id: string, qualityNotes: string, qualityChecked: boolean): Promise<Order | undefined> {
+    const [order] = await db.update(orders).set({ qualityNotes, qualityChecked }).where(eq(orders.id, id)).returning();
     return order;
   }
 

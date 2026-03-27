@@ -41,7 +41,7 @@ The admin dashboard at `/admin` provides a comprehensive CMS with 14 management 
 - **Membership Tiers** (`/admin/tiers`) — Manage tier pricing, benefits, awards, display order
 - **Songs** (`/admin/songs`) — Upload and manage revolutionary songs
 - **Printful** (`/admin/printful`) — Print-on-demand fulfillment integration
-- **Orders** (`/admin/orders`) — View all orders, update status/tracking, manage return requests
+- **Orders** (`/admin/orders`) — View all orders, update status/tracking, manage return requests; place test/sample orders for quality control; mark products as quality-checked
 - **Gallery** (`/admin/gallery`) — Upload, edit, delete photos; organize by category and album
 - **Member Directory** (`/admin/members`) — Search, filter, export registered members
 
@@ -56,6 +56,23 @@ The admin dashboard at `/admin` provides a comprehensive CMS with 14 management 
 - Admins can approve/deny returns with notes via the Orders admin panel
 - API: `POST /api/returns`, `GET /api/returns/:orderId`, `GET /api/admin/returns`, `PATCH /api/returns/:id`
 - Schema: `return_requests` table (id, orderId, email, fullName, reason, items, status, adminNotes, createdAt, resolvedAt)
+
+## Store Policies Page
+- Public page at `/store/policies` with three sections: Quality Guarantee, Shipping & Delivery Timelines, Returns & Refund Policy
+- Quality section details material inspection, print quality, Printful integration, and sample testing standards
+- Shipping section shows delivery timelines by region (domestic 5-7 days, international 10-28 days) with costs
+- Returns section covers 30-day return window, eligibility rules, 4-step return process, and refund details
+- Links to policies from Store page footer and Checkout sidebar
+- Contact section with support email and phone
+
+## Admin Quality Control (Test Orders)
+- Admin can place test/sample orders from `/admin/orders` via "Place Test Order" button — no payment required
+- Test orders marked with `isTestOrder: true` and displayed with orange "QC" badge in orders list
+- Quality Control panel on test order detail: add quality notes, mark as quality-passed with green verified badge
+- Filter toggle "Test Orders" to show only test orders
+- Schema fields: `is_test_order`, `quality_notes`, `quality_checked` on orders table
+- Public order endpoint strips admin-only fields (`isTestOrder`, `qualityNotes`, `qualityChecked`) to prevent mass assignment
+- API: `POST /api/admin/test-order`, `PATCH /api/admin/orders/:id/quality`
 
 ## Self-Service Portals
 Chapter and region coordinators can manage their own information via self-service portals:

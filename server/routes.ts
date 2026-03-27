@@ -1134,7 +1134,8 @@ export async function registerRoutes(
   app.post("/api/orders", async (req, res) => {
     try {
       const validatedData = insertOrderSchema.parse(req.body);
-      const order = await storage.createOrder(validatedData);
+      const { isTestOrder, qualityNotes, qualityChecked, ...safeData } = validatedData;
+      const order = await storage.createOrder(safeData);
 
       // Attempt Printful fulfillment asynchronously
       (async () => {
@@ -1236,6 +1237,53 @@ export async function registerRoutes(
       res.json(order);
     } catch (error) {
       res.status(500).json({ error: "Failed to update order status" });
+    }
+  });
+
+  app.post("/api/admin/test-order", requireAdmin, async (req, res) => {
+    try {
+      const { items, notes } = req.body;
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: "At least one item is required" });
+      }
+      const orderItems = items.map((item: any) => ({
+        productId: item.productId,
+        productName: item.productName,
+        price: item.price,
+        quantity: item.quantity || 1,
+        selectedSize: item.selectedSize || null,
+        selectedColor: item.selectedColor || null,
+      }));
+      const totalAmount = orderItems.reduce((sum: number, item: any) => sum + (Number(item.price) * item.quantity), 0).toFixed(2);
+      const order = await storage.createOrder({
+        email: "admin-test@diasporanup.org",
+        fullName: "QC Test Order",
+        phone: "",
+        address: "Quality Control — Internal",
+        city: "N/A",
+        country: "United States",
+        items: JSON.stringify(orderItems),
+        totalAmount,
+        status: "processing",
+        isTestOrder: true,
+        qualityNotes: notes || "Admin test order for quality verification",
+        fulfillmentStatus: "not_submitted",
+      });
+      res.status(201).json(order);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create test order" });
+    }
+  });
+
+  app.patch("/api/admin/orders/:id/quality", requireAdmin, async (req, res) => {
+    try {
+      const { qualityNotes, qualityChecked } = req.body;
+      const order = await storage.getOrder(req.params.id);
+      if (!order) return res.status(404).json({ error: "Order not found" });
+      const updated = await storage.updateOrderQuality(req.params.id, qualityNotes, qualityChecked);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update quality info" });
     }
   });
 

@@ -29,6 +29,7 @@ import EventsAdmin from "@/pages/EventsAdmin";
 import MembershipAdmin from "@/pages/MembershipAdmin";
 import ChaptersAdmin from "@/pages/ChaptersAdmin";
 import StoreAdmin from "@/pages/StoreAdmin";
+import StorePolicies from "@/pages/StorePolicies";
 import MembershipTiers from "@/pages/MembershipTiers";
 import VirtualEvents from "@/pages/VirtualEvents";
 import VirtualEventDetail from "@/pages/VirtualEventDetail";
@@ -97,6 +98,7 @@ function Router() {
       <Route path="/conferences/:slug" component={ConferenceDetail} />
       <Route path="/news" component={News} />
       <Route path="/store" component={Store} />
+      <Route path="/store/policies" component={StorePolicies} />
       <Route path="/store/:slug" component={ProductDetail} />
       <Route path="/membership" component={Membership} />
       <Route path="/donate" component={Donate} />

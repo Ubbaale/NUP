@@ -14,7 +14,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "@/components/ProductCard";
 import { useCart } from "@/hooks/use-cart";
-import { ShoppingBag, ShoppingCart, Trash2, Plus, Minus, Search, Package, Upload, Paintbrush, Image, X } from "lucide-react";
+import { ShoppingBag, ShoppingCart, Trash2, Plus, Minus, Search, Package, Upload, Paintbrush, Image, X, Shield, Truck, RotateCcw } from "lucide-react";
+import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
 
@@ -460,6 +461,24 @@ export default function Store() {
             </p>
           </Card>
         )}
+
+        <div className="mt-12 p-6 rounded-lg bg-muted/50 border text-center" data-testid="section-store-policies-link">
+          <h3 className="font-semibold mb-2">Quality Guaranteed</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            We stand behind every product. Free returns within 30 days, worldwide shipping, and rigorous quality checks.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link href="/store/policies#quality" className="flex items-center gap-1.5 text-sm text-primary hover:underline" data-testid="link-quality-policy">
+              <Shield className="w-4 h-4" /> Quality Guarantee
+            </Link>
+            <Link href="/store/policies#shipping" className="flex items-center gap-1.5 text-sm text-primary hover:underline" data-testid="link-shipping-policy">
+              <Truck className="w-4 h-4" /> Shipping Info
+            </Link>
+            <Link href="/store/policies#returns" className="flex items-center gap-1.5 text-sm text-primary hover:underline" data-testid="link-returns-policy">
+              <RotateCcw className="w-4 h-4" /> Return Policy
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
