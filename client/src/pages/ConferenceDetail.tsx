@@ -13,6 +13,7 @@ import {
   Flag, Music, BookOpen, Heart, Star, CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
+import chairmanPhoto from "@assets/PHOTO-2026-03-25-08-35-16_1774632940028.jpg";
 import type { Conference } from "@shared/schema";
 import laBrightDayImg from "@assets/la-bright-day.png";
 import laOceanImg from "@assets/la-ocean.png";
@@ -572,6 +573,42 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           </div>
         </section>
 
+        <section className="mb-16" data-testid="section-chairman-welcome">
+          <h2 className="text-3xl font-bold mb-2 text-center">A Message from the Convention Chairman</h2>
+          <p className="text-center text-muted-foreground mb-8">Welcome to the NUP Diaspora Convention 2026</p>
+          <div className="max-w-4xl mx-auto">
+            <Card className="overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-[300px_1fr]">
+                <div className="relative">
+                  <img
+                    src={chairmanPhoto}
+                    alt="Joseph William Ssenkumba — Convention Chairman"
+                    className="w-full h-full object-cover object-top min-h-[350px]"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    <h3 className="text-white font-bold text-lg">Joseph William Ssenkumba</h3>
+                    <p className="text-white/80 text-sm">Convention Chairman</p>
+                  </div>
+                </div>
+                <CardContent className="p-6 md:p-8 flex flex-col justify-center">
+                  <p className="text-lg italic text-muted-foreground mb-4">"Dear Delegates, Guests, and Friends,"</p>
+                  <p className="text-base leading-relaxed mb-4">
+                    It is my honor to welcome you to the National Unity Platform (NUP) Diaspora 2026 Convention in Los Angeles. This gathering is a vital step in our shared journey to advocate for freedom, democracy, and the rule of law in Uganda. I encourage you to engage actively in our discussions, celebrate our achievements, and help build the strategies that will advance our mission.
+                  </p>
+                  <p className="text-base leading-relaxed mb-6">
+                    Let this convention inspire and unite us as we work toward a freer, fairer, and more prosperous Uganda.
+                  </p>
+                  <div className="border-t pt-4">
+                    <p className="font-medium text-sm text-muted-foreground">With unity,</p>
+                    <p className="font-bold text-lg" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>Joseph William Ssenkumba</p>
+                    <p className="text-sm text-red-600 dark:text-red-400 font-semibold">Convention Chairman</p>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+          </div>
+        </section>
+
         {scheduleData.length > 0 && (
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-2 text-center">Event Schedule</h2>
@@ -680,11 +717,6 @@ function Convention2026Page({ conference }: { conference: Conference }) {
             </Button>
             )}
           </div>
-          {meta.conventionChairman && (
-          <p className="text-white/60 text-sm mt-6">
-            Convention Chairman: {meta.conventionChairman}
-          </p>
-          )}
         </section>
 
         <PastConventions />
