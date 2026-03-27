@@ -269,7 +269,7 @@ export default function RevolutionarySongs() {
           </Card>
         )}
 
-        {hasSongs && <div className="space-y-3">
+        {hasSongs && <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {songs.map((song) => {
             const isPlaying = currentlyPlaying === song.id;
             const progress = playProgress[song.id] || 0;
@@ -278,100 +278,91 @@ export default function RevolutionarySongs() {
             const accessible = canAccessSong(song);
 
             return (
-              <Card key={song.id} className={`transition-all ${isPlaying ? "border-primary shadow-md" : ""}`} data-testid={`song-card-${song.id}`}>
+              <Card key={song.id} className={`transition-all overflow-hidden ${isPlaying ? "border-primary shadow-md ring-1 ring-primary/30" : "hover:shadow-md"}`} data-testid={`song-card-${song.id}`}>
                 <CardContent className="p-0">
-                  <div className="flex">
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-l-lg bg-muted overflow-hidden shrink-0 relative group">
-                      {song.coverImageUrl ? (
-                        <img src={song.coverImageUrl} alt={song.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                          <Music className="w-8 h-8 text-primary/40" />
-                        </div>
-                      )}
-                      <button
-                        onClick={() => togglePlay(song)}
-                        className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/30 transition-all group"
-                        data-testid={`button-play-${song.id}`}
-                      >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                          accessible
-                            ? isPlaying
-                              ? "bg-primary text-primary-foreground shadow-lg scale-100"
-                              : "bg-white/90 text-primary scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
-                            : "bg-white/90 text-muted-foreground scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
-                        }`}>
-                          {!accessible ? (
-                            <Lock className="w-4 h-4" />
-                          ) : isPlaying ? (
-                            <Pause className="w-4 h-4" />
-                          ) : (
-                            <Play className="w-4 h-4 ml-0.5" />
-                          )}
-                        </div>
-                      </button>
-                    </div>
-
-                    <div className="flex-1 min-w-0 p-4 flex flex-col justify-center">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold truncate" data-testid={`text-song-title-${song.id}`}>{song.title}</p>
-                            {song.isFree && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">FREE</Badge>
-                            )}
-                            {!song.isFree && accessible && !hasAllAccess && purchasedSongs[song.id] && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-green-600 border-green-300 shrink-0">PURCHASED</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground" data-testid={`text-song-artist-${song.id}`}>{song.artist}</p>
-                          {song.description && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{song.description}</p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          {!song.isFree && !accessible && (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => setShowPurchaseModal(song.id)}
-                              className="gap-1"
-                              data-testid={`button-buy-${song.id}`}
-                            >
-                              <ShoppingCart className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">${Number(song.price || 5).toFixed(0)}</span>
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownload(song)}
-                            className="gap-1"
-                            data-testid={`button-download-${song.id}`}
-                          >
-                            {accessible ? <Download className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                            <span className="hidden sm:inline">Download</span>
-                          </Button>
-                        </div>
+                  <div className="aspect-square bg-muted relative group">
+                    {song.coverImageUrl ? (
+                      <img src={song.coverImageUrl} alt={song.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                        <Music className="w-12 h-12 text-primary/30" />
                       </div>
+                    )}
+                    <button
+                      onClick={() => togglePlay(song)}
+                      className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/30 transition-all"
+                      data-testid={`button-play-${song.id}`}
+                    >
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                        accessible
+                          ? isPlaying
+                            ? "bg-primary text-primary-foreground shadow-lg scale-100"
+                            : "bg-white/90 text-primary scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100 shadow-lg"
+                          : "bg-white/90 text-muted-foreground scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100 shadow-lg"
+                      }`}>
+                        {!accessible ? (
+                          <Lock className="w-5 h-5" />
+                        ) : isPlaying ? (
+                          <Pause className="w-5 h-5" />
+                        ) : (
+                          <Play className="w-5 h-5 ml-0.5" />
+                        )}
+                      </div>
+                    </button>
 
-                      {duration > 0 && (
-                        <div className="flex items-center gap-2 mt-2">
-                          {isPlaying && (
-                            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary rounded-full transition-all duration-200"
-                                style={{ width: `${progressPct}%` }}
-                              />
-                            </div>
-                          )}
-                          <span className="text-xs text-muted-foreground font-mono">
+                    {song.isFree && (
+                      <Badge variant="secondary" className="absolute top-2 left-2 text-[10px] px-1.5 py-0 bg-white/90 shadow-sm">FREE</Badge>
+                    )}
+                    {!song.isFree && accessible && !hasAllAccess && purchasedSongs[song.id] && (
+                      <Badge variant="outline" className="absolute top-2 left-2 text-[10px] px-1.5 py-0 text-green-600 border-green-300 bg-white/90 shadow-sm">PURCHASED</Badge>
+                    )}
+
+                    {isPlaying && duration > 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+                        <div
+                          className="h-full bg-primary transition-all duration-200"
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-3">
+                    <p className="font-semibold text-sm truncate" data-testid={`text-song-title-${song.id}`}>{song.title}</p>
+                    <p className="text-xs text-muted-foreground truncate" data-testid={`text-song-artist-${song.id}`}>{song.artist}</p>
+
+                    <div className="flex items-center justify-between mt-2 gap-1">
+                      <div className="flex items-center gap-1 min-w-0">
+                        {duration > 0 && (
+                          <span className="text-[10px] text-muted-foreground font-mono">
                             {isPlaying ? `${formatDuration(Math.floor(progress))} / ` : ""}
                             {formatDuration(Math.floor(duration))}
                           </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {!song.isFree && !accessible && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => setShowPurchaseModal(song.id)}
+                            className="h-7 px-2 text-xs gap-1"
+                            data-testid={`button-buy-${song.id}`}
+                          >
+                            <ShoppingCart className="w-3 h-3" />
+                            ${Number(song.price || 5).toFixed(0)}
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDownload(song)}
+                          className="h-7 px-2 text-xs gap-1"
+                          data-testid={`button-download-${song.id}`}
+                        >
+                          {accessible ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
