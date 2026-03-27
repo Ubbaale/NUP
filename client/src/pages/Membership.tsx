@@ -522,7 +522,7 @@ export default function Membership() {
                             <FormItem className="space-y-0">
                               <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Name (Surname)</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="KAKONGE" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-bold text-blue-800 dark:text-blue-400 uppercase h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-last-name" />
+                                <Input {...field} placeholder="JOHNSON" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-bold text-blue-800 dark:text-blue-400 uppercase h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-last-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -532,7 +532,7 @@ export default function Membership() {
                             <FormItem className="space-y-0">
                               <FormLabel className="text-[11px] text-gray-500 dark:text-gray-400 font-semibold mb-0">Other Names</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="SUDAISI" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-bold text-blue-800 dark:text-blue-400 uppercase h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-first-name" />
+                                <Input {...field} placeholder="JAMES" className="border-b-2 border-gray-400 dark:border-gray-600 border-t-0 border-x-0 rounded-none bg-transparent focus-visible:ring-0 px-0 font-bold text-blue-800 dark:text-blue-400 uppercase h-8" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }} data-testid="input-first-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
