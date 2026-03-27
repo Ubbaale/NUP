@@ -279,94 +279,101 @@ export default function RevolutionarySongs() {
 
             return (
               <Card key={song.id} className={`transition-all ${isPlaying ? "border-primary shadow-md" : ""}`} data-testid={`song-card-${song.id}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => togglePlay(song)}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                        accessible
-                          ? isPlaying
-                            ? "bg-primary text-primary-foreground shadow-lg"
-                            : "bg-primary/10 text-primary hover:bg-primary/20"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                      data-testid={`button-play-${song.id}`}
-                    >
-                      {!accessible ? (
-                        <Lock className="w-5 h-5" />
-                      ) : isPlaying ? (
-                        <Pause className="w-5 h-5" />
-                      ) : (
-                        <Play className="w-5 h-5 ml-0.5" />
-                      )}
-                    </button>
-
-                    <div className="w-10 h-10 rounded-md bg-muted overflow-hidden shrink-0">
+                <CardContent className="p-0">
+                  <div className="flex">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-l-lg bg-muted overflow-hidden shrink-0 relative group">
                       {song.coverImageUrl ? (
                         <img src={song.coverImageUrl} alt={song.title} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music className="w-5 h-5 text-muted-foreground" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                          <Music className="w-8 h-8 text-primary/40" />
+                        </div>
+                      )}
+                      <button
+                        onClick={() => togglePlay(song)}
+                        className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/30 transition-all group"
+                        data-testid={`button-play-${song.id}`}
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                          accessible
+                            ? isPlaying
+                              ? "bg-primary text-primary-foreground shadow-lg scale-100"
+                              : "bg-white/90 text-primary scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
+                            : "bg-white/90 text-muted-foreground scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
+                        }`}>
+                          {!accessible ? (
+                            <Lock className="w-4 h-4" />
+                          ) : isPlaying ? (
+                            <Pause className="w-4 h-4" />
+                          ) : (
+                            <Play className="w-4 h-4 ml-0.5" />
+                          )}
+                        </div>
+                      </button>
+                    </div>
+
+                    <div className="flex-1 min-w-0 p-4 flex flex-col justify-center">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold truncate" data-testid={`text-song-title-${song.id}`}>{song.title}</p>
+                            {song.isFree && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">FREE</Badge>
+                            )}
+                            {!song.isFree && accessible && !hasAllAccess && purchasedSongs[song.id] && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-green-600 border-green-300 shrink-0">PURCHASED</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground" data-testid={`text-song-artist-${song.id}`}>{song.artist}</p>
+                          {song.description && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{song.description}</p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          {!song.isFree && !accessible && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => setShowPurchaseModal(song.id)}
+                              className="gap-1"
+                              data-testid={`button-buy-${song.id}`}
+                            >
+                              <ShoppingCart className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">${Number(song.price || 5).toFixed(0)}</span>
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownload(song)}
+                            className="gap-1"
+                            data-testid={`button-download-${song.id}`}
+                          >
+                            {accessible ? <Download className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                            <span className="hidden sm:inline">Download</span>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {duration > 0 && (
+                        <div className="flex items-center gap-2 mt-2">
+                          {isPlaying && (
+                            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary rounded-full transition-all duration-200"
+                                style={{ width: `${progressPct}%` }}
+                              />
+                            </div>
+                          )}
+                          <span className="text-xs text-muted-foreground font-mono">
+                            {isPlaying ? `${formatDuration(Math.floor(progress))} / ` : ""}
+                            {formatDuration(Math.floor(duration))}
+                          </span>
                         </div>
                       )}
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold truncate" data-testid={`text-song-title-${song.id}`}>{song.title}</p>
-                        {song.isFree && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">FREE</Badge>
-                        )}
-                        {!song.isFree && accessible && !hasAllAccess && purchasedSongs[song.id] && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-green-600 border-green-300 shrink-0">PURCHASED</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground" data-testid={`text-song-artist-${song.id}`}>{song.artist}</p>
-                      {song.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{song.description}</p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      {!song.isFree && !accessible && (
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => setShowPurchaseModal(song.id)}
-                          className="gap-1"
-                          data-testid={`button-buy-${song.id}`}
-                        >
-                          <ShoppingCart className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">${Number(song.price || 5).toFixed(0)}</span>
-                        </Button>
-                      )}
-                      {duration > 0 && (
-                        <span className="text-xs text-muted-foreground font-mono hidden sm:inline">
-                          {isPlaying ? `${formatDuration(Math.floor(progress))} / ` : ""}
-                          {formatDuration(Math.floor(duration))}
-                        </span>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDownload(song)}
-                        className="gap-1"
-                        data-testid={`button-download-${song.id}`}
-                      >
-                        {accessible ? <Download className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                        <span className="hidden sm:inline">Download</span>
-                      </Button>
-                    </div>
                   </div>
-
-                  {isPlaying && duration > 0 && (
-                    <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all duration-200"
-                        style={{ width: `${progressPct}%` }}
-                      />
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             );
