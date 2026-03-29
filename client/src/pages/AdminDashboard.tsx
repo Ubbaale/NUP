@@ -27,6 +27,7 @@ import {
   Flame,
   Megaphone,
   Film,
+  Eye,
 } from "lucide-react";
 
 const adminSections = [
@@ -167,6 +168,12 @@ const adminSections = [
     description: "Manage documentaries about the struggle for democracy and human rights",
     href: "/admin/documentaries",
     icon: Film,
+  },
+  {
+    title: "When You See, Speak",
+    description: "Review and moderate public witness video submissions of abductions and arrests",
+    href: "/admin/witness-videos",
+    icon: Eye,
   },
 ];
 

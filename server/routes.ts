@@ -1786,6 +1786,112 @@ export async function registerRoutes(
     }
   });
 
+  // ===== WITNESS VIDEOS ("When You See, Speak") =====
+  const witnessVideoUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const dir = path.join(process.cwd(), "uploads", "witness-videos");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+      },
+    }),
+    limits: { fileSize: 500 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const allowed = ["video/mp4", "video/quicktime", "video/x-msvideo", "video/webm", "video/x-matroska"];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only video files (MP4, MOV, AVI, WebM, MKV) are allowed"));
+      }
+    },
+  });
+
+  app.use("/uploads/witness-videos", (await import("express")).default.static(path.join(process.cwd(), "uploads", "witness-videos")));
+
+  app.get("/api/witness-videos", async (req, res) => {
+    try {
+      const videos = await storage.getApprovedWitnessVideos();
+      const safeVideos = videos.map(({ submitterEmail, submitterPhone, adminNotes, ...safe }) => safe);
+      res.json(safeVideos);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch witness videos" });
+    }
+  });
+
+  app.post("/api/witness-videos", witnessVideoUpload.single("video"), async (req, res) => {
+    try {
+      const { title, description, location, incidentDate, submitterName, submitterEmail, submitterPhone } = req.body;
+      if (!title || !submitterName || !submitterEmail) {
+        return res.status(400).json({ error: "Title, name, and email are required" });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: "A video file is required" });
+      }
+      const videoUrl = `/uploads/witness-videos/${req.file.filename}`;
+      const video = await storage.createWitnessVideo({
+        title,
+        description: description || null,
+        videoUrl,
+        thumbnailUrl: null,
+        location: location || null,
+        incidentDate: incidentDate || null,
+        submitterName,
+        submitterEmail,
+        submitterPhone: submitterPhone || null,
+      });
+      res.status(201).json({ success: true, message: "Video submitted for review" });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to submit video" });
+    }
+  });
+
+  app.get("/api/admin/witness-videos", requireAdmin, async (req, res) => {
+    try {
+      const videos = await storage.getAllWitnessVideos();
+      res.json(videos);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch witness videos" });
+    }
+  });
+
+  app.patch("/api/admin/witness-videos/:id", requireAdmin, async (req, res) => {
+    try {
+      const allowedFields: Record<string, boolean> = { status: true, adminNotes: true };
+      const allowedStatuses = ["pending", "approved", "rejected"];
+      const updates: Record<string, any> = {};
+      for (const key of Object.keys(req.body)) {
+        if (allowedFields[key]) updates[key] = req.body[key];
+      }
+      if (updates.status && !allowedStatuses.includes(updates.status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      const video = await storage.updateWitnessVideo(req.params.id, updates);
+      if (!video) return res.status(404).json({ error: "Video not found" });
+      res.json(video);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update video" });
+    }
+  });
+
+  app.delete("/api/admin/witness-videos/:id", requireAdmin, async (req, res) => {
+    try {
+      const video = await storage.getWitnessVideo(req.params.id);
+      if (!video) return res.status(404).json({ error: "Video not found" });
+      if (video.videoUrl && video.videoUrl.startsWith("/uploads/")) {
+        const vidPath = path.join(process.cwd(), video.videoUrl.replace(/^\//, ""));
+        if (fs.existsSync(vidPath)) fs.unlinkSync(vidPath);
+      }
+      await storage.deleteWitnessVideo(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete video" });
+    }
+  });
+
   // ===== DOCUMENTARIES =====
   app.get("/api/documentaries", async (req, res) => {
     try {

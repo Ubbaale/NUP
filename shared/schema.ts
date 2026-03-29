@@ -699,3 +699,24 @@ export const documentaries = pgTable("documentaries", {
 export const insertDocumentarySchema = createInsertSchema(documentaries).omit({ id: true, createdAt: true });
 export type InsertDocumentary = z.infer<typeof insertDocumentarySchema>;
 export type Documentary = typeof documentaries.$inferSelect;
+
+// Witness Videos ("When You See, Speak")
+export const witnessVideos = pgTable("witness_videos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  videoUrl: text("video_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  location: text("location"),
+  incidentDate: text("incident_date"),
+  submitterName: text("submitter_name").notNull(),
+  submitterEmail: text("submitter_email").notNull(),
+  submitterPhone: text("submitter_phone"),
+  status: text("status").notNull().default("pending"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertWitnessVideoSchema = createInsertSchema(witnessVideos).omit({ id: true, createdAt: true, status: true, adminNotes: true });
+export type InsertWitnessVideo = z.infer<typeof insertWitnessVideoSchema>;
+export type WitnessVideo = typeof witnessVideos.$inferSelect;

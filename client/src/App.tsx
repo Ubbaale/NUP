@@ -66,6 +66,7 @@ import HumanRightsReportsAdmin from "@/pages/HumanRightsReportsAdmin";
 import CommunityEventsAdmin from "@/pages/CommunityEventsAdmin";
 import Documentaries from "@/pages/Documentaries";
 import DocumentariesAdmin from "@/pages/DocumentariesAdmin";
+import WitnessVideosAdmin from "@/pages/WitnessVideosAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -150,6 +151,7 @@ function Router() {
       <Route path="/admin/human-rights-reports">{() => <AdminRoute component={HumanRightsReportsAdmin} />}</Route>
       <Route path="/admin/community-events">{() => <AdminRoute component={CommunityEventsAdmin} />}</Route>
       <Route path="/admin/documentaries">{() => <AdminRoute component={DocumentariesAdmin} />}</Route>
+      <Route path="/admin/witness-videos">{() => <AdminRoute component={WitnessVideosAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

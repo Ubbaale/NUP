@@ -33,6 +33,7 @@ import {
   type HumanRightsReport, type InsertHumanRightsReport, humanRightsReports,
   type CommunityEvent, type InsertCommunityEvent, communityEvents,
   type Documentary, type InsertDocumentary, documentaries,
+  type WitnessVideo, type InsertWitnessVideo, witnessVideos,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -163,6 +164,15 @@ export interface IStorage {
   getDocumentary(id: string): Promise<Documentary | undefined>;
   updateDocumentary(id: string, data: Partial<InsertDocumentary>): Promise<Documentary | undefined>;
   deleteDocumentary(id: string): Promise<void>;
+
+  // Witness Videos
+  createWitnessVideo(video: InsertWitnessVideo): Promise<WitnessVideo>;
+  getAllWitnessVideos(): Promise<WitnessVideo[]>;
+  getApprovedWitnessVideos(): Promise<WitnessVideo[]>;
+  getPendingWitnessVideos(): Promise<WitnessVideo[]>;
+  getWitnessVideo(id: string): Promise<WitnessVideo | undefined>;
+  updateWitnessVideo(id: string, data: Partial<WitnessVideo>): Promise<WitnessVideo | undefined>;
+  deleteWitnessVideo(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -729,6 +739,38 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocumentary(id: string): Promise<void> {
     await db.delete(documentaries).where(eq(documentaries.id, id));
+  }
+
+  // Witness Videos
+  async createWitnessVideo(video: InsertWitnessVideo): Promise<WitnessVideo> {
+    const [created] = await db.insert(witnessVideos).values(video).returning();
+    return created;
+  }
+
+  async getAllWitnessVideos(): Promise<WitnessVideo[]> {
+    return await db.select().from(witnessVideos).orderBy(desc(witnessVideos.createdAt));
+  }
+
+  async getApprovedWitnessVideos(): Promise<WitnessVideo[]> {
+    return await db.select().from(witnessVideos).where(eq(witnessVideos.status, "approved")).orderBy(desc(witnessVideos.createdAt));
+  }
+
+  async getPendingWitnessVideos(): Promise<WitnessVideo[]> {
+    return await db.select().from(witnessVideos).where(eq(witnessVideos.status, "pending")).orderBy(desc(witnessVideos.createdAt));
+  }
+
+  async getWitnessVideo(id: string): Promise<WitnessVideo | undefined> {
+    const [video] = await db.select().from(witnessVideos).where(eq(witnessVideos.id, id));
+    return video;
+  }
+
+  async updateWitnessVideo(id: string, data: Partial<WitnessVideo>): Promise<WitnessVideo | undefined> {
+    const [updated] = await db.update(witnessVideos).set(data).where(eq(witnessVideos.id, id)).returning();
+    return updated;
+  }
+
+  async deleteWitnessVideo(id: string): Promise<void> {
+    await db.delete(witnessVideos).where(eq(witnessVideos.id, id));
   }
 
   // Product Ratings
