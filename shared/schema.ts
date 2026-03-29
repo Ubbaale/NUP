@@ -654,3 +654,27 @@ export const humanRightsReports = pgTable("human_rights_reports", {
 export const insertHumanRightsReportSchema = createInsertSchema(humanRightsReports).omit({ id: true, createdAt: true });
 export type InsertHumanRightsReport = z.infer<typeof insertHumanRightsReportSchema>;
 export type HumanRightsReport = typeof humanRightsReports.$inferSelect;
+
+// Community Events (public submissions)
+export const communityEvents = pgTable("community_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  eventDate: text("event_date").notNull(),
+  eventTime: text("event_time"),
+  location: text("location").notNull(),
+  city: text("city"),
+  country: text("country"),
+  organizerName: text("organizer_name").notNull(),
+  organizerEmail: text("organizer_email").notNull(),
+  organizerPhone: text("organizer_phone"),
+  imageUrl: text("image_url"),
+  ticketUrl: text("ticket_url"),
+  status: text("status").notNull().default("active"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCommunityEventSchema = createInsertSchema(communityEvents).omit({ id: true, createdAt: true, status: true, adminNotes: true });
+export type InsertCommunityEvent = z.infer<typeof insertCommunityEventSchema>;
+export type CommunityEvent = typeof communityEvents.$inferSelect;

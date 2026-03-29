@@ -25,6 +25,7 @@ import {
   HandHeart,
   Rss,
   Flame,
+  Megaphone,
 } from "lucide-react";
 
 const adminSections = [
@@ -153,6 +154,12 @@ const adminSections = [
     description: "Manage and auto-discover reports from international organizations",
     href: "/admin/human-rights-reports",
     icon: FileText,
+  },
+  {
+    title: "Community Events",
+    description: "Moderate community-submitted events and remove violations",
+    href: "/admin/community-events",
+    icon: Megaphone,
   },
 ];
 

@@ -31,6 +31,7 @@ import {
   type GalleryPhoto, type InsertGalleryPhoto, galleryPhotos,
   type FallenHero, type InsertFallenHero, fallenHeroes,
   type HumanRightsReport, type InsertHumanRightsReport, humanRightsReports,
+  type CommunityEvent, type InsertCommunityEvent, communityEvents,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -145,6 +146,14 @@ export interface IStorage {
   getHumanRightsReportByUrl(url: string): Promise<HumanRightsReport | undefined>;
   updateHumanRightsReport(id: string, data: Partial<InsertHumanRightsReport>): Promise<HumanRightsReport | undefined>;
   deleteHumanRightsReport(id: string): Promise<void>;
+
+  // Community Events
+  createCommunityEvent(event: InsertCommunityEvent): Promise<CommunityEvent>;
+  getAllCommunityEvents(): Promise<CommunityEvent[]>;
+  getActiveCommunityEvents(): Promise<CommunityEvent[]>;
+  getCommunityEvent(id: string): Promise<CommunityEvent | undefined>;
+  updateCommunityEvent(id: string, data: Partial<CommunityEvent>): Promise<CommunityEvent | undefined>;
+  deleteCommunityEvent(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -655,6 +664,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHumanRightsReport(id: string): Promise<void> {
     await db.delete(humanRightsReports).where(eq(humanRightsReports.id, id));
+  }
+
+  // Community Events
+  async createCommunityEvent(event: InsertCommunityEvent): Promise<CommunityEvent> {
+    const [created] = await db.insert(communityEvents).values(event).returning();
+    return created;
+  }
+
+  async getAllCommunityEvents(): Promise<CommunityEvent[]> {
+    return await db.select().from(communityEvents).orderBy(desc(communityEvents.createdAt));
+  }
+
+  async getActiveCommunityEvents(): Promise<CommunityEvent[]> {
+    return await db.select().from(communityEvents).where(eq(communityEvents.status, "active")).orderBy(desc(communityEvents.createdAt));
+  }
+
+  async getCommunityEvent(id: string): Promise<CommunityEvent | undefined> {
+    const [event] = await db.select().from(communityEvents).where(eq(communityEvents.id, id));
+    return event;
+  }
+
+  async updateCommunityEvent(id: string, data: Partial<CommunityEvent>): Promise<CommunityEvent | undefined> {
+    const [updated] = await db.update(communityEvents).set(data).where(eq(communityEvents.id, id)).returning();
+    return updated;
+  }
+
+  async deleteCommunityEvent(id: string): Promise<void> {
+    await db.delete(communityEvents).where(eq(communityEvents.id, id));
   }
 
   // Product Ratings

@@ -44,6 +44,19 @@ The admin dashboard at `/admin` provides a comprehensive CMS with 14 management 
 - **Orders** (`/admin/orders`) — View all orders, update status/tracking, manage return requests; place test/sample orders for quality control; mark products as quality-checked
 - **Gallery** (`/admin/gallery`) — Upload, edit, delete photos; organize by category and album
 - **Member Directory** (`/admin/members`) — Search, filter, export registered members
+- **Community Events** (`/admin/community-events`) — Moderate community-submitted events; hide or delete violating posts
+
+## Community Events System
+- Public users can submit events via the "Post an Event" button on the `/events` page
+- Events appear immediately (no pre-approval required); admin can hide or delete violating posts
+- Submission form supports: title, description, date/time, location (venue + city + country), organizer info, ticket URL, and a flyer image upload (max 10MB, images only)
+- Public API (`GET /api/community-events`) strips organizer email/phone/admin notes for privacy
+- Admin API (`GET /api/admin/community-events`) returns full records including contact info
+- Admin can toggle events between "active" and "hidden" status, or permanently delete them
+- Schema: `community_events` table in `shared/schema.ts`
+- Frontend: Community Events section in `client/src/pages/VirtualEvents.tsx`
+- Admin: `client/src/pages/CommunityEventsAdmin.tsx`
+- API routes: `GET/POST /api/community-events`, `GET/PATCH/DELETE /api/admin/community-events/:id`
 
 ## Printful Webhook
 - Endpoint: `POST /api/printful/webhook` — Receives Printful `package_shipped` and `package_returned` events

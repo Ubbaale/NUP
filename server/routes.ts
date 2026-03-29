@@ -1691,6 +1691,101 @@ export async function registerRoutes(
     }
   });
 
+  // ===== COMMUNITY EVENTS =====
+  const communityEventUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const dir = path.join(process.cwd(), "uploads", "community-events");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only image files (JPG, PNG, WebP, GIF) are allowed"));
+      }
+    },
+  });
+
+  app.get("/api/community-events", async (req, res) => {
+    try {
+      const events = await storage.getActiveCommunityEvents();
+      const safeEvents = events.map(({ organizerEmail, organizerPhone, adminNotes, ...safe }) => safe);
+      res.json(safeEvents);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch community events" });
+    }
+  });
+
+  app.get("/api/admin/community-events", requireAdmin, async (req, res) => {
+    try {
+      const events = await storage.getAllCommunityEvents();
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch community events" });
+    }
+  });
+
+  app.post("/api/community-events", communityEventUpload.single("flyer"), async (req, res) => {
+    try {
+      const { title, description, eventDate, eventTime, location, city, country, organizerName, organizerEmail, organizerPhone, ticketUrl } = req.body;
+      if (!title || !eventDate || !location || !organizerName || !organizerEmail) {
+        return res.status(400).json({ error: "Title, date, location, name, and email are required" });
+      }
+      const imageUrl = req.file ? `/uploads/community-events/${req.file.filename}` : null;
+      const event = await storage.createCommunityEvent({
+        title,
+        description: description || null,
+        eventDate,
+        eventTime: eventTime || null,
+        location,
+        city: city || null,
+        country: country || null,
+        organizerName,
+        organizerEmail,
+        organizerPhone: organizerPhone || null,
+        imageUrl,
+        ticketUrl: ticketUrl || null,
+      });
+      res.status(201).json(event);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create event" });
+    }
+  });
+
+  app.patch("/api/admin/community-events/:id", requireAdmin, async (req, res) => {
+    try {
+      const event = await storage.updateCommunityEvent(req.params.id, req.body);
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      res.json(event);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update event" });
+    }
+  });
+
+  app.delete("/api/admin/community-events/:id", requireAdmin, async (req, res) => {
+    try {
+      const event = await storage.getCommunityEvent(req.params.id);
+      if (!event) return res.status(404).json({ error: "Event not found" });
+      if (event.imageUrl) {
+        const imgPath = path.join(process.cwd(), event.imageUrl);
+        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+      }
+      await storage.deleteCommunityEvent(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete event" });
+    }
+  });
+
   // ===== FALLEN HEROES =====
   app.get("/api/fallen-heroes", async (req, res) => {
     try {
@@ -1847,6 +1942,7 @@ export async function registerRoutes(
 
   // ===== REVOLUTIONARY SONGS =====
   app.use("/uploads/covers", (await import("express")).default.static(path.join(process.cwd(), "uploads", "covers")));
+  app.use("/uploads/community-events", (await import("express")).default.static(path.join(process.cwd(), "uploads", "community-events")));
 
   app.get("/api/songs", async (req, res) => {
     try {
