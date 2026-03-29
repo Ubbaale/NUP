@@ -720,3 +720,24 @@ export const witnessVideos = pgTable("witness_videos", {
 export const insertWitnessVideoSchema = createInsertSchema(witnessVideos).omit({ id: true, createdAt: true, status: true, adminNotes: true });
 export type InsertWitnessVideo = z.infer<typeof insertWitnessVideoSchema>;
 export type WitnessVideo = typeof witnessVideos.$inferSelect;
+
+// Public Articles ("Voice of the People")
+export const publicArticles = pgTable("public_articles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  coverImageUrl: text("cover_image_url"),
+  category: text("category").default("general"),
+  authorName: text("author_name").notNull(),
+  authorEmail: text("author_email").notNull(),
+  authorBio: text("author_bio"),
+  status: text("status").notNull().default("pending"),
+  adminNotes: text("admin_notes"),
+  isFeatured: boolean("is_featured").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertPublicArticleSchema = createInsertSchema(publicArticles).omit({ id: true, createdAt: true, status: true, adminNotes: true, isFeatured: true });
+export type InsertPublicArticle = z.infer<typeof insertPublicArticleSchema>;
+export type PublicArticle = typeof publicArticles.$inferSelect;

@@ -67,6 +67,8 @@ import CommunityEventsAdmin from "@/pages/CommunityEventsAdmin";
 import Documentaries from "@/pages/Documentaries";
 import DocumentariesAdmin from "@/pages/DocumentariesAdmin";
 import WitnessVideosAdmin from "@/pages/WitnessVideosAdmin";
+import PublicArticles from "@/pages/PublicArticles";
+import PublicArticlesAdmin from "@/pages/PublicArticlesAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -124,6 +126,7 @@ function Router() {
       <Route path="/about" component={AboutUs} />
       <Route path="/fallen-heroes" component={FallenHeroes} />
       <Route path="/documentaries" component={Documentaries} />
+      <Route path="/articles" component={PublicArticles} />
       <Route path="/portal/chapter/:slug" component={ChapterPortal} />
       <Route path="/portal/region/:slug" component={RegionPortal} />
       <Route path="/admin">{() => <AdminRoute component={AdminDashboard} />}</Route>
@@ -152,6 +155,7 @@ function Router() {
       <Route path="/admin/community-events">{() => <AdminRoute component={CommunityEventsAdmin} />}</Route>
       <Route path="/admin/documentaries">{() => <AdminRoute component={DocumentariesAdmin} />}</Route>
       <Route path="/admin/witness-videos">{() => <AdminRoute component={WitnessVideosAdmin} />}</Route>
+      <Route path="/admin/public-articles">{() => <AdminRoute component={PublicArticlesAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

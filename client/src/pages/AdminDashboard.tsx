@@ -28,6 +28,7 @@ import {
   Megaphone,
   Film,
   Eye,
+  PenLine,
 } from "lucide-react";
 
 const adminSections = [
@@ -174,6 +175,12 @@ const adminSections = [
     description: "Review and moderate public witness video submissions of abductions and arrests",
     href: "/admin/witness-videos",
     icon: Eye,
+  },
+  {
+    title: "Public Articles",
+    description: "Review and moderate articles submitted by the public about the struggle",
+    href: "/admin/public-articles",
+    icon: PenLine,
   },
 ];
 

@@ -34,6 +34,7 @@ import {
   type CommunityEvent, type InsertCommunityEvent, communityEvents,
   type Documentary, type InsertDocumentary, documentaries,
   type WitnessVideo, type InsertWitnessVideo, witnessVideos,
+  type PublicArticle, type InsertPublicArticle, publicArticles,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -173,6 +174,14 @@ export interface IStorage {
   getWitnessVideo(id: string): Promise<WitnessVideo | undefined>;
   updateWitnessVideo(id: string, data: Partial<WitnessVideo>): Promise<WitnessVideo | undefined>;
   deleteWitnessVideo(id: string): Promise<void>;
+
+  // Public Articles
+  createPublicArticle(article: InsertPublicArticle): Promise<PublicArticle>;
+  getAllPublicArticles(): Promise<PublicArticle[]>;
+  getApprovedPublicArticles(): Promise<PublicArticle[]>;
+  getPublicArticle(id: string): Promise<PublicArticle | undefined>;
+  updatePublicArticle(id: string, data: Partial<PublicArticle>): Promise<PublicArticle | undefined>;
+  deletePublicArticle(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -771,6 +780,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteWitnessVideo(id: string): Promise<void> {
     await db.delete(witnessVideos).where(eq(witnessVideos.id, id));
+  }
+
+  // Public Articles
+  async createPublicArticle(article: InsertPublicArticle): Promise<PublicArticle> {
+    const [created] = await db.insert(publicArticles).values(article).returning();
+    return created;
+  }
+
+  async getAllPublicArticles(): Promise<PublicArticle[]> {
+    return await db.select().from(publicArticles).orderBy(desc(publicArticles.createdAt));
+  }
+
+  async getApprovedPublicArticles(): Promise<PublicArticle[]> {
+    return await db.select().from(publicArticles).where(eq(publicArticles.status, "approved")).orderBy(desc(publicArticles.createdAt));
+  }
+
+  async getPublicArticle(id: string): Promise<PublicArticle | undefined> {
+    const [article] = await db.select().from(publicArticles).where(eq(publicArticles.id, id));
+    return article;
+  }
+
+  async updatePublicArticle(id: string, data: Partial<PublicArticle>): Promise<PublicArticle | undefined> {
+    const [updated] = await db.update(publicArticles).set(data).where(eq(publicArticles.id, id)).returning();
+    return updated;
+  }
+
+  async deletePublicArticle(id: string): Promise<void> {
+    await db.delete(publicArticles).where(eq(publicArticles.id, id));
   }
 
   // Product Ratings

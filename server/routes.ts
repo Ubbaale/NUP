@@ -1892,6 +1892,119 @@ export async function registerRoutes(
     }
   });
 
+  // ===== PUBLIC ARTICLES ("Voice of the People") =====
+  const articleImageUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const dir = path.join(process.cwd(), "uploads", "articles");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only image files (JPEG, PNG, WebP, GIF) are allowed"));
+      }
+    },
+  });
+
+  app.use("/uploads/articles", (await import("express")).default.static(path.join(process.cwd(), "uploads", "articles")));
+
+  app.get("/api/public-articles", async (req, res) => {
+    try {
+      const articles = await storage.getApprovedPublicArticles();
+      const safe = articles.map(({ authorEmail, adminNotes, ...rest }) => rest);
+      res.json(safe);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch articles" });
+    }
+  });
+
+  app.get("/api/public-articles/:id", async (req, res) => {
+    try {
+      const article = await storage.getPublicArticle(req.params.id);
+      if (!article || article.status !== "approved") return res.status(404).json({ error: "Article not found" });
+      const { authorEmail, adminNotes, ...safe } = article;
+      res.json(safe);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch article" });
+    }
+  });
+
+  app.post("/api/public-articles", articleImageUpload.single("coverImage"), async (req, res) => {
+    try {
+      const { title, content, excerpt, category, authorName, authorEmail, authorBio } = req.body;
+      if (!title || !content || !authorName || !authorEmail) {
+        return res.status(400).json({ error: "Title, content, name, and email are required" });
+      }
+      const coverImageUrl = req.file ? `/uploads/articles/${req.file.filename}` : null;
+      const article = await storage.createPublicArticle({
+        title,
+        content,
+        excerpt: excerpt || content.substring(0, 200),
+        coverImageUrl,
+        category: category || "general",
+        authorName,
+        authorEmail,
+        authorBio: authorBio || null,
+      });
+      res.status(201).json({ success: true, message: "Article submitted for review" });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to submit article" });
+    }
+  });
+
+  app.get("/api/admin/public-articles", requireAdmin, async (req, res) => {
+    try {
+      const articles = await storage.getAllPublicArticles();
+      res.json(articles);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch articles" });
+    }
+  });
+
+  app.patch("/api/admin/public-articles/:id", requireAdmin, async (req, res) => {
+    try {
+      const allowedFields: Record<string, boolean> = { status: true, adminNotes: true, isFeatured: true };
+      const allowedStatuses = ["pending", "approved", "rejected"];
+      const updates: Record<string, any> = {};
+      for (const key of Object.keys(req.body)) {
+        if (allowedFields[key]) updates[key] = req.body[key];
+      }
+      if (updates.status && !allowedStatuses.includes(updates.status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      const article = await storage.updatePublicArticle(req.params.id, updates);
+      if (!article) return res.status(404).json({ error: "Article not found" });
+      res.json(article);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update article" });
+    }
+  });
+
+  app.delete("/api/admin/public-articles/:id", requireAdmin, async (req, res) => {
+    try {
+      const article = await storage.getPublicArticle(req.params.id);
+      if (!article) return res.status(404).json({ error: "Article not found" });
+      if (article.coverImageUrl && article.coverImageUrl.startsWith("/uploads/")) {
+        const imgPath = path.join(process.cwd(), article.coverImageUrl.replace(/^\//, ""));
+        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+      }
+      await storage.deletePublicArticle(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete article" });
+    }
+  });
+
   // ===== DOCUMENTARIES =====
   app.get("/api/documentaries", async (req, res) => {
     try {

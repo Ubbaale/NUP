@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown, ImageIcon, HandHeart, Flame, Film } from "lucide-react";
+import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown, ImageIcon, HandHeart, Flame, Film, PenLine } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import nupLogo from "@/assets/images/nup-official-logo.png";
 import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
@@ -24,6 +24,7 @@ const moreNavItems = [
   { href: "/songs", label: "Songs", icon: Music },
   { href: "/gallery", label: "Gallery", icon: ImageIcon },
   { href: "/documentaries", label: "Documentaries", icon: Film },
+  { href: "/articles", label: "Articles", icon: PenLine },
   { href: "/fallen-heroes", label: "Fallen Heroes", icon: Flame },
 ];
 
