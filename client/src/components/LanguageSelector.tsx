@@ -3,7 +3,8 @@ import { Globe, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const languages = [
-  { code: "en", name: "English", flag: "🇬🇧" },
+  { code: "en", name: "English (US)", flag: "🇺🇸" },
+  { code: "en", name: "English (UK)", flag: "🇬🇧" },
   { code: "lg", name: "Luganda", flag: "🇺🇬" },
   { code: "sw", name: "Kiswahili", flag: "🇰🇪" },
   { code: "fr", name: "Français", flag: "🇫🇷" },
@@ -124,14 +125,14 @@ export function LanguageSelector({ compact = false }: { compact?: boolean }) {
           <div className="px-3 py-1.5 border-b mb-1">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Select Language</p>
           </div>
-          {languages.map((lang) => (
+          {languages.map((lang, idx) => (
             <button
-              key={lang.code}
+              key={`${lang.code}-${idx}`}
               onClick={() => selectLanguage(lang.code)}
               className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2.5 hover:bg-muted transition-colors ${
                 currentLang === lang.code ? "bg-muted text-primary font-medium" : ""
               }`}
-              data-testid={`button-language-${lang.code}`}
+              data-testid={`button-language-${lang.code}-${idx}`}
             >
               <span className="text-base">{lang.flag}</span>
               <span className="flex-1">{lang.name}</span>
