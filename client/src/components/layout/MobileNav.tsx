@@ -16,6 +16,7 @@ import {
   Music,
   ImageIcon,
   Flame,
+  Film,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -38,6 +39,7 @@ const moreItems = [
   { href: "/blog", label: "Blog", icon: BookOpen },
   { href: "/auctions", label: "Auctions", icon: Gavel },
   { href: "/gallery", label: "Gallery", icon: ImageIcon },
+  { href: "/documentaries", label: "Documentaries", icon: Film },
   { href: "/fallen-heroes", label: "Fallen Heroes", icon: Flame },
   { href: "/store", label: "Store", icon: ShoppingBag },
   { href: "/membership", label: "Membership", icon: Users },

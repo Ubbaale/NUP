@@ -32,6 +32,7 @@ import {
   type FallenHero, type InsertFallenHero, fallenHeroes,
   type HumanRightsReport, type InsertHumanRightsReport, humanRightsReports,
   type CommunityEvent, type InsertCommunityEvent, communityEvents,
+  type Documentary, type InsertDocumentary, documentaries,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -154,6 +155,14 @@ export interface IStorage {
   getCommunityEvent(id: string): Promise<CommunityEvent | undefined>;
   updateCommunityEvent(id: string, data: Partial<CommunityEvent>): Promise<CommunityEvent | undefined>;
   deleteCommunityEvent(id: string): Promise<void>;
+
+  // Documentaries
+  createDocumentary(doc: InsertDocumentary): Promise<Documentary>;
+  getAllDocumentaries(): Promise<Documentary[]>;
+  getActiveDocumentaries(): Promise<Documentary[]>;
+  getDocumentary(id: string): Promise<Documentary | undefined>;
+  updateDocumentary(id: string, data: Partial<InsertDocumentary>): Promise<Documentary | undefined>;
+  deleteDocumentary(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -692,6 +701,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCommunityEvent(id: string): Promise<void> {
     await db.delete(communityEvents).where(eq(communityEvents.id, id));
+  }
+
+  // Documentaries
+  async createDocumentary(doc: InsertDocumentary): Promise<Documentary> {
+    const [created] = await db.insert(documentaries).values(doc).returning();
+    return created;
+  }
+
+  async getAllDocumentaries(): Promise<Documentary[]> {
+    return await db.select().from(documentaries).orderBy(asc(documentaries.sortOrder), desc(documentaries.createdAt));
+  }
+
+  async getActiveDocumentaries(): Promise<Documentary[]> {
+    return await db.select().from(documentaries).where(eq(documentaries.isActive, true)).orderBy(asc(documentaries.sortOrder), desc(documentaries.createdAt));
+  }
+
+  async getDocumentary(id: string): Promise<Documentary | undefined> {
+    const [doc] = await db.select().from(documentaries).where(eq(documentaries.id, id));
+    return doc;
+  }
+
+  async updateDocumentary(id: string, data: Partial<InsertDocumentary>): Promise<Documentary | undefined> {
+    const [updated] = await db.update(documentaries).set(data).where(eq(documentaries.id, id)).returning();
+    return updated;
+  }
+
+  async deleteDocumentary(id: string): Promise<void> {
+    await db.delete(documentaries).where(eq(documentaries.id, id));
   }
 
   // Product Ratings

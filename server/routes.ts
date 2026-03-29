@@ -1786,6 +1786,53 @@ export async function registerRoutes(
     }
   });
 
+  // ===== DOCUMENTARIES =====
+  app.get("/api/documentaries", async (req, res) => {
+    try {
+      const docs = await storage.getActiveDocumentaries();
+      res.json(docs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch documentaries" });
+    }
+  });
+
+  app.get("/api/admin/documentaries", requireAdmin, async (req, res) => {
+    try {
+      const docs = await storage.getAllDocumentaries();
+      res.json(docs);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch documentaries" });
+    }
+  });
+
+  app.post("/api/admin/documentaries", requireAdmin, async (req, res) => {
+    try {
+      const doc = await storage.createDocumentary(req.body);
+      res.status(201).json(doc);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to create documentary" });
+    }
+  });
+
+  app.patch("/api/admin/documentaries/:id", requireAdmin, async (req, res) => {
+    try {
+      const doc = await storage.updateDocumentary(req.params.id, req.body);
+      if (!doc) return res.status(404).json({ error: "Documentary not found" });
+      res.json(doc);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update documentary" });
+    }
+  });
+
+  app.delete("/api/admin/documentaries/:id", requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteDocumentary(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete documentary" });
+    }
+  });
+
   // ===== FALLEN HEROES =====
   app.get("/api/fallen-heroes", async (req, res) => {
     try {

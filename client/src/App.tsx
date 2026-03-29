@@ -64,6 +64,8 @@ import FallenHeroes from "@/pages/FallenHeroes";
 import FallenHeroesAdmin from "@/pages/FallenHeroesAdmin";
 import HumanRightsReportsAdmin from "@/pages/HumanRightsReportsAdmin";
 import CommunityEventsAdmin from "@/pages/CommunityEventsAdmin";
+import Documentaries from "@/pages/Documentaries";
+import DocumentariesAdmin from "@/pages/DocumentariesAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -120,6 +122,7 @@ function Router() {
       <Route path="/auctions/:slug" component={AuctionDetail} />
       <Route path="/about" component={AboutUs} />
       <Route path="/fallen-heroes" component={FallenHeroes} />
+      <Route path="/documentaries" component={Documentaries} />
       <Route path="/portal/chapter/:slug" component={ChapterPortal} />
       <Route path="/portal/region/:slug" component={RegionPortal} />
       <Route path="/admin">{() => <AdminRoute component={AdminDashboard} />}</Route>
@@ -146,6 +149,7 @@ function Router() {
       <Route path="/admin/fallen-heroes">{() => <AdminRoute component={FallenHeroesAdmin} />}</Route>
       <Route path="/admin/human-rights-reports">{() => <AdminRoute component={HumanRightsReportsAdmin} />}</Route>
       <Route path="/admin/community-events">{() => <AdminRoute component={CommunityEventsAdmin} />}</Route>
+      <Route path="/admin/documentaries">{() => <AdminRoute component={DocumentariesAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

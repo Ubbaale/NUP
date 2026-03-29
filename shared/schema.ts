@@ -678,3 +678,24 @@ export const communityEvents = pgTable("community_events", {
 export const insertCommunityEventSchema = createInsertSchema(communityEvents).omit({ id: true, createdAt: true, status: true, adminNotes: true });
 export type InsertCommunityEvent = z.infer<typeof insertCommunityEventSchema>;
 export type CommunityEvent = typeof communityEvents.$inferSelect;
+
+// Documentaries
+export const documentaries = pgTable("documentaries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  videoUrl: text("video_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  category: text("category").default("general"),
+  year: text("year"),
+  duration: text("duration"),
+  source: text("source"),
+  isActive: boolean("is_active").notNull().default(true),
+  isFeatured: boolean("is_featured").notNull().default(false),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDocumentarySchema = createInsertSchema(documentaries).omit({ id: true, createdAt: true });
+export type InsertDocumentary = z.infer<typeof insertDocumentarySchema>;
+export type Documentary = typeof documentaries.$inferSelect;

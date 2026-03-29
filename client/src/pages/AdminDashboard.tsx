@@ -26,6 +26,7 @@ import {
   Rss,
   Flame,
   Megaphone,
+  Film,
 } from "lucide-react";
 
 const adminSections = [
@@ -160,6 +161,12 @@ const adminSections = [
     description: "Moderate community-submitted events and remove violations",
     href: "/admin/community-events",
     icon: Megaphone,
+  },
+  {
+    title: "Documentaries",
+    description: "Manage documentaries about the struggle for democracy and human rights",
+    href: "/admin/documentaries",
+    icon: Film,
   },
 ];
 
