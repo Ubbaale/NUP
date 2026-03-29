@@ -630,10 +630,16 @@ export const fallenHeroes = pgTable("fallen_heroes", {
   causeOfDeath: text("cause_of_death"),
   sortOrder: integer("sort_order").default(0),
   featured: boolean("featured").default(false),
+  submitterName: text("submitter_name"),
+  submitterEmail: text("submitter_email"),
+  submitterPhone: text("submitter_phone"),
+  submitterRelationship: text("submitter_relationship"),
+  status: text("status").notNull().default("pending"),
+  adminNotes: text("admin_notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertFallenHeroSchema = createInsertSchema(fallenHeroes).omit({ id: true, createdAt: true });
+export const insertFallenHeroSchema = createInsertSchema(fallenHeroes).omit({ id: true, createdAt: true, adminNotes: true });
 export type InsertFallenHero = z.infer<typeof insertFallenHeroSchema>;
 export type FallenHero = typeof fallenHeroes.$inferSelect;
 

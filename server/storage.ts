@@ -136,8 +136,9 @@ export interface IStorage {
   // Fallen Heroes
   createFallenHero(hero: InsertFallenHero): Promise<FallenHero>;
   getAllFallenHeroes(): Promise<FallenHero[]>;
+  getApprovedFallenHeroes(): Promise<FallenHero[]>;
   getFallenHero(id: string): Promise<FallenHero | undefined>;
-  updateFallenHero(id: string, data: Partial<InsertFallenHero>): Promise<FallenHero | undefined>;
+  updateFallenHero(id: string, data: Partial<FallenHero>): Promise<FallenHero | undefined>;
   deleteFallenHero(id: string): Promise<void>;
 
   // Human Rights Reports
@@ -644,12 +645,16 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(fallenHeroes).orderBy(asc(fallenHeroes.sortOrder), desc(fallenHeroes.createdAt));
   }
 
+  async getApprovedFallenHeroes(): Promise<FallenHero[]> {
+    return db.select().from(fallenHeroes).where(eq(fallenHeroes.status, "approved")).orderBy(asc(fallenHeroes.sortOrder), desc(fallenHeroes.createdAt));
+  }
+
   async getFallenHero(id: string): Promise<FallenHero | undefined> {
     const [h] = await db.select().from(fallenHeroes).where(eq(fallenHeroes.id, id));
     return h;
   }
 
-  async updateFallenHero(id: string, data: Partial<InsertFallenHero>): Promise<FallenHero | undefined> {
+  async updateFallenHero(id: string, data: Partial<FallenHero>): Promise<FallenHero | undefined> {
     const [h] = await db.update(fallenHeroes).set(data).where(eq(fallenHeroes.id, id)).returning();
     return h;
   }

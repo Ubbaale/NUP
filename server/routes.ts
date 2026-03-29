@@ -2053,22 +2053,104 @@ export async function registerRoutes(
   });
 
   // ===== FALLEN HEROES =====
+  // Fallen Heroes photo upload
+  const heroPhotoUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const dir = path.join(process.cwd(), "uploads", "fallen-heroes");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only image files (JPEG, PNG, WebP, GIF) are allowed"));
+      }
+    },
+  });
+
+  app.use("/uploads/fallen-heroes", (await import("express")).default.static(path.join(process.cwd(), "uploads", "fallen-heroes")));
+
   app.get("/api/fallen-heroes", async (req, res) => {
     try {
-      const heroes = await storage.getAllFallenHeroes();
-      res.json(heroes);
+      const heroes = await storage.getApprovedFallenHeroes();
+      const safe = heroes.map(({ submitterEmail, submitterPhone, adminNotes, ...rest }) => rest);
+      res.json(safe);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch fallen heroes" });
     }
   });
 
-  app.post("/api/fallen-heroes", requireAdmin, async (req, res) => {
+  app.post("/api/fallen-heroes/submit", heroPhotoUpload.single("photo"), async (req, res) => {
     try {
-      const data = insertFallenHeroSchema.parse(req.body);
-      const hero = await storage.createFallenHero(data);
+      const { fullName, dateOfBirth, dateOfDeath, biography, location, causeOfDeath, submitterName, submitterEmail, submitterPhone, submitterRelationship } = req.body;
+      if (!fullName || !submitterName || !submitterEmail) {
+        return res.status(400).json({ error: "Hero's name, your name, and your email are required" });
+      }
+      const photoUrl = req.file ? `/uploads/fallen-heroes/${req.file.filename}` : null;
+      await storage.createFallenHero({
+        fullName,
+        photoUrl,
+        dateOfBirth: dateOfBirth || null,
+        dateOfDeath: dateOfDeath || null,
+        biography: biography || null,
+        location: location || null,
+        causeOfDeath: causeOfDeath || null,
+        sortOrder: 0,
+        featured: false,
+        submitterName,
+        submitterEmail,
+        submitterPhone: submitterPhone || null,
+        submitterRelationship: submitterRelationship || null,
+        status: "pending",
+      });
+      res.status(201).json({ success: true, message: "Submission received. It will be reviewed before appearing on the memorial." });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to submit" });
+    }
+  });
+
+  app.post("/api/fallen-heroes", requireAdmin, heroPhotoUpload.single("photo"), async (req, res) => {
+    try {
+      const { fullName, dateOfBirth, dateOfDeath, biography, location, causeOfDeath, sortOrder } = req.body;
+      if (!fullName) return res.status(400).json({ error: "Name is required" });
+      const photoUrl = req.file ? `/uploads/fallen-heroes/${req.file.filename}` : (req.body.photoUrl || null);
+      const hero = await storage.createFallenHero({
+        fullName,
+        photoUrl,
+        dateOfBirth: dateOfBirth || null,
+        dateOfDeath: dateOfDeath || null,
+        biography: biography || null,
+        location: location || null,
+        causeOfDeath: causeOfDeath || null,
+        sortOrder: parseInt(sortOrder) || 0,
+        featured: false,
+        submitterName: null,
+        submitterEmail: null,
+        submitterPhone: null,
+        submitterRelationship: null,
+        status: "approved",
+      });
       res.json(hero);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to create fallen hero" });
+    }
+  });
+
+  app.get("/api/admin/fallen-heroes", requireAdmin, async (req, res) => {
+    try {
+      const heroes = await storage.getAllFallenHeroes();
+      res.json(heroes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch fallen heroes" });
     }
   });
 
@@ -2084,6 +2166,12 @@ export async function registerRoutes(
 
   app.delete("/api/fallen-heroes/:id", requireAdmin, async (req, res) => {
     try {
+      const hero = await storage.getFallenHero(req.params.id);
+      if (!hero) return res.status(404).json({ error: "Not found" });
+      if (hero.photoUrl && hero.photoUrl.startsWith("/uploads/")) {
+        const imgPath = path.join(process.cwd(), hero.photoUrl.replace(/^\//, ""));
+        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+      }
       await storage.deleteFallenHero(req.params.id);
       res.json({ success: true });
     } catch (error) {
