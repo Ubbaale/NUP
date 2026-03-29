@@ -1146,6 +1146,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/news/events", async (req, res) => {
+    try {
+      const news = await storage.getAllNewsItems();
+      const eventKeywords = ["visit", "tour", "event", "appearance", "host", "meet", "welcome", "reception", "fundrais", "gala", "dinner", "concert", "convention", "conference", "gathering", "diaspora", "abroad", "rally", "speech", "address"];
+      const eventNews = news.filter(item => {
+        if (item.category === "Events" || item.category === "Diaspora") return true;
+        const text = `${item.title} ${item.excerpt || ""}`.toLowerCase();
+        return eventKeywords.some(kw => text.includes(kw));
+      });
+      res.json(eventNews.slice(0, 30));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch event news" });
+    }
+  });
+
   app.post("/api/news/refresh", requireAdmin, async (req, res) => {
     try {
       const { fetchNewsFromRSS } = await import("./newsFetcher");

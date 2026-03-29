@@ -13,6 +13,10 @@ const SEARCH_QUERIES = [
   "Bobi Wine",
   "National Unity Platform Uganda",
   "Kyagulanyi Ssentamu",
+  "Bobi Wine event",
+  "Bobi Wine visit",
+  "Bobi Wine diaspora",
+  "Bobi Wine tour",
 ];
 
 const FETCH_INTERVAL_MS = 30 * 60 * 1000;
@@ -43,6 +47,7 @@ function cleanExcerpt(snippet: string | undefined, cleanTitle: string, source: s
 
 function categorizeArticle(title: string, content?: string): string {
   const text = `${title} ${content || ""}`.toLowerCase();
+  if (text.includes("visit") || text.includes("tour") || text.includes("event") || text.includes("appearance") || text.includes("host") || text.includes("meet") || text.includes("welcome") || text.includes("reception") || text.includes("fundrais") || text.includes("gala") || text.includes("dinner") || text.includes("concert") || text.includes("convention") || text.includes("conference") || text.includes("gathering")) return "Events";
   if (text.includes("election") || text.includes("vote") || text.includes("poll") || text.includes("campaign")) return "Elections";
   if (text.includes("court") || text.includes("arrest") || text.includes("rights") || text.includes("protest")) return "Human Rights";
   if (text.includes("diaspora") || text.includes("abroad") || text.includes("overseas")) return "Diaspora";
