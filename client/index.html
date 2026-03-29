@@ -71,6 +71,7 @@
     </style>
   </head>
   <body>
+    <div id="google_translate_element"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
@@ -80,5 +81,22 @@
         });
       }
     </script>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,lg,sw,fr,de,nl,ar,zh-CN,es,pt,ja,ko,ru,hi,it,rw,am,ha,yo,zu,so,ti',
+          autoDisplay: false,
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <style>
+      #google_translate_element { display: none; }
+      .goog-te-banner-frame, .skiptranslate { display: none !important; }
+      body { top: 0 !important; }
+      .goog-te-gadget { font-size: 0 !important; }
+    </style>
   </body>
 </html>

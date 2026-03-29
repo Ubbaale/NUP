@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingBag, Users, Globe2, Calendar, Newspaper, BookOpen, Video, Target, Gavel, Music, ChevronDown, ImageIcon, HandHeart, Flame } from "lucide-react";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import nupLogo from "@/assets/images/nup-official-logo.png";
 import peoplePowerLogo from "@assets/download_(5)_1772752192596.jpg";
 
@@ -84,6 +85,9 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <div className="hidden lg:block">
+              <LanguageSelector />
+            </div>
             <Link href="/fundraise" className="hidden lg:block">
               <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white" data-testid="button-fundraise-header">
                 <HandHeart className="w-4 h-4 mr-2" />
@@ -96,6 +100,9 @@ export function Header() {
                 Donate
               </Button>
             </Link>
+            <div className="lg:hidden">
+              <LanguageSelector compact />
+            </div>
             <span className="lg:hidden text-sm font-semibold text-foreground">NUP Diaspora</span>
             <div className="flex items-center gap-2">
               <img src={peoplePowerLogo} alt="People Power" className="h-8 lg:h-10 w-8 lg:w-10 rounded-full object-cover" />

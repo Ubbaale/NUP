@@ -13,6 +13,15 @@ The NUP Diaspora website serves as a central hub for the National Unity Platform
 ## System Architecture
 The website features an interactive world map guiding users to regional and local chapter pages. It includes robust systems for membership management with tiered subscriptions and award fulfillment, a comprehensive e-commerce platform for merchandise, and a multi-faceted fundraising suite encompassing donations, crowdfunding campaigns, virtual events with ticketing, and auctions/raffles. Content delivery is managed through live news feeds (auto-fetched from Google News RSS every 30 minutes for NUP/Bobi Wine international coverage, via `server/newsFetcher.ts`), member blogs, and a manifesto section. The site is built with a modern tech stack utilizing React 18, TypeScript, Tailwind CSS, and a Node.js/Express backend with PostgreSQL and Drizzle ORM. Key UI/UX decisions include NUP red branding, "People Power" messaging, a professional political organization aesthetic, and PWA capabilities for a seamless mobile experience with responsive navigation adapted for different screen sizes. A unique feature is the donation-gated revolutionary songs section, providing exclusive content to supporters.
 
+## Language Translation
+- Entire website can be translated into 22 languages using Google Translate
+- Language selector appears in the header: full version on desktop, compact globe icon on mobile
+- Automatic language detection based on the visitor's browser language setting
+- Supported languages: English, Luganda, Kiswahili, French, German, Dutch, Arabic, Chinese, Spanish, Portuguese, Italian, Russian, Hindi, Japanese, Korean, Kinyarwanda, Amharic, Hausa, Yoruba, Zulu, Somali, Tigrinya
+- User's language preference is saved in localStorage and restored on return visits
+- Component: `client/src/components/LanguageSelector.tsx`
+- Google Translate script loaded in `client/index.html`
+
 ## Admin Authentication
 The admin panel (`/admin` and all `/admin/*` routes) is protected by session-based login:
 - Credentials stored as environment variables: `ADMIN_USERNAME` and `ADMIN_PASSWORD`
