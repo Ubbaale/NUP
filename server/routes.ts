@@ -3197,12 +3197,21 @@ export async function registerRoutes(
 
   app.get("/api/membership/status", async (req, res) => {
     try {
-      const memberEmail = req.query.email as string;
-      if (!memberEmail) return res.status(400).json({ error: "Email required" });
-      const sub = await storage.getMemberSubscriptionByEmail(memberEmail);
-      if (!sub) return res.json({ active: false });
-      const tier = await storage.getTier(sub.tierId);
-      res.json({ active: true, subscription: sub, tier });
+      const membershipId = req.query.membershipId as string;
+      if (!membershipId) return res.status(400).json({ error: "Membership ID required" });
+      const member = await storage.getMemberByMembershipId(membershipId.trim().toUpperCase());
+      if (!member) return res.status(404).json({ error: "No member found with this Membership ID" });
+      const sub = await storage.getMemberSubscriptionByEmail(member.email);
+      const tier = sub ? await storage.getTier(sub.tierId) : null;
+      res.json({
+        active: !!sub,
+        memberName: `${member.firstName} ${member.lastName}`,
+        membershipId: member.membershipId,
+        joinedAt: member.joinedAt,
+        tierName: tier?.name || null,
+        renewalDate: sub?.renewalDate || null,
+        subscriptionStatus: sub?.status || null,
+      });
     } catch (error) {
       res.status(500).json({ error: "Failed to check status" });
     }

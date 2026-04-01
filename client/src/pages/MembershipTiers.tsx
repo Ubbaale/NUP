@@ -14,7 +14,7 @@ import { Check, Crown, Star, Mail, ArrowRight, Award, Trophy, Medal, Package } f
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import type { MembershipTier, MemberSubscription } from "@shared/schema";
+import type { MembershipTier } from "@shared/schema";
 
 const subscribeSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -49,7 +49,7 @@ const awardLabels: Record<string, string> = {
 };
 
 const statusCheckSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  membershipId: z.string().min(5, "Please enter your Membership ID (e.g. NUP26-ABC123)"),
 });
 
 type StatusCheckData = z.infer<typeof statusCheckSchema>;
@@ -70,7 +70,7 @@ export default function MembershipTiers() {
   const { toast } = useToast();
   const [selectedTier, setSelectedTier] = useState<MembershipTier | null>(null);
   const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
-  const [statusResult, setStatusResult] = useState<(MemberSubscription & { tierName?: string }) | null>(null);
+  const [statusResult, setStatusResult] = useState<any>(null);
   const [statusError, setStatusError] = useState("");
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
@@ -97,7 +97,7 @@ export default function MembershipTiers() {
   const statusForm = useForm<StatusCheckData>({
     resolver: zodResolver(statusCheckSchema),
     defaultValues: {
-      email: "",
+      membershipId: "",
     },
   });
 
@@ -187,12 +187,12 @@ export default function MembershipTiers() {
     setStatusResult(null);
 
     try {
-      const response = await fetch(`/api/membership/status?email=${encodeURIComponent(data.email)}`);
+      const response = await fetch(`/api/membership/status?membershipId=${encodeURIComponent(data.membershipId.trim())}`);
       if (response.ok) {
         const result = await response.json();
         setStatusResult(result);
       } else if (response.status === 404) {
-        setStatusError("No active membership found for this email address.");
+        setStatusError("No member found with this Membership ID. Please check your ID and try again.");
       } else {
         setStatusError("Could not check membership status. Please try again.");
       }
@@ -346,7 +346,8 @@ export default function MembershipTiers() {
               </div>
               <h2 className="text-xl font-bold" data-testid="text-status-check-title">Check Membership Status</h2>
               <p className="text-sm text-muted-foreground">
-                Enter your email to view your current membership tier and renewal status.
+                Enter your unique Membership ID to view your current tier and renewal status.
+                Your Membership ID was sent to you when you registered (e.g. NUP26-ABC123).
               </p>
             </CardHeader>
             <CardContent>
@@ -354,16 +355,16 @@ export default function MembershipTiers() {
                 <form onSubmit={statusForm.handleSubmit(handleStatusCheck)} className="space-y-4">
                   <FormField
                     control={statusForm.control}
-                    name="email"
+                    name="membershipId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel>Membership ID</FormLabel>
                         <FormControl>
                           <Input
-                            type="email"
-                            placeholder="your@email.com"
+                            placeholder="NUP26-ABC123"
                             {...field}
-                            data-testid="input-status-email"
+                            className="uppercase tracking-wider font-mono"
+                            data-testid="input-status-membership-id"
                           />
                         </FormControl>
                         <FormMessage />
@@ -393,61 +394,42 @@ export default function MembershipTiers() {
               {statusResult && (
                 <div className="mt-4 p-4 bg-muted/50 rounded-md space-y-3" data-testid="text-status-result">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h3 className="font-bold" data-testid="text-status-name">{statusResult.fullName}</h3>
+                    <h3 className="font-bold" data-testid="text-status-name">{statusResult.memberName}</h3>
                     <Badge
-                      variant={statusResult.status === "active" ? "default" : "secondary"}
+                      variant={statusResult.active ? "default" : "secondary"}
                       data-testid="badge-status"
                     >
-                      {statusResult.status}
+                      {statusResult.active ? "Active" : "No Active Subscription"}
                     </Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-muted-foreground">Tier</p>
-                      <p className="font-medium" data-testid="text-status-tier">
-                        {statusResult.tierName || "N/A"}
-                      </p>
+                      <p className="text-muted-foreground">Membership ID</p>
+                      <p className="font-medium font-mono" data-testid="text-status-id">{statusResult.membershipId}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Amount</p>
-                      <p className="font-medium" data-testid="text-status-amount">${statusResult.amount}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Start Date</p>
-                      <p className="font-medium" data-testid="text-status-start">
-                        {statusResult.startDate
-                          ? new Date(statusResult.startDate).toLocaleDateString()
+                      <p className="text-muted-foreground">Member Since</p>
+                      <p className="font-medium" data-testid="text-status-joined">
+                        {statusResult.joinedAt
+                          ? new Date(statusResult.joinedAt).toLocaleDateString()
                           : "N/A"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Renewal Date</p>
-                      <p className="font-medium" data-testid="text-status-renewal">
-                        {statusResult.renewalDate
-                          ? new Date(statusResult.renewalDate).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </div>
+                    {statusResult.tierName && (
+                      <div>
+                        <p className="text-muted-foreground">Tier</p>
+                        <p className="font-medium" data-testid="text-status-tier">{statusResult.tierName}</p>
+                      </div>
+                    )}
+                    {statusResult.renewalDate && (
+                      <div>
+                        <p className="text-muted-foreground">Renewal Date</p>
+                        <p className="font-medium" data-testid="text-status-renewal">
+                          {new Date(statusResult.renewalDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  {statusResult.awardStatus && (
-                    <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-md" data-testid="text-award-status">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="w-4 h-4 text-primary" />
-                        <span className="text-sm font-medium">Award Status</span>
-                      </div>
-                      <div className="mt-1 flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {statusResult.engravingName && `Engraved for: ${statusResult.engravingName}`}
-                        </span>
-                        <Badge variant={statusResult.awardStatus === "shipped" ? "default" : "secondary"} data-testid="badge-award-status">
-                          {statusResult.awardStatus === "pending" ? "Being Prepared" :
-                           statusResult.awardStatus === "shipped" ? "Shipped" :
-                           statusResult.awardStatus === "delivered" ? "Delivered" :
-                           statusResult.awardStatus}
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </CardContent>
