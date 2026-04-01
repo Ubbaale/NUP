@@ -427,6 +427,50 @@ export async function registerRoutes(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
+  // ===== ADMIN DASHBOARD STATS =====
+  app.get("/api/admin/dashboard-stats", requireAdmin, async (req, res) => {
+    try {
+      const [allFallenHeroes, allMissingPersons, allWitnessVideos, allPublicArticles, allCommunityEvents, allOrders, allMembers, allDonations] = await Promise.all([
+        storage.getAllFallenHeroes(),
+        storage.getAllMissingPersons(),
+        storage.getAllWitnessVideos(),
+        storage.getAllPublicArticles(),
+        storage.getAllCommunityEvents(),
+        storage.getAllOrders(),
+        storage.getAllMembers(),
+        storage.getAllDonations(),
+      ]);
+
+      const pendingHeroes = allFallenHeroes.filter((h: any) => h.status === "pending").length;
+      const pendingMissing = allMissingPersons.filter((p: any) => p.status === "pending").length;
+      const pendingVideos = allWitnessVideos.filter((v: any) => v.status === "pending").length;
+      const pendingArticles = allPublicArticles.filter((a: any) => a.status === "pending").length;
+      const pendingEvents = allCommunityEvents.filter((e: any) => e.status === "pending").length;
+
+      res.json({
+        pending: {
+          fallenHeroes: pendingHeroes,
+          missingPersons: pendingMissing,
+          witnessVideos: pendingVideos,
+          publicArticles: pendingArticles,
+          communityEvents: pendingEvents,
+        },
+        totals: {
+          fallenHeroes: allFallenHeroes.length,
+          missingPersons: allMissingPersons.length,
+          witnessVideos: allWitnessVideos.length,
+          publicArticles: allPublicArticles.length,
+          communityEvents: allCommunityEvents.length,
+          orders: allOrders.length,
+          members: allMembers.length,
+          donations: allDonations.length,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch dashboard stats" });
+    }
+  });
+
   // ===== REGIONS =====
   app.get("/api/regions", async (req, res) => {
     try {
