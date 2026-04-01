@@ -47,7 +47,7 @@ const moreItems = [
   { href: "/missing-persons", label: "Missing & Prisoners", icon: UserX },
   { href: "/store", label: "Store", icon: ShoppingBag },
   { href: "/membership", label: "Membership", icon: Users },
-  { href: "/membership-tiers", label: "Premium Tiers", icon: Crown },
+  { href: "/membership-tiers", label: "Member Renewal", icon: Crown },
   { href: "/order-tracking", label: "Track Order", icon: ShoppingBag },
   { href: "/admin/events", label: "Admin: Events", icon: Settings },
   { href: "/admin/membership", label: "Admin: Subscriptions", icon: Settings },

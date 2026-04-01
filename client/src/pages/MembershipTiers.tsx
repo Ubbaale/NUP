@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Crown, Star, Shield, Heart, Mail, ArrowRight, Award, Trophy, Medal, Package } from "lucide-react";
+import { Check, Crown, Star, Mail, ArrowRight, Award, Trophy, Medal, Package } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -54,16 +54,16 @@ const statusCheckSchema = z.object({
 
 type StatusCheckData = z.infer<typeof statusCheckSchema>;
 
-const tierIcons: Record<string, typeof Crown> = {
-  supporter: Heart,
-  advocate: Star,
-  champion: Shield,
-  ambassador: Crown,
-};
-
 function getTierIcon(slug: string) {
-  const Icon = tierIcons[slug] || Heart;
-  return Icon;
+  if (slug.includes("gold")) return Crown;
+  if (slug.includes("silver")) return Star;
+  return Crown;
+}
+
+function getTierGradient(slug: string) {
+  if (slug.includes("gold")) return { bg: "from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/20", border: "border-yellow-400 dark:border-yellow-600", accent: "#B8860B" };
+  if (slug.includes("silver")) return { bg: "from-gray-50 to-slate-50 dark:from-gray-950/30 dark:to-slate-950/20", border: "border-gray-400 dark:border-gray-500", accent: "#808080" };
+  return { bg: "", border: "", accent: "#DC2626" };
 }
 
 export default function MembershipTiers() {
@@ -109,16 +109,16 @@ export default function MembershipTiers() {
         amount: data.amount,
         status: "active",
         startDate: new Date().toISOString(),
-        renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        renewalDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       });
     },
     onSuccess: async () => {
       const hasAward = selectedTier?.awardType;
       toast({
-        title: "Subscription Successful!",
+        title: "Renewal Successful!",
         description: hasAward
-          ? `You are now subscribed to the ${selectedTier?.name} tier. Your ${awardLabels[selectedTier?.awardType || ""] || "award"} will be engraved and shipped to you!`
-          : `You are now subscribed to the ${selectedTier?.name} tier. Welcome to the movement!`,
+          ? `Your ${selectedTier?.name} membership renewal is confirmed. Your ${awardLabels[selectedTier?.awardType || ""] || "award"} will be engraved and shipped to you!`
+          : `Your ${selectedTier?.name} membership renewal is confirmed. Thank you for your continued support!`,
       });
       subscribeForm.reset();
       setSubscribeDialogOpen(false);
@@ -128,8 +128,8 @@ export default function MembershipTiers() {
     },
     onError: (error: any) => {
       toast({
-        title: "Subscription Failed",
-        description: error.message || "Could not complete subscription. Please try again.",
+        title: "Renewal Failed",
+        description: error.message || "Could not complete renewal. Please try again.",
         variant: "destructive",
       });
     },
@@ -223,9 +223,9 @@ export default function MembershipTiers() {
             <Skeleton className="h-10 w-72 mx-auto mb-4" />
             <Skeleton className="h-5 w-96 mx-auto" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-96 rounded-md" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {[1, 2].map((i) => (
+              <Skeleton key={i} className="h-[500px] rounded-xl" />
             ))}
           </div>
         </div>
@@ -238,98 +238,99 @@ export default function MembershipTiers() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4" data-testid="badge-membership-tiers">
-            Support the Movement
+            Member Renewal
           </Badge>
-          <h1 className="text-4xl font-bold mb-4" data-testid="text-page-title">Membership Tiers</h1>
+          <h1 className="text-4xl font-bold mb-4" data-testid="text-page-title">NUP Diaspora Membership Renewal</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Choose a membership tier that fits your commitment level. Every contribution
-            strengthens our movement and supports the fight for democracy in Uganda.
+            Renew your commitment to the struggle for democracy in Uganda.
+            Choose your renewal tier and continue standing with the movement.
           </p>
           <div className="mt-4">
             <Link href="/membership">
               <Button variant="outline" data-testid="link-basic-membership">
-                Looking for basic membership registration?
+                New member? Register here first
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
           {sortedTiers.map((tier) => {
             const Icon = getTierIcon(tier.slug);
             const benefits = parseBenefits(tier.benefits);
-            const isPopular = tier.isPopular;
+            const isGold = tier.slug.includes("gold");
+            const style = getTierGradient(tier.slug);
 
             return (
               <Card
                 key={tier.id}
-                className={`relative flex flex-col ${isPopular ? "border-primary shadow-md" : ""}`}
+                className={`relative flex flex-col bg-gradient-to-br ${style.bg} ${style.border} border-2 ${isGold ? "shadow-xl shadow-yellow-200/30 dark:shadow-yellow-900/20" : "shadow-lg"}`}
                 data-testid={`card-tier-${tier.id}`}
               >
-                {isPopular && (
+                {isGold && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge data-testid={`badge-popular-${tier.id}`}>
-                      Most Popular
+                    <Badge className="bg-yellow-500 text-black hover:bg-yellow-400 font-bold" data-testid={`badge-popular-${tier.id}`}>
+                      Recommended
                     </Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pb-2">
+                <CardHeader className="text-center pb-2 pt-8">
                   <div
-                    className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
-                    style={{ backgroundColor: tier.badgeColor ? `${tier.badgeColor}20` : undefined }}
+                    className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+                    style={{ backgroundColor: `${style.accent}20` }}
                   >
                     <Icon
-                      className="w-6 h-6"
-                      style={{ color: tier.badgeColor || undefined }}
+                      className="w-8 h-8"
+                      style={{ color: style.accent }}
                     />
                   </div>
-                  <h3 className="text-lg font-bold" data-testid={`text-tier-name-${tier.id}`}>{tier.name}</h3>
-                  <div className="mt-2">
-                    <span className="text-3xl font-bold" data-testid={`text-tier-price-${tier.id}`}>
+                  <h3 className="text-xl font-bold" data-testid={`text-tier-name-${tier.id}`}>{tier.name}</h3>
+                  <div className="mt-3">
+                    <span className="text-4xl font-extrabold" data-testid={`text-tier-price-${tier.id}`}>
                       ${tier.price}
                     </span>
-                    <span className="text-muted-foreground">/{tier.interval === "yearly" ? "yr" : "mo"}</span>
+                    <span className="text-muted-foreground ml-1">/year</span>
                   </div>
                   {tier.description && (
-                    <p className="text-sm text-muted-foreground mt-2" data-testid={`text-tier-desc-${tier.id}`}>
+                    <p className="text-sm text-muted-foreground mt-3" data-testid={`text-tier-desc-${tier.id}`}>
                       {tier.description}
                     </p>
                   )}
                 </CardHeader>
-                <CardContent className="flex-1 flex flex-col">
+                <CardContent className="flex-1 flex flex-col px-6 pb-6">
                   {tier.awardType && (
                     <div
-                      className="mb-4 p-3 rounded-lg border border-dashed flex items-start gap-3"
-                      style={{ borderColor: tier.badgeColor || undefined, backgroundColor: tier.badgeColor ? `${tier.badgeColor}08` : undefined }}
+                      className="mb-5 p-4 rounded-lg border border-dashed flex items-start gap-3"
+                      style={{ borderColor: style.accent, backgroundColor: `${style.accent}08` }}
                       data-testid={`award-info-${tier.id}`}
                     >
-                      {(() => { const AwardIcon = getAwardIcon(tier.awardType); return <AwardIcon className="w-5 h-5 mt-0.5 shrink-0" style={{ color: tier.badgeColor || undefined }} />; })()}
+                      {(() => { const AwardIcon = getAwardIcon(tier.awardType); return <AwardIcon className="w-5 h-5 mt-0.5 shrink-0" style={{ color: style.accent }} />; })()}
                       <div>
-                        <p className="text-xs font-semibold" style={{ color: tier.badgeColor || undefined }}>
-                          {awardLabels[tier.awardType] || "Award"}
+                        <p className="text-xs font-semibold" style={{ color: style.accent }}>
+                          {awardLabels[tier.awardType] || "Award"} Included
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">{tier.awardDescription}</p>
                       </div>
                     </div>
                   )}
                   {benefits.length > 0 && (
-                    <ul className="space-y-2 mb-6 flex-1">
+                    <ul className="space-y-2.5 mb-6 flex-1">
                       {benefits.map((benefit, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm">
-                          <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          <Check className="w-4 h-4 mt-0.5 shrink-0" style={{ color: style.accent }} />
                           <span data-testid={`text-benefit-${tier.id}-${idx}`}>{benefit}</span>
                         </li>
                       ))}
                     </ul>
                   )}
                   <Button
-                    className="w-full mt-auto"
-                    variant={isPopular ? "default" : "outline"}
+                    className={`w-full mt-auto text-base py-6 font-semibold ${isGold ? "bg-yellow-600 hover:bg-yellow-700 text-white" : ""}`}
+                    variant={isGold ? "default" : "outline"}
                     onClick={() => handleSelectTier(tier)}
                     data-testid={`button-subscribe-${tier.id}`}
                   >
-                    Subscribe Now
+                    {isGold ? "Renew Gold — $1,000" : "Renew Silver — $500"}
                   </Button>
                 </CardContent>
               </Card>
@@ -345,7 +346,7 @@ export default function MembershipTiers() {
               </div>
               <h2 className="text-xl font-bold" data-testid="text-status-check-title">Check Membership Status</h2>
               <p className="text-sm text-muted-foreground">
-                Enter your email to view your current membership tier and status.
+                Enter your email to view your current membership tier and renewal status.
               </p>
             </CardHeader>
             <CardContent>
@@ -458,7 +459,7 @@ export default function MembershipTiers() {
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle data-testid="text-dialog-title">
-              {subscribeStep === "shipping" ? "Shipping Details for Your Award" : `Subscribe to ${selectedTier?.name}`}
+              {subscribeStep === "shipping" ? "Shipping Details for Your Award" : `Renew — ${selectedTier?.name}`}
             </DialogTitle>
             <DialogDescription>
               {subscribeStep === "shipping" ? (
@@ -467,8 +468,7 @@ export default function MembershipTiers() {
                 </span>
               ) : selectedTier ? (
                 <span>
-                  ${selectedTier.price}/{selectedTier.interval === "yearly" ? "year" : "month"} —{" "}
-                  {selectedTier.description}
+                  ${selectedTier.price}/year — {selectedTier.description}
                 </span>
               ) : null}
             </DialogDescription>
@@ -508,19 +508,23 @@ export default function MembershipTiers() {
                       </FormItem>
                     )}
                   />
-                  <div className="p-3 bg-muted/50 rounded-md text-sm">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <span className="text-muted-foreground">Selected Tier</span>
-                      <span className="font-medium" data-testid="text-confirm-tier">{selectedTier?.name}</span>
+                  <div className="p-4 bg-muted/50 rounded-lg text-sm space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Renewal Tier</span>
+                      <span className="font-semibold" data-testid="text-confirm-tier">{selectedTier?.name}</span>
                     </div>
-                    <div className="flex items-center justify-between flex-wrap gap-2 mt-1">
+                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Amount</span>
-                      <span className="font-bold" data-testid="text-confirm-amount">
-                        ${selectedTier?.price}/{selectedTier?.interval === "yearly" ? "yr" : "mo"}
+                      <span className="font-bold text-lg" data-testid="text-confirm-amount">
+                        ${selectedTier?.price}
                       </span>
                     </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Period</span>
+                      <span className="font-medium">Annual</span>
+                    </div>
                     {selectedTier?.awardType && (
-                      <div className="flex items-center justify-between flex-wrap gap-2 mt-1">
+                      <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Award</span>
                         <span className="font-medium text-primary">
                           {awardLabels[selectedTier.awardType] || "Award"} included
@@ -534,7 +538,7 @@ export default function MembershipTiers() {
                     onClick={onContinueToShipping}
                     data-testid="button-continue-subscribe"
                   >
-                    {selectedTier?.awardType ? "Continue to Shipping Details" : "Confirm Subscription"}
+                    {selectedTier?.awardType ? "Continue to Shipping Details" : "Confirm Renewal"}
                   </Button>
                 </>
               )}
@@ -550,99 +554,75 @@ export default function MembershipTiers() {
                       </div>
                     </div>
                   )}
-                  <FormField
-                    control={subscribeForm.control}
-                    name="engravingName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name for Engraving *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Name as it should appear on your award" {...field} data-testid="input-engraving-name" />
-                        </FormControl>
-                        {shippingErrors.engravingName && <p className="text-sm text-destructive">{shippingErrors.engravingName}</p>}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={subscribeForm.control}
-                    name="shippingAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Street Address *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="123 Main St, Apt 4" {...field} data-testid="input-shipping-address" />
-                        </FormControl>
-                        {shippingErrors.shippingAddress && <p className="text-sm text-destructive">{shippingErrors.shippingAddress}</p>}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={subscribeForm.control}
-                      name="shippingCity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="City" {...field} data-testid="input-shipping-city" />
-                          </FormControl>
-                          {shippingErrors.shippingCity && <p className="text-sm text-destructive">{shippingErrors.shippingCity}</p>}
-                          <FormMessage />
-                        </FormItem>
-                      )}
+
+                  <div>
+                    <FormLabel>Name for Engraving</FormLabel>
+                    <Input
+                      value={subscribeForm.watch("engravingName") || ""}
+                      onChange={(e) => subscribeForm.setValue("engravingName", e.target.value)}
+                      placeholder="How your name should appear on the award"
+                      data-testid="input-engraving-name"
                     />
-                    <FormField
-                      control={subscribeForm.control}
-                      name="shippingState"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>State / Province</FormLabel>
-                          <FormControl>
-                            <Input placeholder="State" {...field} data-testid="input-shipping-state" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                    {shippingErrors.engravingName && <p className="text-xs text-destructive mt-1">{shippingErrors.engravingName}</p>}
+                  </div>
+                  <div>
+                    <FormLabel>Street Address</FormLabel>
+                    <Input
+                      value={subscribeForm.watch("shippingAddress") || ""}
+                      onChange={(e) => subscribeForm.setValue("shippingAddress", e.target.value)}
+                      placeholder="123 Main Street"
+                      data-testid="input-shipping-address"
                     />
+                    {shippingErrors.shippingAddress && <p className="text-xs text-destructive mt-1">{shippingErrors.shippingAddress}</p>}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={subscribeForm.control}
-                      name="shippingZip"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ZIP / Postal Code</FormLabel>
-                          <FormControl>
-                            <Input placeholder="12345" {...field} data-testid="input-shipping-zip" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={subscribeForm.control}
-                      name="shippingCountry"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="United States" {...field} data-testid="input-shipping-country" />
-                          </FormControl>
-                          {shippingErrors.shippingCountry && <p className="text-sm text-destructive">{shippingErrors.shippingCountry}</p>}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div>
+                      <FormLabel>City</FormLabel>
+                      <Input
+                        value={subscribeForm.watch("shippingCity") || ""}
+                        onChange={(e) => subscribeForm.setValue("shippingCity", e.target.value)}
+                        placeholder="City"
+                        data-testid="input-shipping-city"
+                      />
+                      {shippingErrors.shippingCity && <p className="text-xs text-destructive mt-1">{shippingErrors.shippingCity}</p>}
+                    </div>
+                    <div>
+                      <FormLabel>State / Province</FormLabel>
+                      <Input
+                        value={subscribeForm.watch("shippingState") || ""}
+                        onChange={(e) => subscribeForm.setValue("shippingState", e.target.value)}
+                        placeholder="State"
+                        data-testid="input-shipping-state"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <FormLabel>ZIP / Postal Code</FormLabel>
+                      <Input
+                        value={subscribeForm.watch("shippingZip") || ""}
+                        onChange={(e) => subscribeForm.setValue("shippingZip", e.target.value)}
+                        placeholder="ZIP"
+                        data-testid="input-shipping-zip"
+                      />
+                    </div>
+                    <div>
+                      <FormLabel>Country</FormLabel>
+                      <Input
+                        value={subscribeForm.watch("shippingCountry") || ""}
+                        onChange={(e) => subscribeForm.setValue("shippingCountry", e.target.value)}
+                        placeholder="Country"
+                        data-testid="input-shipping-country"
+                      />
+                      {shippingErrors.shippingCountry && <p className="text-xs text-destructive mt-1">{shippingErrors.shippingCountry}</p>}
+                    </div>
                   </div>
                   <div className="flex gap-3">
                     <Button
                       type="button"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => setSubscribeStep("info")}
-                      data-testid="button-back-to-info"
+                      onClick={() => { setSubscribeStep("info"); setShippingErrors({}); }}
                     >
                       Back
                     </Button>
@@ -652,7 +632,7 @@ export default function MembershipTiers() {
                       disabled={subscribeMutation.isPending}
                       data-testid="button-confirm-subscribe"
                     >
-                      {subscribeMutation.isPending ? "Processing..." : "Complete Subscription"}
+                      {subscribeMutation.isPending ? "Processing..." : `Confirm — $${selectedTier?.price}`}
                     </Button>
                   </div>
                 </>
