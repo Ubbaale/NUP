@@ -35,6 +35,7 @@ import {
   type Documentary, type InsertDocumentary, documentaries,
   type WitnessVideo, type InsertWitnessVideo, witnessVideos,
   type PublicArticle, type InsertPublicArticle, publicArticles,
+  type MissingPerson, type InsertMissingPerson, missingPersons,
   users
 } from "@shared/schema";
 import { db } from "./db";
@@ -183,6 +184,14 @@ export interface IStorage {
   getPublicArticle(id: string): Promise<PublicArticle | undefined>;
   updatePublicArticle(id: string, data: Partial<PublicArticle>): Promise<PublicArticle | undefined>;
   deletePublicArticle(id: string): Promise<void>;
+
+  // Missing Persons & Prisoners
+  createMissingPerson(person: InsertMissingPerson): Promise<MissingPerson>;
+  getAllMissingPersons(): Promise<MissingPerson[]>;
+  getApprovedMissingPersons(): Promise<MissingPerson[]>;
+  getMissingPerson(id: string): Promise<MissingPerson | undefined>;
+  updateMissingPerson(id: string, data: Partial<MissingPerson>): Promise<MissingPerson | undefined>;
+  deleteMissingPerson(id: string): Promise<void>;
 
   // Product Ratings
   createProductRating(rating: InsertProductRating): Promise<ProductRating>;
@@ -813,6 +822,34 @@ export class DatabaseStorage implements IStorage {
 
   async deletePublicArticle(id: string): Promise<void> {
     await db.delete(publicArticles).where(eq(publicArticles.id, id));
+  }
+
+  // Missing Persons & Prisoners
+  async createMissingPerson(person: InsertMissingPerson): Promise<MissingPerson> {
+    const [p] = await db.insert(missingPersons).values(person).returning();
+    return p;
+  }
+
+  async getAllMissingPersons(): Promise<MissingPerson[]> {
+    return db.select().from(missingPersons).orderBy(desc(missingPersons.createdAt));
+  }
+
+  async getApprovedMissingPersons(): Promise<MissingPerson[]> {
+    return db.select().from(missingPersons).where(eq(missingPersons.status, "approved")).orderBy(desc(missingPersons.createdAt));
+  }
+
+  async getMissingPerson(id: string): Promise<MissingPerson | undefined> {
+    const [p] = await db.select().from(missingPersons).where(eq(missingPersons.id, id));
+    return p;
+  }
+
+  async updateMissingPerson(id: string, data: Partial<MissingPerson>): Promise<MissingPerson | undefined> {
+    const [p] = await db.update(missingPersons).set(data).where(eq(missingPersons.id, id)).returning();
+    return p;
+  }
+
+  async deleteMissingPerson(id: string): Promise<void> {
+    await db.delete(missingPersons).where(eq(missingPersons.id, id));
   }
 
   // Product Ratings

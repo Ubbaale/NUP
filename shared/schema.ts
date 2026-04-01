@@ -747,3 +747,28 @@ export const publicArticles = pgTable("public_articles", {
 export const insertPublicArticleSchema = createInsertSchema(publicArticles).omit({ id: true, createdAt: true, status: true, adminNotes: true, isFeatured: true });
 export type InsertPublicArticle = z.infer<typeof insertPublicArticleSchema>;
 export type PublicArticle = typeof publicArticles.$inferSelect;
+
+// Missing Persons & Prisoners
+export const missingPersons = pgTable("missing_persons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  photoUrl: text("photo_url"),
+  age: text("age"),
+  gender: text("gender"),
+  location: text("location"),
+  category: text("category").notNull().default("missing"),
+  dateMissing: text("date_missing"),
+  lastSeenLocation: text("last_seen_location"),
+  description: text("description"),
+  submitterName: text("submitter_name").notNull(),
+  submitterEmail: text("submitter_email").notNull(),
+  submitterPhone: text("submitter_phone"),
+  submitterRelationship: text("submitter_relationship"),
+  status: text("status").notNull().default("pending"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertMissingPersonSchema = createInsertSchema(missingPersons).omit({ id: true, createdAt: true, status: true, adminNotes: true });
+export type InsertMissingPerson = z.infer<typeof insertMissingPersonSchema>;
+export type MissingPerson = typeof missingPersons.$inferSelect;

@@ -29,6 +29,7 @@ import {
   Film,
   Eye,
   PenLine,
+  UserX,
 } from "lucide-react";
 
 const adminSections = [
@@ -151,6 +152,12 @@ const adminSections = [
     description: "Honor and remember those who made the ultimate sacrifice",
     href: "/admin/fallen-heroes",
     icon: Flame,
+  },
+  {
+    title: "Missing Persons & Prisoners",
+    description: "Review and manage reports of missing persons, abductions, and political prisoners",
+    href: "/admin/missing-persons",
+    icon: UserX,
   },
   {
     title: "Human Rights Reports",

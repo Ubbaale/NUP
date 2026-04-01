@@ -69,6 +69,8 @@ import DocumentariesAdmin from "@/pages/DocumentariesAdmin";
 import WitnessVideosAdmin from "@/pages/WitnessVideosAdmin";
 import PublicArticles from "@/pages/PublicArticles";
 import PublicArticlesAdmin from "@/pages/PublicArticlesAdmin";
+import MissingPersons from "@/pages/MissingPersons";
+import MissingPersonsAdmin from "@/pages/MissingPersonsAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -127,6 +129,7 @@ function Router() {
       <Route path="/fallen-heroes" component={FallenHeroes} />
       <Route path="/documentaries" component={Documentaries} />
       <Route path="/articles" component={PublicArticles} />
+      <Route path="/missing-persons" component={MissingPersons} />
       <Route path="/portal/chapter/:slug" component={ChapterPortal} />
       <Route path="/portal/region/:slug" component={RegionPortal} />
       <Route path="/admin">{() => <AdminRoute component={AdminDashboard} />}</Route>
@@ -151,6 +154,7 @@ function Router() {
       <Route path="/admin/fundraisers">{() => <AdminRoute component={FundraisersAdmin} />}</Route>
       <Route path="/admin/news">{() => <AdminRoute component={NewsAdmin} />}</Route>
       <Route path="/admin/fallen-heroes">{() => <AdminRoute component={FallenHeroesAdmin} />}</Route>
+      <Route path="/admin/missing-persons">{() => <AdminRoute component={MissingPersonsAdmin} />}</Route>
       <Route path="/admin/human-rights-reports">{() => <AdminRoute component={HumanRightsReportsAdmin} />}</Route>
       <Route path="/admin/community-events">{() => <AdminRoute component={CommunityEventsAdmin} />}</Route>
       <Route path="/admin/documentaries">{() => <AdminRoute component={DocumentariesAdmin} />}</Route>

@@ -2179,6 +2179,129 @@ export async function registerRoutes(
     }
   });
 
+  // ===== MISSING PERSONS & PRISONERS =====
+  const missingPersonPhotoUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const dir = path.join(process.cwd(), "uploads", "missing-persons");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        const allowedExts = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+        const ext = path.extname(file.originalname).toLowerCase();
+        const safeExt = allowedExts.includes(ext) ? ext : ".jpg";
+        cb(null, uniqueSuffix + safeExt);
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error("Only image files (JPEG, PNG, WebP, GIF) are allowed"));
+      }
+    },
+  });
+
+  app.use("/uploads/missing-persons", (await import("express")).default.static(path.join(process.cwd(), "uploads", "missing-persons")));
+
+  app.get("/api/missing-persons", async (req, res) => {
+    try {
+      const persons = await storage.getApprovedMissingPersons();
+      const safe = persons.map(({ submitterEmail, submitterPhone, adminNotes, ...rest }) => rest);
+      res.json(safe);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch missing persons" });
+    }
+  });
+
+  app.get("/api/admin/missing-persons", requireAdmin, async (req, res) => {
+    try {
+      const persons = await storage.getAllMissingPersons();
+      res.json(persons);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch missing persons" });
+    }
+  });
+
+  app.post("/api/missing-persons/submit", missingPersonPhotoUpload.single("photo"), async (req, res) => {
+    try {
+      const { fullName, submitterName, submitterEmail } = req.body;
+      if (!fullName || !submitterName || !submitterEmail) {
+        return res.status(400).json({ error: "Full name, your name, and email are required" });
+      }
+      const photoUrl = req.file ? `/uploads/missing-persons/${req.file.filename}` : null;
+      const person = await storage.createMissingPerson({
+        fullName: req.body.fullName,
+        photoUrl,
+        age: req.body.age || null,
+        gender: req.body.gender || null,
+        location: req.body.location || null,
+        category: req.body.category || "missing",
+        dateMissing: req.body.dateMissing || null,
+        lastSeenLocation: req.body.lastSeenLocation || null,
+        description: req.body.description || null,
+        submitterName: req.body.submitterName,
+        submitterEmail: req.body.submitterEmail,
+        submitterPhone: req.body.submitterPhone || null,
+        submitterRelationship: req.body.submitterRelationship || null,
+      });
+      res.status(201).json(person);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to submit missing person report" });
+    }
+  });
+
+  app.post("/api/missing-persons", requireAdmin, missingPersonPhotoUpload.single("photo"), async (req, res) => {
+    try {
+      const photoUrl = req.file ? `/uploads/missing-persons/${req.file.filename}` : null;
+      const person = await storage.createMissingPerson({
+        ...req.body,
+        photoUrl,
+        submitterName: "Admin",
+        submitterEmail: "admin@nup.org",
+      });
+      await storage.updateMissingPerson(person.id, { status: "approved" });
+      const updated = await storage.getMissingPerson(person.id);
+      res.status(201).json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create missing person entry" });
+    }
+  });
+
+  app.patch("/api/missing-persons/:id", requireAdmin, async (req, res) => {
+    try {
+      const allowed = ["status", "adminNotes", "fullName", "age", "gender", "location", "category", "dateMissing", "lastSeenLocation", "description"];
+      const updates: any = {};
+      for (const key of allowed) {
+        if (req.body[key] !== undefined) updates[key] = req.body[key];
+      }
+      const person = await storage.updateMissingPerson(req.params.id, updates);
+      if (!person) return res.status(404).json({ error: "Not found" });
+      res.json(person);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update" });
+    }
+  });
+
+  app.delete("/api/missing-persons/:id", requireAdmin, async (req, res) => {
+    try {
+      const person = await storage.getMissingPerson(req.params.id);
+      if (!person) return res.status(404).json({ error: "Not found" });
+      if (person.photoUrl && person.photoUrl.startsWith("/uploads/")) {
+        const imgPath = path.join(process.cwd(), person.photoUrl.replace(/^\//, ""));
+        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+      }
+      await storage.deleteMissingPerson(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete" });
+    }
+  });
+
   // ===== HUMAN RIGHTS REPORTS =====
   app.get("/api/human-rights-reports", async (req, res) => {
     try {

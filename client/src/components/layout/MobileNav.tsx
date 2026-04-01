@@ -18,6 +18,7 @@ import {
   Flame,
   Film,
   PenLine,
+  UserX,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -43,6 +44,7 @@ const moreItems = [
   { href: "/documentaries", label: "Documentaries", icon: Film },
   { href: "/articles", label: "Articles", icon: PenLine },
   { href: "/fallen-heroes", label: "Fallen Heroes", icon: Flame },
+  { href: "/missing-persons", label: "Missing & Prisoners", icon: UserX },
   { href: "/store", label: "Store", icon: ShoppingBag },
   { href: "/membership", label: "Membership", icon: Users },
   { href: "/membership-tiers", label: "Premium Tiers", icon: Crown },
