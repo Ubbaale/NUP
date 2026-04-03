@@ -9,6 +9,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { compressGalleryImage, compressImageFromUrl } from "./imageCompressor";
+import { compressGalleryVideo } from "./videoCompressor";
 import crypto from "crypto";
 
 function stripAccessCode<T extends Record<string, any>>(obj: T): Omit<T, 'accessCode'> {
@@ -1657,9 +1658,20 @@ export async function registerRoutes(
         const isVideo = galleryVideoExts.includes(ext);
         if (isVideo) {
           mediaType = "video";
-          imageUrl = `/uploads/gallery/${req.file.filename}`;
-          originalSize = req.file.size;
-          compressedSize = req.file.size;
+          try {
+            const compressed = await compressGalleryVideo(req.file.path, req.file.originalname);
+            imageUrl = compressed.compressedUrl;
+            thumbnailUrl = compressed.thumbnailUrl || null;
+            originalSize = compressed.originalSize;
+            compressedSize = compressed.compressedSize;
+            width = compressed.width;
+            height = compressed.height;
+          } catch (e) {
+            console.error("[gallery] Video compression failed, using original:", e);
+            imageUrl = `/uploads/gallery/${req.file.filename}`;
+            originalSize = req.file.size;
+            compressedSize = req.file.size;
+          }
         } else {
           const compressed = await compressGalleryImage(req.file.path, req.file.originalname);
           imageUrl = compressed.compressedUrl;

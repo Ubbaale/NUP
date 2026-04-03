@@ -273,9 +273,11 @@ export default function GalleryAdmin() {
                   onChange={e => handleFileChange(e.target.files?.[0] || null)}
                   data-testid="input-media-file"
                 />
-                {formMediaType === "image" && (
-                  <p className="text-xs text-muted-foreground mt-1">Photos are automatically compressed to WebP format</p>
-                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formMediaType === "video"
+                    ? "Videos are automatically compressed (H.264, CRF 28) with thumbnail generation. Large videos are scaled down to 1080p/720p."
+                    : "Photos are automatically compressed to WebP format"}
+                </p>
               </div>
               <div>
                 <Label>Or paste {formMediaType === "video" ? "Video" : "Image"} URL {formMediaType === "video" && "(YouTube, Vimeo, or direct link)"}</Label>
@@ -341,7 +343,9 @@ export default function GalleryAdmin() {
               <div className="aspect-square relative overflow-hidden bg-muted">
                 {isVideoItem(photo) ? (
                   <>
-                    {photo.imageUrl.includes("youtube.com") || photo.imageUrl.includes("youtu.be") ? (
+                    {photo.thumbnailUrl ? (
+                      <img src={photo.thumbnailUrl} alt={photo.title} className="w-full h-full object-cover" loading="lazy" />
+                    ) : photo.imageUrl.includes("youtube.com") || photo.imageUrl.includes("youtu.be") ? (
                       <img
                         src={`https://img.youtube.com/vi/${photo.imageUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/)?.[1]}/hqdefault.jpg`}
                         alt={photo.title}

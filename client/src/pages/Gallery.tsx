@@ -273,7 +273,9 @@ export default function Gallery() {
                 >
                   {isVideo(photo) ? (
                     <>
-                      {isYouTubeUrl(photo.imageUrl) ? (
+                      {photo.thumbnailUrl ? (
+                        <img src={photo.thumbnailUrl} alt={photo.title} className="w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                      ) : isYouTubeUrl(photo.imageUrl) ? (
                         <img src={getYouTubeThumbnail(photo.imageUrl) || ""} alt={photo.title} className="w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
                       ) : (
                         <video src={photo.imageUrl} className="w-full object-cover" muted preload="metadata" />
