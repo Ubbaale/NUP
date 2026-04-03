@@ -84,9 +84,9 @@ export default function GalleryAdmin() {
           throw new Error(err.error || "Failed to upload");
         }
         if (res.status === 413) {
-          throw new Error("File too large. Maximum size is 500MB.");
+          throw new Error("Upload failed. Please try again.");
         }
-        throw new Error(`Upload failed (${res.status}). The file may be too large or the server timed out.`);
+        throw new Error(`Upload failed (${res.status}). Please try again or use a video URL instead.`);
       }
       return res.json();
     },
@@ -271,8 +271,8 @@ export default function GalleryAdmin() {
               <div>
                 <Label>
                   {formMediaType === "video"
-                    ? "Upload Video (MP4, MOV, WebM, AVI — up to 500MB)"
-                    : "Upload Image (up to 50MB — auto-compressed)"}
+                    ? "Upload Video (MP4, MOV, WebM, AVI — any size)"
+                    : "Upload Image (any size — auto-optimized)"}
                 </Label>
                 <Input
                   type="file"
@@ -282,7 +282,7 @@ export default function GalleryAdmin() {
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {formMediaType === "video"
-                    ? "Videos are automatically compressed (H.264, CRF 28) with thumbnail generation. Large videos are scaled down to 1080p/720p."
+                    ? "Videos are automatically optimized to 720p H.264 with thumbnail generation. Upload any size — the system compresses in the background."
                     : "Photos are automatically compressed to WebP format"}
                 </p>
               </div>

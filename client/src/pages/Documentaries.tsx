@@ -357,7 +357,7 @@ export default function Documentaries() {
             <p className="text-xs text-amber-800 dark:text-amber-200">
               <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
               <strong>Important:</strong> Your video will be reviewed before being made public. Upload clear, high-resolution video.
-              Accepted formats: MP4, MOV, AVI, WebM, MKV (up to 500MB).
+              Accepted formats: MP4, MOV, AVI, WebM, MKV. Any file size accepted — videos are automatically optimized.
               Your contact information is kept confidential and never displayed publicly.
             </p>
           </div>
@@ -382,7 +382,7 @@ export default function Documentaries() {
                 data-testid="input-witness-video-file"
                 className="cursor-pointer"
               />
-              <p className="text-[10px] text-muted-foreground mt-1">MP4, MOV, AVI, WebM, or MKV — max 500MB. High resolution preferred.</p>
+              <p className="text-[10px] text-muted-foreground mt-1">MP4, MOV, AVI, WebM, or MKV — any size. Videos are automatically optimized for web playback.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

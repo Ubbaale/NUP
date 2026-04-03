@@ -22,7 +22,7 @@ function runFFprobe(inputPath: string): Promise<{ width: number; height: number;
       "-show_streams",
       "-show_format",
       inputPath,
-    ], { timeout: 30000 }, (err, stdout) => {
+    ], { timeout: 60000 }, (err, stdout) => {
       if (err) return reject(err);
       try {
         const data = JSON.parse(stdout);
@@ -39,11 +39,11 @@ function runFFprobe(inputPath: string): Promise<{ width: number; height: number;
   });
 }
 
-function runFFmpeg(args: string[]): Promise<void> {
+function runFFmpeg(args: string[], timeoutMs = 1800000): Promise<void> {
   return new Promise((resolve, reject) => {
-    execFile("ffmpeg", args, { timeout: 600000 }, (err, _stdout, stderr) => {
+    const proc = execFile("ffmpeg", args, { timeout: timeoutMs, maxBuffer: 50 * 1024 * 1024 }, (err, _stdout, stderr) => {
       if (err) {
-        console.error("[videoCompressor] FFmpeg error:", stderr);
+        console.error("[videoCompressor] FFmpeg error:", stderr?.slice(-500));
         return reject(err);
       }
       resolve();
@@ -63,6 +63,7 @@ export async function compressGalleryVideo(
   const thumbnailPath = path.join(dir, thumbnailFilename);
 
   const originalSize = fs.statSync(inputPath).size;
+  console.log(`[videoCompressor] Starting compression: ${originalFilename} (${(originalSize / 1024 / 1024).toFixed(1)}MB)`);
 
   let info: { width: number; height: number; duration: number };
   try {
@@ -71,35 +72,39 @@ export async function compressGalleryVideo(
     info = { width: 0, height: 0, duration: 0 };
   }
 
-  let targetHeight = info.height;
-  let scaleFilter = "";
-  if (info.height > 1080) {
-    targetHeight = 1080;
-    scaleFilter = "-vf";
-  } else if (info.height > 720 && originalSize > 100 * 1024 * 1024) {
-    targetHeight = 720;
-    scaleFilter = "-vf";
+  let targetHeight = 720;
+  if (info.height > 0 && info.height <= 480) {
+    targetHeight = info.height;
+  } else if (info.height > 0 && info.height <= 720) {
+    targetHeight = info.height;
   }
+
+  const needsScale = info.height > 720;
 
   const ffmpegArgs = [
     "-i", inputPath,
     "-y",
     "-c:v", "libx264",
-    "-preset", "medium",
-    "-crf", "28",
+    "-preset", "fast",
+    "-crf", "26",
     "-c:a", "aac",
     "-b:a", "128k",
     "-movflags", "+faststart",
+    "-pix_fmt", "yuv420p",
   ];
 
-  if (scaleFilter) {
+  if (needsScale) {
     ffmpegArgs.push("-vf", `scale=-2:${targetHeight}`);
   }
 
   ffmpegArgs.push(compressedPath);
 
+  const estimatedTimeoutMs = Math.max(1800000, info.duration * 5000);
+
   try {
-    await runFFmpeg(ffmpegArgs);
+    await runFFmpeg(ffmpegArgs, estimatedTimeoutMs);
+    const compressedSizeResult = fs.existsSync(compressedPath) ? fs.statSync(compressedPath).size : originalSize;
+    console.log(`[videoCompressor] Compressed: ${(originalSize / 1024 / 1024).toFixed(1)}MB → ${(compressedSizeResult / 1024 / 1024).toFixed(1)}MB (${Math.round((1 - compressedSizeResult / originalSize) * 100)}% reduction)`);
   } catch (e) {
     console.error("[videoCompressor] Compression failed, using original:", e);
     fs.copyFileSync(inputPath, compressedPath);
@@ -108,14 +113,14 @@ export async function compressGalleryVideo(
   try {
     const thumbTime = Math.min(info.duration * 0.1, 2);
     await runFFmpeg([
-      "-i", inputPath,
+      "-i", compressedPath,
       "-y",
       "-ss", String(thumbTime),
       "-vframes", "1",
-      "-vf", `scale=400:-2`,
+      "-vf", "scale=400:-2",
       "-q:v", "80",
       thumbnailPath,
-    ]);
+    ], 60000);
   } catch {
     console.error("[videoCompressor] Thumbnail generation failed");
   }
@@ -136,8 +141,8 @@ export async function compressGalleryVideo(
     thumbnailUrl,
     originalSize,
     compressedSize,
-    width: info.width,
-    height: targetHeight,
+    width: needsScale ? Math.round(info.width * (targetHeight / info.height)) : info.width,
+    height: needsScale ? targetHeight : info.height,
     duration: info.duration,
   };
 }

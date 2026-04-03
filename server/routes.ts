@@ -181,7 +181,7 @@ const galleryUpload = multer({
       cb(new Error("Only image (JPG, PNG, WebP, GIF) and video (MP4, MOV, WebM, AVI) files are allowed"));
     }
   },
-  limits: { fileSize: 500 * 1024 * 1024 },
+  limits: { fileSize: Infinity },
 });
 
 const customDesignUpload = multer({
@@ -1643,9 +1643,6 @@ export async function registerRoutes(
   app.post("/api/gallery", requireAdmin, (req, res, next) => {
     galleryUpload.single("image")(req, res, (err: any) => {
       if (err) {
-        if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(413).json({ error: "File too large. Maximum size is 500MB." });
-        }
         return res.status(400).json({ error: err.message || "File upload failed" });
       }
       next();
@@ -1919,7 +1916,7 @@ export async function registerRoutes(
         cb(null, uniqueSuffix + path.extname(file.originalname));
       },
     }),
-    limits: { fileSize: 500 * 1024 * 1024 },
+    limits: { fileSize: Infinity },
     fileFilter: (req, file, cb) => {
       const allowed = ["video/mp4", "video/quicktime", "video/x-msvideo", "video/webm", "video/x-matroska"];
       if (allowed.includes(file.mimetype)) {
@@ -1945,9 +1942,6 @@ export async function registerRoutes(
   app.post("/api/witness-videos", (req, res, next) => {
     witnessVideoUpload.single("video")(req, res, (err: any) => {
       if (err) {
-        if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(413).json({ error: "File too large. Maximum size is 500MB." });
-        }
         return res.status(400).json({ error: err.message || "File upload failed" });
       }
       next();
