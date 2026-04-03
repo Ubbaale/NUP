@@ -1640,7 +1640,17 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/gallery", requireAdmin, galleryUpload.single("image"), async (req, res) => {
+  app.post("/api/gallery", requireAdmin, (req, res, next) => {
+    galleryUpload.single("image")(req, res, (err: any) => {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(413).json({ error: "File too large. Maximum size is 500MB." });
+        }
+        return res.status(400).json({ error: err.message || "File upload failed" });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       const { title, description, category, album, tags, sortOrder, featured } = req.body;
       if (!title) return res.status(400).json({ error: "Title is required" });
@@ -1658,20 +1668,50 @@ export async function registerRoutes(
         const isVideo = galleryVideoExts.includes(ext);
         if (isVideo) {
           mediaType = "video";
-          try {
-            const compressed = await compressGalleryVideo(req.file.path, req.file.originalname);
-            imageUrl = compressed.compressedUrl;
-            thumbnailUrl = compressed.thumbnailUrl || null;
-            originalSize = compressed.originalSize;
-            compressedSize = compressed.compressedSize;
-            width = compressed.width;
-            height = compressed.height;
-          } catch (e) {
-            console.error("[gallery] Video compression failed, using original:", e);
-            imageUrl = `/uploads/gallery/${req.file.filename}`;
-            originalSize = req.file.size;
-            compressedSize = req.file.size;
-          }
+          imageUrl = `/uploads/gallery/${req.file.filename}`;
+          originalSize = req.file.size;
+          compressedSize = req.file.size;
+
+          const filePath = req.file.path;
+          const originalName = req.file.originalname;
+          const fileName = req.file.filename;
+
+          const photo = await storage.createGalleryPhoto({
+            title,
+            description: description || null,
+            imageUrl,
+            thumbnailUrl: null,
+            category: category || "rallies",
+            album: album || null,
+            tags: tags || null,
+            sortOrder: sortOrder ? parseInt(sortOrder) : 0,
+            featured: featured === "true" || featured === true,
+            originalSize,
+            compressedSize,
+            width: null,
+            height: null,
+            mediaType,
+          });
+
+          compressGalleryVideo(filePath, originalName).then(async (compressed) => {
+            try {
+              await storage.updateGalleryPhoto(photo.id, {
+                imageUrl: compressed.compressedUrl,
+                thumbnailUrl: compressed.thumbnailUrl || null,
+                originalSize: compressed.originalSize,
+                compressedSize: compressed.compressedSize,
+                width: compressed.width,
+                height: compressed.height,
+              });
+              console.log(`[gallery] Video compressed in background: ${originalName}`);
+            } catch (e) {
+              console.error("[gallery] Failed to update record after compression:", e);
+            }
+          }).catch((e) => {
+            console.error("[gallery] Background video compression failed, keeping original:", e);
+          });
+
+          return res.status(201).json(photo);
         } else {
           const compressed = await compressGalleryImage(req.file.path, req.file.originalname);
           imageUrl = compressed.compressedUrl;
@@ -1902,7 +1942,17 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/witness-videos", witnessVideoUpload.single("video"), async (req, res) => {
+  app.post("/api/witness-videos", (req, res, next) => {
+    witnessVideoUpload.single("video")(req, res, (err: any) => {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(413).json({ error: "File too large. Maximum size is 500MB." });
+        }
+        return res.status(400).json({ error: err.message || "File upload failed" });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       const { title, description, location, incidentDate, submitterName, submitterEmail, submitterPhone } = req.body;
       if (!title || !submitterName || !submitterEmail) {

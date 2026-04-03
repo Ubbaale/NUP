@@ -78,8 +78,15 @@ export default function GalleryAdmin() {
         credentials: "include",
       });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to upload");
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const err = await res.json();
+          throw new Error(err.error || "Failed to upload");
+        }
+        if (res.status === 413) {
+          throw new Error("File too large. Maximum size is 500MB.");
+        }
+        throw new Error(`Upload failed (${res.status}). The file may be too large or the server timed out.`);
       }
       return res.json();
     },
