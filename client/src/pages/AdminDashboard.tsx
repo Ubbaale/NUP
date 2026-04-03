@@ -35,6 +35,7 @@ import {
   UserX,
   Shield,
   AlertCircle,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 
@@ -209,7 +210,7 @@ const sectionGroups: SectionGroup[] = [
   },
   {
     groupTitle: "Content & Media",
-    groupDescription: "Manage blog posts, news, documentaries, songs, gallery, and reports",
+    groupDescription: "Manage blog posts, news, documentaries, songs, advocacy rallies, and reports",
     groupIcon: Film,
     groupColor: "text-violet-500",
     sections: [
@@ -238,10 +239,10 @@ const sectionGroups: SectionGroup[] = [
         icon: Music,
       },
       {
-        title: "Advocacy Rallies",
-        description: "Upload and manage rally photos & videos",
+        title: "Advocacy Rally Demonstrations",
+        description: "Upload photos & videos of rallies and demonstrations — auto-compressed with thumbnails",
         href: "/admin/gallery",
-        icon: ImageIcon,
+        icon: Video,
       },
       {
         title: "Human Rights Reports",

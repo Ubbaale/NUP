@@ -185,10 +185,10 @@ export default function GalleryAdmin() {
     <div className="p-6 max-w-6xl mx-auto" data-testid="gallery-admin-page">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Image className="w-8 h-8 text-red-600" />
+          <Video className="w-8 h-8 text-red-600" />
           <div>
             <h1 className="text-2xl font-bold" data-testid="text-admin-title">Advocacy Rally Demonstrations</h1>
-            <p className="text-muted-foreground">Upload and manage rally photos &amp; videos</p>
+            <p className="text-muted-foreground">Upload and manage rally photos &amp; videos — auto-compressed with thumbnails</p>
           </div>
         </div>
         <Dialog open={showAddDialog} onOpenChange={(open) => { setShowAddDialog(open); if (!open) resetForm(); }}>
