@@ -93,6 +93,10 @@ app.use((req, res, next) => {
 
 (async () => {
   await seedDatabase();
+
+  const { pool } = await import("./db");
+  await pool.query(`ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS image_data bytea`);
+  await pool.query(`ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS thumbnail_data bytea`);
   
   startNewsFetcher();
   

@@ -131,6 +131,7 @@ export interface IStorage {
   getAllGalleryPhotos(): Promise<GalleryPhoto[]>;
   getGalleryPhotosByCategory(category: string): Promise<GalleryPhoto[]>;
   getGalleryPhoto(id: string): Promise<GalleryPhoto | undefined>;
+  getGalleryImageData(id: string, type: "image" | "thumbnail"): Promise<Buffer | null>;
   updateGalleryPhoto(id: string, data: Partial<InsertGalleryPhoto>): Promise<GalleryPhoto | undefined>;
   deleteGalleryPhoto(id: string): Promise<void>;
 
@@ -623,16 +624,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllGalleryPhotos(): Promise<GalleryPhoto[]> {
-    return db.select().from(galleryPhotos).orderBy(asc(galleryPhotos.sortOrder), desc(galleryPhotos.createdAt));
+    return db.select({
+      id: galleryPhotos.id, title: galleryPhotos.title, description: galleryPhotos.description,
+      imageUrl: galleryPhotos.imageUrl, thumbnailUrl: galleryPhotos.thumbnailUrl,
+      category: galleryPhotos.category, album: galleryPhotos.album, tags: galleryPhotos.tags,
+      sortOrder: galleryPhotos.sortOrder, featured: galleryPhotos.featured,
+      originalSize: galleryPhotos.originalSize, compressedSize: galleryPhotos.compressedSize,
+      width: galleryPhotos.width, height: galleryPhotos.height, mediaType: galleryPhotos.mediaType,
+      createdAt: galleryPhotos.createdAt,
+    }).from(galleryPhotos).orderBy(asc(galleryPhotos.sortOrder), desc(galleryPhotos.createdAt));
   }
 
   async getGalleryPhotosByCategory(category: string): Promise<GalleryPhoto[]> {
-    return db.select().from(galleryPhotos).where(eq(galleryPhotos.category, category)).orderBy(asc(galleryPhotos.sortOrder), desc(galleryPhotos.createdAt));
+    return db.select({
+      id: galleryPhotos.id, title: galleryPhotos.title, description: galleryPhotos.description,
+      imageUrl: galleryPhotos.imageUrl, thumbnailUrl: galleryPhotos.thumbnailUrl,
+      category: galleryPhotos.category, album: galleryPhotos.album, tags: galleryPhotos.tags,
+      sortOrder: galleryPhotos.sortOrder, featured: galleryPhotos.featured,
+      originalSize: galleryPhotos.originalSize, compressedSize: galleryPhotos.compressedSize,
+      width: galleryPhotos.width, height: galleryPhotos.height, mediaType: galleryPhotos.mediaType,
+      createdAt: galleryPhotos.createdAt,
+    }).from(galleryPhotos).where(eq(galleryPhotos.category, category)).orderBy(asc(galleryPhotos.sortOrder), desc(galleryPhotos.createdAt));
   }
 
   async getGalleryPhoto(id: string): Promise<GalleryPhoto | undefined> {
     const [p] = await db.select().from(galleryPhotos).where(eq(galleryPhotos.id, id));
     return p;
+  }
+
+  async getGalleryImageData(id: string, type: "image" | "thumbnail"): Promise<Buffer | null> {
+    const col = type === "thumbnail" ? galleryPhotos.thumbnailData : galleryPhotos.imageData;
+    const [row] = await db.select({ data: col }).from(galleryPhotos).where(eq(galleryPhotos.id, id));
+    return row?.data || null;
   }
 
   async updateGalleryPhoto(id: string, data: Partial<InsertGalleryPhoto>): Promise<GalleryPhoto | undefined> {

@@ -1,7 +1,9 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema, insertGalleryPhotoSchema, insertFallenHeroSchema, insertHumanRightsReportSchema } from "@shared/schema";
+import { type Member, insertMemberSchema, insertDonationSchema, insertSubscriptionSchema, insertBlogPostSchema, insertOrderSchema, insertProductSchema, insertProductRatingSchema, insertChapterSchema, insertChapterLeaderSchema, insertRegionSchema, insertConferenceSchema, insertCampaignSchema, insertMembershipTierSchema, insertAuctionItemSchema, insertReturnRequestSchema, insertGalleryPhotoSchema, insertFallenHeroSchema, insertHumanRightsReportSchema, galleryPhotos } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import * as printful from "./printful";
 import * as stripe from "./stripe";
 import * as email from "./email";
@@ -1617,6 +1619,11 @@ export async function registerRoutes(
   // ===== GALLERY =====
   app.use("/uploads/gallery", (await import("express")).default.static(path.join(process.cwd(), "uploads", "gallery")));
 
+  function stripBinaryData(photo: any) {
+    const { imageData, thumbnailData, ...rest } = photo;
+    return rest;
+  }
+
   app.get("/api/gallery", async (req, res) => {
     try {
       const { category, page, limit } = req.query as { category?: string; page?: string; limit?: string };
@@ -1637,6 +1644,32 @@ export async function registerRoutes(
       res.json({ photos: paginated, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch gallery photos" });
+    }
+  });
+
+  app.get("/api/gallery/file/:id", async (req, res) => {
+    try {
+      const data = await storage.getGalleryImageData(req.params.id, "image");
+      if (!data) return res.status(404).json({ error: "Image not found" });
+      const photo = await storage.getGalleryPhoto(req.params.id);
+      const contentType = photo?.mediaType === "video" ? "video/mp4" : "image/webp";
+      res.set("Content-Type", contentType);
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      res.send(data);
+    } catch {
+      res.status(500).json({ error: "Failed to serve image" });
+    }
+  });
+
+  app.get("/api/gallery/thumb/:id", async (req, res) => {
+    try {
+      const data = await storage.getGalleryImageData(req.params.id, "thumbnail");
+      if (!data) return res.status(404).json({ error: "Thumbnail not found" });
+      res.set("Content-Type", "image/webp");
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      res.send(data);
+    } catch {
+      res.status(500).json({ error: "Failed to serve thumbnail" });
     }
   });
 
@@ -1665,18 +1698,18 @@ export async function registerRoutes(
         const isVideo = galleryVideoExts.includes(ext);
         if (isVideo) {
           mediaType = "video";
-          imageUrl = `/uploads/gallery/${req.file.filename}`;
           originalSize = req.file.size;
           compressedSize = req.file.size;
 
           const filePath = req.file.path;
           const originalName = req.file.originalname;
-          const fileName = req.file.filename;
+
+          const rawVideoBuf = fs.readFileSync(filePath);
 
           const photo = await storage.createGalleryPhoto({
             title,
             description: description || null,
-            imageUrl,
+            imageUrl: "db-stored-video",
             thumbnailUrl: null,
             category: category || "rallies",
             album: album || null,
@@ -1690,25 +1723,44 @@ export async function registerRoutes(
             mediaType,
           });
 
+          await db.update(galleryPhotos).set({
+            imageData: rawVideoBuf,
+            imageUrl: `/api/gallery/file/${photo.id}`,
+          }).where(eq(galleryPhotos.id, photo.id));
+
           compressGalleryVideo(filePath, originalName).then(async (compressed) => {
             try {
-              await storage.updateGalleryPhoto(photo.id, {
-                imageUrl: compressed.compressedUrl,
-                thumbnailUrl: compressed.thumbnailUrl || null,
+              const updates: Record<string, any> = {
                 originalSize: compressed.originalSize,
                 compressedSize: compressed.compressedSize,
                 width: compressed.width,
                 height: compressed.height,
-              });
-              console.log(`[gallery] Video compressed in background: ${originalName}`);
+              };
+
+              if (compressed.compressedPath && fs.existsSync(compressed.compressedPath)) {
+                const videoBuf = fs.readFileSync(compressed.compressedPath);
+                updates.imageData = videoBuf;
+                try { fs.unlinkSync(compressed.compressedPath); } catch {}
+              }
+
+              if (compressed.thumbnailPath && fs.existsSync(compressed.thumbnailPath)) {
+                const thumbBuf = fs.readFileSync(compressed.thumbnailPath);
+                updates.thumbnailData = thumbBuf;
+                updates.thumbnailUrl = `/api/gallery/thumb/${photo.id}`;
+                try { fs.unlinkSync(compressed.thumbnailPath); } catch {}
+              }
+
+              await db.update(galleryPhotos).set(updates).where(eq(galleryPhotos.id, photo.id));
+              console.log(`[gallery] Video compressed and stored in DB: ${originalName}`);
             } catch (e) {
               console.error("[gallery] Failed to update record after compression:", e);
             }
           }).catch((e) => {
-            console.error("[gallery] Background video compression failed, keeping original:", e);
+            console.error("[gallery] Background video compression failed, original already in DB:", e);
           });
 
-          return res.status(201).json(photo);
+          const result = { ...photo, imageUrl: `/api/gallery/file/${photo.id}` };
+          return res.status(201).json(stripBinaryData(result));
         } else {
           const compressed = await compressGalleryImage(req.file.path, req.file.originalname);
           imageUrl = compressed.compressedUrl;
@@ -1717,6 +1769,41 @@ export async function registerRoutes(
           compressedSize = compressed.compressedSize;
           width = compressed.width;
           height = compressed.height;
+
+          const imgBuf = fs.existsSync(compressed.compressedPath) ? fs.readFileSync(compressed.compressedPath) : null;
+          const thumbBuf = fs.existsSync(compressed.thumbnailPath) ? fs.readFileSync(compressed.thumbnailPath) : null;
+
+          const photo = await storage.createGalleryPhoto({
+            title,
+            description: description || null,
+            imageUrl: "db-stored",
+            thumbnailUrl: "db-stored-thumb",
+            category: category || "rallies",
+            album: album || null,
+            tags: tags || null,
+            sortOrder: sortOrder ? parseInt(sortOrder) : 0,
+            featured: featured === "true" || featured === true,
+            originalSize,
+            compressedSize,
+            width,
+            height,
+            mediaType,
+          });
+
+          if (imgBuf || thumbBuf) {
+            await db.update(galleryPhotos).set({
+              imageData: imgBuf,
+              thumbnailData: thumbBuf,
+              imageUrl: `/api/gallery/file/${photo.id}`,
+              thumbnailUrl: `/api/gallery/thumb/${photo.id}`,
+            }).where(eq(galleryPhotos.id, photo.id));
+          }
+
+          try { if (fs.existsSync(compressed.compressedPath)) fs.unlinkSync(compressed.compressedPath); } catch {}
+          try { if (fs.existsSync(compressed.thumbnailPath)) fs.unlinkSync(compressed.thumbnailPath); } catch {}
+
+          const result = { ...photo, imageUrl: `/api/gallery/file/${photo.id}`, thumbnailUrl: `/api/gallery/thumb/${photo.id}` };
+          return res.status(201).json(result);
         }
       } else if (req.body.imageUrl) {
         const url = req.body.imageUrl as string;
@@ -1735,6 +1822,41 @@ export async function registerRoutes(
             compressedSize = compressed.compressedSize;
             width = compressed.width;
             height = compressed.height;
+
+            const imgBuf = fs.existsSync(compressed.compressedPath) ? fs.readFileSync(compressed.compressedPath) : null;
+            const thumbBuf = fs.existsSync(compressed.thumbnailPath) ? fs.readFileSync(compressed.thumbnailPath) : null;
+
+            const photo = await storage.createGalleryPhoto({
+              title,
+              description: description || null,
+              imageUrl: "db-stored",
+              thumbnailUrl: "db-stored-thumb",
+              category: category || "rallies",
+              album: album || null,
+              tags: tags || null,
+              sortOrder: sortOrder ? parseInt(sortOrder) : 0,
+              featured: featured === "true" || featured === true,
+              originalSize,
+              compressedSize,
+              width,
+              height,
+              mediaType,
+            });
+
+            if (imgBuf || thumbBuf) {
+              await db.update(galleryPhotos).set({
+                imageData: imgBuf,
+                thumbnailData: thumbBuf,
+                imageUrl: `/api/gallery/file/${photo.id}`,
+                thumbnailUrl: `/api/gallery/thumb/${photo.id}`,
+              }).where(eq(galleryPhotos.id, photo.id));
+            }
+
+            try { if (fs.existsSync(compressed.compressedPath)) fs.unlinkSync(compressed.compressedPath); } catch {}
+            try { if (fs.existsSync(compressed.thumbnailPath)) fs.unlinkSync(compressed.thumbnailPath); } catch {}
+
+            const result = { ...photo, imageUrl: `/api/gallery/file/${photo.id}`, thumbnailUrl: `/api/gallery/thumb/${photo.id}` };
+            return res.status(201).json(result);
           } else {
             imageUrl = url;
           }
@@ -1761,7 +1883,7 @@ export async function registerRoutes(
         height,
         mediaType,
       });
-      res.status(201).json(photo);
+      res.status(201).json(stripBinaryData(photo));
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to create gallery item" });
     }
@@ -1781,7 +1903,7 @@ export async function registerRoutes(
 
       const photo = await storage.updateGalleryPhoto(req.params.id, updateData);
       if (!photo) return res.status(404).json({ error: "Photo not found" });
-      res.json(photo);
+      res.json(stripBinaryData(photo));
     } catch (error) {
       res.status(500).json({ error: "Failed to update gallery photo" });
     }

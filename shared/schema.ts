@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, decimal, customType } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -613,10 +613,16 @@ export const galleryPhotos = pgTable("gallery_photos", {
   width: integer("width"),
   height: integer("height"),
   mediaType: text("media_type").notNull().default("image"),
+  imageData: customType<{ data: Buffer; driverData: Buffer }>({
+    dataType() { return "bytea"; },
+  })("image_data"),
+  thumbnailData: customType<{ data: Buffer; driverData: Buffer }>({
+    dataType() { return "bytea"; },
+  })("thumbnail_data"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertGalleryPhotoSchema = createInsertSchema(galleryPhotos).omit({ id: true, createdAt: true });
+export const insertGalleryPhotoSchema = createInsertSchema(galleryPhotos).omit({ id: true, createdAt: true, imageData: true, thumbnailData: true });
 export type InsertGalleryPhoto = z.infer<typeof insertGalleryPhotoSchema>;
 export type GalleryPhoto = typeof galleryPhotos.$inferSelect;
 
