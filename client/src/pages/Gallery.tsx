@@ -1,10 +1,10 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Image, X, ChevronLeft, ChevronRight, Star, Loader2 } from "lucide-react";
+import { Image, X, ChevronLeft, ChevronRight, Star, Loader2, Play, Video } from "lucide-react";
 import type { GalleryPhoto } from "@shared/schema";
 
 interface GalleryResponse {
@@ -16,15 +16,44 @@ interface GalleryResponse {
 }
 
 const CATEGORIES = [
-  { value: "all", label: "All Photos" },
-  { value: "events", label: "Event Photos" },
-  { value: "advocacy", label: "Advocacy Photos" },
-  { value: "conventions", label: "Convention Photos" },
-  { value: "community", label: "Community Photos" },
-  { value: "leadership", label: "Leadership Photos" },
+  { value: "all", label: "All Media" },
+  { value: "rallies", label: "Rallies" },
+  { value: "demonstrations", label: "Demonstrations" },
+  { value: "advocacy", label: "Advocacy" },
+  { value: "conventions", label: "Conventions" },
+  { value: "community", label: "Community" },
+  { value: "leadership", label: "Leadership" },
+  { value: "events", label: "Events" },
 ];
 
 const PAGE_SIZE = 50;
+
+function isVideo(item: GalleryPhoto) {
+  return item.mediaType === "video";
+}
+
+function isYouTubeUrl(url: string) {
+  return url.includes("youtube.com") || url.includes("youtu.be");
+}
+
+function isVimeoUrl(url: string) {
+  return url.includes("vimeo.com");
+}
+
+function getYouTubeEmbedUrl(url: string) {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
+
+function getVimeoEmbedUrl(url: string) {
+  const match = url.match(/vimeo\.com\/(\d+)/);
+  return match ? `https://player.vimeo.com/video/${match[1]}` : url;
+}
+
+function getYouTubeThumbnail(url: string) {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+}
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState("all");
@@ -111,21 +140,26 @@ export default function Gallery() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const videoCount = allPhotos.filter(p => isVideo(p)).length;
+  const photoCount = allPhotos.filter(p => !isVideo(p)).length;
+
   return (
     <div className="min-h-screen" data-testid="gallery-page">
       <SEO
-        title="Photo Gallery"
-        description="Browse photos from NUP Diaspora events, conventions, advocacy actions, and community gatherings. See the People Power movement in action across the globe."
-        keywords="NUP photos, People Power gallery, NUP diaspora events photos, Uganda advocacy photos, NUP convention photos, Bobi Wine rally photos, Uganda democracy photos"
+        title="Advocacy Rally Demonstrations"
+        description="Browse photos and videos from NUP Diaspora advocacy rallies, demonstrations, conventions, and community gatherings. See the People Power movement in action across the globe."
+        keywords="NUP rally, People Power demonstrations, NUP diaspora advocacy, Uganda advocacy rally, NUP convention, Bobi Wine rally, Uganda democracy, NUP protests"
       />
       <div className="bg-gradient-to-b from-red-900 to-red-800 text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-gallery-title">Photo Gallery</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-gallery-title">Advocacy Rally Demonstrations</h1>
           <p className="text-xl text-red-200 max-w-2xl mx-auto">
-            Moments from our events, advocacy work, and community gatherings
+            Photos and videos from our rallies, demonstrations, advocacy work, and community gatherings
           </p>
           {data && (
-            <p className="text-sm text-red-300 mt-2">{data.total} photos in the collection</p>
+            <p className="text-sm text-red-300 mt-2">
+              {photoCount} photo{photoCount !== 1 ? "s" : ""} &amp; {videoCount} video{videoCount !== 1 ? "s" : ""} in the collection
+            </p>
           )}
         </div>
       </div>
@@ -143,12 +177,28 @@ export default function Gallery() {
                 }}
                 data-testid={`featured-photo-${idx}`}
               >
-                <img src={photo.thumbnailUrl || photo.imageUrl} alt={photo.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                {isVideo(photo) ? (
+                  <>
+                    {isYouTubeUrl(photo.imageUrl) ? (
+                      <img src={getYouTubeThumbnail(photo.imageUrl) || ""} alt={photo.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                    ) : (
+                      <video src={photo.imageUrl} className="w-full h-full object-cover" muted preload="metadata" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center">
+                        <Play className="w-6 h-6 text-white fill-white" />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <img src={photo.thumbnailUrl || photo.imageUrl} alt={photo.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3">
                   <p className="text-white text-sm font-medium truncate">{photo.title}</p>
                 </div>
-                <div className="absolute top-2 right-2">
+                <div className="absolute top-2 right-2 flex items-center gap-1">
+                  {isVideo(photo) && <Badge className="bg-red-600 text-white text-xs px-1.5 py-0.5"><Video className="w-3 h-3" /></Badge>}
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                 </div>
               </div>
@@ -196,7 +246,7 @@ export default function Gallery() {
         )}
 
         <p className="text-sm text-muted-foreground mb-4 text-center">
-          {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? "s" : ""}
+          {filteredPhotos.length} item{filteredPhotos.length !== 1 ? "s" : ""}
           {data && data.total > filteredPhotos.length && ` of ${data.total} total`}
         </p>
 
@@ -208,7 +258,7 @@ export default function Gallery() {
         ) : filteredPhotos.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             <Image className="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p className="text-lg">No photos available yet</p>
+            <p className="text-lg">No media available yet</p>
             <p className="text-sm mt-1">Check back soon for updates!</p>
           </div>
         ) : (
@@ -219,14 +269,29 @@ export default function Gallery() {
                   key={photo.id}
                   className="break-inside-avoid cursor-pointer group relative overflow-hidden rounded-lg"
                   onClick={() => openLightbox(idx)}
-                  data-testid={`gallery-photo-${photo.id}`}
+                  data-testid={`gallery-item-${photo.id}`}
                 >
-                  <img
-                    src={photo.thumbnailUrl || photo.imageUrl}
-                    alt={photo.title}
-                    className="w-full object-cover transition-transform group-hover:scale-105"
-                    loading="lazy"
-                  />
+                  {isVideo(photo) ? (
+                    <>
+                      {isYouTubeUrl(photo.imageUrl) ? (
+                        <img src={getYouTubeThumbnail(photo.imageUrl) || ""} alt={photo.title} className="w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                      ) : (
+                        <video src={photo.imageUrl} className="w-full object-cover" muted preload="metadata" />
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-14 h-14 rounded-full bg-black/50 flex items-center justify-center group-hover:bg-red-600/80 transition-colors">
+                          <Play className="w-7 h-7 text-white fill-white" />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <img
+                      src={photo.thumbnailUrl || photo.imageUrl}
+                      alt={photo.title}
+                      className="w-full object-cover transition-transform group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-end">
                     <div className="p-3 translate-y-full group-hover:translate-y-0 transition-transform w-full">
                       <p className="text-white text-sm font-medium">{photo.title}</p>
@@ -237,6 +302,11 @@ export default function Gallery() {
                         <Badge variant="secondary" className="text-xs bg-white/20 text-white border-0">
                           {CATEGORIES.find(c => c.value === photo.category)?.label || photo.category}
                         </Badge>
+                        {isVideo(photo) && (
+                          <Badge className="text-xs bg-red-600/80 text-white border-0">
+                            <Video className="w-3 h-3 mr-1" /> Video
+                          </Badge>
+                        )}
                         {photo.album && (
                           <span className="text-xs text-white/70">{photo.album}</span>
                         )}
@@ -252,7 +322,7 @@ export default function Gallery() {
                 {isFetching && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="text-sm">Loading more photos...</span>
+                    <span className="text-sm">Loading more...</span>
                   </div>
                 )}
               </div>
@@ -266,7 +336,10 @@ export default function Gallery() {
           <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 bg-black/95 border-none flex flex-col">
             <div className="flex items-center justify-between p-4">
               <div className="text-white">
-                <p className="font-medium">{currentPhoto.title}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{currentPhoto.title}</p>
+                  {isVideo(currentPhoto) && <Badge className="bg-red-600 text-white text-xs"><Video className="w-3 h-3 mr-1" />Video</Badge>}
+                </div>
                 {currentPhoto.description && (
                   <p className="text-sm text-white/70 mt-0.5">{currentPhoto.description}</p>
                 )}
@@ -287,11 +360,36 @@ export default function Gallery() {
                   <ChevronLeft className="w-8 h-8" />
                 </Button>
               )}
-              <img
-                src={currentPhoto.imageUrl}
-                alt={currentPhoto.title}
-                className="max-w-full max-h-full object-contain rounded"
-              />
+              {isVideo(currentPhoto) ? (
+                isYouTubeUrl(currentPhoto.imageUrl) ? (
+                  <iframe
+                    src={getYouTubeEmbedUrl(currentPhoto.imageUrl)}
+                    className="w-full max-w-4xl aspect-video rounded"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                ) : isVimeoUrl(currentPhoto.imageUrl) ? (
+                  <iframe
+                    src={getVimeoEmbedUrl(currentPhoto.imageUrl)}
+                    className="w-full max-w-4xl aspect-video rounded"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    src={currentPhoto.imageUrl}
+                    controls
+                    autoPlay
+                    className="max-w-full max-h-full rounded"
+                    data-testid="lightbox-video"
+                  />
+                )
+              ) : (
+                <img
+                  src={currentPhoto.imageUrl}
+                  alt={currentPhoto.title}
+                  className="max-w-full max-h-full object-contain rounded"
+                />
+              )}
               {lightboxIndex !== null && lightboxIndex < filteredPhotos.length - 1 && (
                 <Button
                   variant="ghost"
@@ -306,17 +404,17 @@ export default function Gallery() {
             </div>
             <div className="p-3 flex items-center justify-center gap-2 flex-wrap">
               <Badge variant="secondary" className="text-xs">
-                {CATEGORIES.find(c => c.value === currentPhoto.category)?.label}
+                {CATEGORIES.find(c => c.value === currentPhoto.category)?.label || currentPhoto.category}
               </Badge>
               {currentPhoto.album && (
                 <Badge variant="outline" className="text-xs text-white/70 border-white/30">{currentPhoto.album}</Badge>
               )}
-              {currentPhoto.width && currentPhoto.height && (
-                <span className="text-xs text-white/40">{currentPhoto.width}×{currentPhoto.height}</span>
+              {!isVideo(currentPhoto) && currentPhoto.width && currentPhoto.height && (
+                <span className="text-xs text-white/40">{currentPhoto.width}x{currentPhoto.height}</span>
               )}
               {currentPhoto.originalSize && currentPhoto.compressedSize && (
                 <span className="text-xs text-white/40">
-                  {formatSize(currentPhoto.originalSize)} → {formatSize(currentPhoto.compressedSize)}
+                  {formatSize(currentPhoto.originalSize)}{!isVideo(currentPhoto) && currentPhoto.compressedSize !== currentPhoto.originalSize ? ` → ${formatSize(currentPhoto.compressedSize)}` : ""}
                 </span>
               )}
               <span className="text-xs text-white/50 ml-2">

@@ -22,7 +22,7 @@ const moreNavItems = [
   { href: "/blog", label: "Blog", icon: BookOpen },
   { href: "/auctions", label: "Auctions", icon: Gavel },
   { href: "/songs", label: "Songs", icon: Music },
-  { href: "/gallery", label: "Gallery", icon: ImageIcon },
+  { href: "/gallery", label: "Advocacy Rallies", icon: ImageIcon },
   { href: "/documentaries", label: "Documentaries", icon: Film },
   { href: "/articles", label: "Articles", icon: PenLine },
   { href: "/fallen-heroes", label: "Fallen Heroes", icon: Flame },

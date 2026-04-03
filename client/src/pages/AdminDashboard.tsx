@@ -238,8 +238,8 @@ const sectionGroups: SectionGroup[] = [
         icon: Music,
       },
       {
-        title: "Gallery",
-        description: "Upload and manage event & advocacy photo galleries",
+        title: "Advocacy Rallies",
+        description: "Upload and manage rally photos & videos",
         href: "/admin/gallery",
         icon: ImageIcon,
       },

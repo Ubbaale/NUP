@@ -157,6 +157,8 @@ const leaderImageUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+const galleryImageExts = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+const galleryVideoExts = [".mp4", ".mov", ".webm", ".avi"];
 const galleryUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -170,15 +172,15 @@ const galleryUpload = multer({
     },
   }),
   fileFilter: (req, file, cb) => {
-    const allowed = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+    const allowed = [...galleryImageExts, ...galleryVideoExts];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowed.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files (JPG, PNG, WebP, GIF) are allowed"));
+      cb(new Error("Only image (JPG, PNG, WebP, GIF) and video (MP4, MOV, WebM, AVI) files are allowed"));
     }
   },
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 500 * 1024 * 1024 },
 });
 
 const customDesignUpload = multer({
@@ -1648,37 +1650,58 @@ export async function registerRoutes(
       let compressedSize: number | null = null;
       let width: number | null = null;
       let height: number | null = null;
+      let mediaType = "image";
 
       if (req.file) {
-        const compressed = await compressGalleryImage(req.file.path, req.file.originalname);
-        imageUrl = compressed.compressedUrl;
-        thumbnailUrl = compressed.thumbnailUrl;
-        originalSize = compressed.originalSize;
-        compressedSize = compressed.compressedSize;
-        width = compressed.width;
-        height = compressed.height;
-      } else if (req.body.imageUrl) {
-        const compressed = await compressImageFromUrl(req.body.imageUrl);
-        if (compressed) {
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const isVideo = galleryVideoExts.includes(ext);
+        if (isVideo) {
+          mediaType = "video";
+          imageUrl = `/uploads/gallery/${req.file.filename}`;
+          originalSize = req.file.size;
+          compressedSize = req.file.size;
+        } else {
+          const compressed = await compressGalleryImage(req.file.path, req.file.originalname);
           imageUrl = compressed.compressedUrl;
           thumbnailUrl = compressed.thumbnailUrl;
           originalSize = compressed.originalSize;
           compressedSize = compressed.compressedSize;
           width = compressed.width;
           height = compressed.height;
+        }
+      } else if (req.body.imageUrl) {
+        const url = req.body.imageUrl as string;
+        const urlLower = url.toLowerCase();
+        const isVideoUrl = galleryVideoExts.some(e => urlLower.includes(e)) ||
+          urlLower.includes("youtube.com") || urlLower.includes("youtu.be") || urlLower.includes("vimeo.com");
+        if (isVideoUrl) {
+          mediaType = "video";
+          imageUrl = url;
         } else {
-          imageUrl = req.body.imageUrl;
+          const compressed = await compressImageFromUrl(url);
+          if (compressed) {
+            imageUrl = compressed.compressedUrl;
+            thumbnailUrl = compressed.thumbnailUrl;
+            originalSize = compressed.originalSize;
+            compressedSize = compressed.compressedSize;
+            width = compressed.width;
+            height = compressed.height;
+          } else {
+            imageUrl = url;
+          }
         }
       }
 
-      if (!imageUrl) return res.status(400).json({ error: "Image is required" });
+      if (req.body.mediaType === "video") mediaType = "video";
+
+      if (!imageUrl) return res.status(400).json({ error: "Image or video is required" });
 
       const photo = await storage.createGalleryPhoto({
         title,
         description: description || null,
         imageUrl,
         thumbnailUrl,
-        category: category || "events",
+        category: category || "rallies",
         album: album || null,
         tags: tags || null,
         sortOrder: sortOrder ? parseInt(sortOrder) : 0,
@@ -1687,10 +1710,11 @@ export async function registerRoutes(
         compressedSize,
         width,
         height,
+        mediaType,
       });
       res.status(201).json(photo);
     } catch (error: any) {
-      res.status(400).json({ error: error.message || "Failed to create gallery photo" });
+      res.status(400).json({ error: error.message || "Failed to create gallery item" });
     }
   });
 

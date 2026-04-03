@@ -612,6 +612,7 @@ export const galleryPhotos = pgTable("gallery_photos", {
   compressedSize: integer("compressed_size"),
   width: integer("width"),
   height: integer("height"),
+  mediaType: text("media_type").notNull().default("image"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

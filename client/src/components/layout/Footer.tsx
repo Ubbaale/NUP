@@ -65,7 +65,7 @@ export function Footer() {
               <Link href="/blog" className="text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Blog</Link>
               <Link href="/auctions" className="text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Auctions</Link>
               <Link href="/songs" className="text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Songs</Link>
-              <Link href="/gallery" className="text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Gallery</Link>
+              <Link href="/gallery" className="text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Advocacy Rallies</Link>
               <Link href="/fallen-heroes" className="text-muted-foreground hover:text-foreground text-sm font-bold transition-colors">Fallen Heroes</Link>
             </nav>
           </div>
