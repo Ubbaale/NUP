@@ -108,7 +108,13 @@ export async function compressImageFromUrl(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
 
-    const response = await fetch(imageUrl, { signal: controller.signal });
+    const response = await fetch(imageUrl, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; NUPDiaspora/1.0; +https://diasporanup.org)",
+        "Accept": "image/*",
+      },
+    });
     clearTimeout(timeout);
 
     if (!response.ok) return null;

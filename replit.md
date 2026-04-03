@@ -24,3 +24,5 @@ The entire website supports translation into 22 languages with automatic languag
 - **Nodemailer**: For sending email notifications via SMTP.
 - **Printful**: Integration for merchandise fulfillment.
 - **Google Translate**: For website language translation.
+- **Sharp**: Image compression for gallery photos (WebP output, max 2400px, 85% quality with thumbnails).
+- **FFmpeg**: Background video compression (720p H.264, CRF 26, WebP thumbnails).

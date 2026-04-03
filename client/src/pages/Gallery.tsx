@@ -143,6 +143,18 @@ export default function Gallery() {
   const videoCount = allPhotos.filter(p => isVideo(p)).length;
   const photoCount = allPhotos.filter(p => !isVideo(p)).length;
 
+  const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (!img.dataset.fallback) {
+      img.dataset.fallback = "1";
+      img.style.display = "none";
+      const placeholder = document.createElement("div");
+      placeholder.className = "w-full aspect-[4/3] bg-muted flex items-center justify-center";
+      placeholder.innerHTML = '<svg class="w-12 h-12 text-muted-foreground/30" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"/></svg>';
+      img.parentElement?.insertBefore(placeholder, img);
+    }
+  };
+
   return (
     <div className="min-h-screen" data-testid="gallery-page">
       <SEO
@@ -180,7 +192,7 @@ export default function Gallery() {
                 {isVideo(photo) ? (
                   <>
                     {isYouTubeUrl(photo.imageUrl) ? (
-                      <img src={getYouTubeThumbnail(photo.imageUrl) || ""} alt={photo.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <img src={getYouTubeThumbnail(photo.imageUrl) || ""} alt={photo.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" onError={handleImgError} />
                     ) : (
                       <video src={photo.imageUrl} className="w-full h-full object-cover" muted preload="metadata" />
                     )}
@@ -191,7 +203,7 @@ export default function Gallery() {
                     </div>
                   </>
                 ) : (
-                  <img src={photo.thumbnailUrl || photo.imageUrl} alt={photo.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                  <img src={photo.thumbnailUrl || photo.imageUrl} alt={photo.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" onError={handleImgError} />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3">
@@ -274,9 +286,9 @@ export default function Gallery() {
                   {isVideo(photo) ? (
                     <>
                       {photo.thumbnailUrl ? (
-                        <img src={photo.thumbnailUrl} alt={photo.title} className="w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                        <img src={photo.thumbnailUrl} alt={photo.title} className="w-full object-cover transition-transform group-hover:scale-105" loading="lazy" onError={handleImgError} />
                       ) : isYouTubeUrl(photo.imageUrl) ? (
-                        <img src={getYouTubeThumbnail(photo.imageUrl) || ""} alt={photo.title} className="w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                        <img src={getYouTubeThumbnail(photo.imageUrl) || ""} alt={photo.title} className="w-full object-cover transition-transform group-hover:scale-105" loading="lazy" onError={handleImgError} />
                       ) : (
                         <video src={photo.imageUrl} className="w-full object-cover" muted preload="metadata" />
                       )}
@@ -292,6 +304,7 @@ export default function Gallery() {
                       alt={photo.title}
                       className="w-full object-cover transition-transform group-hover:scale-105"
                       loading="lazy"
+                      onError={handleImgError}
                     />
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-end">
@@ -390,6 +403,7 @@ export default function Gallery() {
                   src={currentPhoto.imageUrl}
                   alt={currentPhoto.title}
                   className="max-w-full max-h-full object-contain rounded"
+                  onError={handleImgError}
                 />
               )}
               {lightboxIndex !== null && lightboxIndex < filteredPhotos.length - 1 && (
