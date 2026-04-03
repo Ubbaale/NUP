@@ -60,12 +60,19 @@ const moreItems = [
 ];
 
 export function MobileNav() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === "/") return location === "/";
     return location.startsWith(href);
+  };
+
+  const handleMoreItemClick = (href: string) => {
+    setMoreOpen(false);
+    setTimeout(() => {
+      navigate(href);
+    }, 150);
   };
 
   return (
@@ -84,25 +91,25 @@ export function MobileNav() {
                     <span className="text-[10px] font-medium">{tab.label}</span>
                   </button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh]">
+                <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh] overflow-y-auto">
                   <div className="pt-2 pb-4">
                     <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-3 px-2">More</h3>
                     <div className="grid grid-cols-3 gap-2">
                       {moreItems.map((item) => (
-                        <Link key={item.href} href={item.href} onClick={() => setMoreOpen(false)}>
-                          <button
-                            className={`flex flex-col items-center gap-1.5 p-3 rounded-xl w-full transition-colors ${
-                              isActive(item.href)
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:bg-muted"
-                            }`}
-                            data-testid={`more-nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-                          >
-                            <item.icon className="w-5 h-5" />
-                            <span className="text-[11px] font-medium text-center leading-tight">{item.label}</span>
-                          </button>
-                        </Link>
+                        <button
+                          key={item.href}
+                          onClick={() => handleMoreItemClick(item.href)}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl w-full transition-colors ${
+                            isActive(item.href)
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-muted"
+                          }`}
+                          data-testid={`more-nav-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+                        >
+                          <item.icon className="w-5 h-5" />
+                          <span className="text-[11px] font-medium text-center leading-tight">{item.label}</span>
+                        </button>
                       ))}
                     </div>
                   </div>

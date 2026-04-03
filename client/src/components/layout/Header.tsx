@@ -32,6 +32,21 @@ const moreNavItems = [
 export function Header() {
   const [location] = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
+  const closeTimeout = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = () => {
+    if (closeTimeout[0]) {
+      clearTimeout(closeTimeout[0]);
+      closeTimeout[0] = null;
+    }
+    setMoreOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    closeTimeout[0] = setTimeout(() => {
+      setMoreOpen(false);
+    }, 200);
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b" style={{ paddingTop: "env(safe-area-inset-top)" }}>
@@ -55,33 +70,36 @@ export function Header() {
             ))}
             <div
               className="relative"
-              onMouseEnter={() => setMoreOpen(true)}
-              onMouseLeave={() => setMoreOpen(false)}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <Button
                 variant="ghost"
                 className="font-bold"
+                onClick={() => setMoreOpen(!moreOpen)}
                 data-testid="nav-more"
               >
                 More
-                <ChevronDown className="w-3 h-3 ml-1" />
+                <ChevronDown className={`w-3 h-3 ml-1 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
               </Button>
               {moreOpen && (
-                <div className="absolute top-full right-0 mt-1 bg-background border rounded-lg shadow-lg py-1 min-w-[160px] z-50">
-                  {moreNavItems.map((item) => (
-                    <Link key={item.href} href={item.href}>
-                      <button
-                        className={`w-full text-left px-4 py-2 text-sm font-medium flex items-center gap-2 hover:bg-muted transition-colors ${
-                          location === item.href ? "bg-muted text-primary" : ""
-                        }`}
-                        data-testid={`nav-${item.label.toLowerCase()}`}
-                        onClick={() => setMoreOpen(false)}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        {item.label}
-                      </button>
-                    </Link>
-                  ))}
+                <div className="absolute top-full right-0 pt-1 z-50">
+                  <div className="bg-background border rounded-lg shadow-lg py-1 min-w-[200px]">
+                    {moreNavItems.map((item) => (
+                      <Link key={item.href} href={item.href}>
+                        <button
+                          className={`w-full text-left px-4 py-2.5 text-sm font-medium flex items-center gap-2.5 hover:bg-muted transition-colors ${
+                            location === item.href ? "bg-muted text-primary" : ""
+                          }`}
+                          data-testid={`nav-${item.label.toLowerCase()}`}
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          <item.icon className="w-4 h-4" />
+                          {item.label}
+                        </button>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
