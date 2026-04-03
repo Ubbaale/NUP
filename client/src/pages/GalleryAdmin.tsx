@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Image, Plus, Trash2, Edit, Star, Search, FileDown, Video, Play } from "lucide-react";
+import { Image, Plus, Trash2, Edit, Star, Search, FileDown, Video, Play, Upload, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import type { GalleryPhoto } from "@shared/schema";
 
 const CATEGORIES = [
@@ -44,6 +45,9 @@ export default function GalleryAdmin() {
   const [formFile, setFormFile] = useState<File | null>(null);
   const [formImageUrl, setFormImageUrl] = useState("");
   const [formMediaType, setFormMediaType] = useState<"image" | "video">("image");
+  const [uploadMode, setUploadMode] = useState<"single" | "bulk">("single");
+  const [bulkFiles, setBulkFiles] = useState<File[]>([]);
+  const [bulkProgress, setBulkProgress] = useState<{ total: number; completed: number; failed: number; uploading: boolean; results: { name: string; status: "success" | "error" | "pending" }[] }>({ total: 0, completed: 0, failed: 0, uploading: false, results: [] });
 
   const { data: galleryData, isLoading } = useQuery<{ photos: GalleryPhoto[]; total: number }>({
     queryKey: ["/api/gallery", categoryFilter],
@@ -145,6 +149,9 @@ export default function GalleryAdmin() {
     setFormFile(null);
     setFormImageUrl("");
     setFormMediaType("image");
+    setUploadMode("single");
+    setBulkFiles([]);
+    setBulkProgress({ total: 0, completed: 0, failed: 0, uploading: false, results: [] });
   };
 
   const openEdit = (photo: GalleryPhoto) => {
@@ -188,6 +195,65 @@ export default function GalleryAdmin() {
     }
   };
 
+  const handleBulkFileChange = (files: FileList | null) => {
+    if (!files) return;
+    const fileArray = Array.from(files).filter(f => {
+      const ext = f.name.toLowerCase();
+      return ext.endsWith(".jpg") || ext.endsWith(".jpeg") || ext.endsWith(".png") || ext.endsWith(".webp") || ext.endsWith(".gif") ||
+        ext.endsWith(".mp4") || ext.endsWith(".mov") || ext.endsWith(".webm") || ext.endsWith(".avi");
+    });
+    setBulkFiles(fileArray);
+  };
+
+  const handleBulkUpload = async () => {
+    if (bulkFiles.length === 0) return;
+    const results = bulkFiles.map(f => ({ name: f.name, status: "pending" as const }));
+    setBulkProgress({ total: bulkFiles.length, completed: 0, failed: 0, uploading: true, results });
+
+    let completed = 0;
+    let failed = 0;
+
+    for (let i = 0; i < bulkFiles.length; i++) {
+      const file = bulkFiles[i];
+      const ext = file.name.toLowerCase();
+      const isVideo = ext.endsWith(".mp4") || ext.endsWith(".mov") || ext.endsWith(".webm") || ext.endsWith(".avi");
+      const title = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", formDescription);
+      formData.append("category", formCategory);
+      formData.append("album", formAlbum);
+      formData.append("tags", formTags);
+      formData.append("sortOrder", "0");
+      formData.append("featured", "false");
+      formData.append("mediaType", isVideo ? "video" : "image");
+      formData.append("image", file);
+
+      try {
+        const res = await fetch("/api/gallery", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Upload failed");
+        completed++;
+        results[i] = { name: file.name, status: "success" };
+      } catch {
+        failed++;
+        results[i] = { name: file.name, status: "error" };
+      }
+      setBulkProgress({ total: bulkFiles.length, completed, failed, uploading: i < bulkFiles.length - 1, results: [...results] });
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["/api/gallery"] });
+    toast({
+      title: "Bulk upload complete",
+      description: `${completed} uploaded${failed > 0 ? `, ${failed} failed` : ""}`,
+      variant: failed > 0 ? "destructive" : "default",
+    });
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto" data-testid="gallery-admin-page">
       <div className="flex items-center justify-between mb-6">
@@ -206,103 +272,224 @@ export default function GalleryAdmin() {
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add Photo or Video</DialogTitle>
+              <DialogTitle>{uploadMode === "bulk" ? "Bulk Upload Photos & Videos" : "Add Photo or Video"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="flex gap-2">
                 <Button
-                  variant={formMediaType === "image" ? "default" : "outline"}
+                  variant={uploadMode === "single" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setFormMediaType("image")}
-                  data-testid="button-type-image"
+                  onClick={() => { setUploadMode("single"); setBulkFiles([]); setBulkProgress({ total: 0, completed: 0, failed: 0, uploading: false, results: [] }); }}
+                  data-testid="button-mode-single"
                 >
-                  <Image className="w-4 h-4 mr-1" /> Photo
+                  <Plus className="w-4 h-4 mr-1" /> Single
                 </Button>
                 <Button
-                  variant={formMediaType === "video" ? "default" : "outline"}
+                  variant={uploadMode === "bulk" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setFormMediaType("video")}
-                  data-testid="button-type-video"
+                  onClick={() => { setUploadMode("bulk"); setFormFile(null); setFormImageUrl(""); }}
+                  data-testid="button-mode-bulk"
                 >
-                  <Video className="w-4 h-4 mr-1" /> Video
+                  <Upload className="w-4 h-4 mr-1" /> Bulk Upload
                 </Button>
               </div>
-              <div>
-                <Label>Title *</Label>
-                <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Title" data-testid="input-media-title" />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Description" rows={2} data-testid="input-media-description" />
-              </div>
-              <div>
-                <Label>Category *</Label>
-                <Select value={formCategory} onValueChange={setFormCategory}>
-                  <SelectTrigger data-testid="select-media-category">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(c => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Album</Label>
-                <Input value={formAlbum} onChange={e => setFormAlbum(e.target.value)} placeholder="e.g. March for Freedom 2025" data-testid="input-media-album" />
-              </div>
-              <div>
-                <Label>Tags (comma-separated)</Label>
-                <Input value={formTags} onChange={e => setFormTags(e.target.value)} placeholder="rally, demonstration, advocacy" data-testid="input-media-tags" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Sort Order</Label>
-                  <Input type="number" value={formSortOrder} onChange={e => setFormSortOrder(e.target.value)} data-testid="input-media-sort" />
-                </div>
-                <div className="flex items-end gap-2 pb-1">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={formFeatured} onChange={e => setFormFeatured(e.target.checked)} data-testid="checkbox-featured" />
-                    <span className="text-sm">Featured</span>
-                  </label>
-                </div>
-              </div>
-              <div>
-                <Label>
-                  {formMediaType === "video"
-                    ? "Upload Video (MP4, MOV, WebM, AVI — any size)"
-                    : "Upload Image (any size — auto-optimized)"}
-                </Label>
-                <Input
-                  type="file"
-                  accept={formMediaType === "video" ? "video/mp4,video/quicktime,video/webm,video/x-msvideo,.mp4,.mov,.webm,.avi" : "image/*"}
-                  onChange={e => handleFileChange(e.target.files?.[0] || null)}
-                  data-testid="input-media-file"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formMediaType === "video"
-                    ? "Videos are automatically optimized to 720p H.264 with thumbnail generation. Upload any size — the system compresses in the background."
-                    : "Photos are automatically compressed to WebP format"}
-                </p>
-              </div>
-              <div>
-                <Label>Or paste {formMediaType === "video" ? "Video" : "Image"} URL {formMediaType === "video" && "(YouTube, Vimeo, or direct link)"}</Label>
-                <Input
-                  value={formImageUrl}
-                  onChange={e => { setFormImageUrl(e.target.value); setFormFile(null); }}
-                  placeholder={formMediaType === "video" ? "https://youtube.com/watch?v=..." : "https://..."}
-                  data-testid="input-media-url"
-                />
-              </div>
-              <Button
-                className="w-full"
-                disabled={!formTitle || (!formFile && !formImageUrl) || createMutation.isPending}
-                onClick={() => createMutation.mutate()}
-                data-testid="button-submit-media"
-              >
-                {createMutation.isPending ? "Uploading..." : `Upload ${formMediaType === "video" ? "Video" : "Photo"}`}
-              </Button>
+
+              {uploadMode === "single" && (
+                <>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={formMediaType === "image" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFormMediaType("image")}
+                      data-testid="button-type-image"
+                    >
+                      <Image className="w-4 h-4 mr-1" /> Photo
+                    </Button>
+                    <Button
+                      variant={formMediaType === "video" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFormMediaType("video")}
+                      data-testid="button-type-video"
+                    >
+                      <Video className="w-4 h-4 mr-1" /> Video
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Title *</Label>
+                    <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Title" data-testid="input-media-title" />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Description" rows={2} data-testid="input-media-description" />
+                  </div>
+                  <div>
+                    <Label>Category *</Label>
+                    <Select value={formCategory} onValueChange={setFormCategory}>
+                      <SelectTrigger data-testid="select-media-category">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(c => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Album</Label>
+                    <Input value={formAlbum} onChange={e => setFormAlbum(e.target.value)} placeholder="e.g. March for Freedom 2025" data-testid="input-media-album" />
+                  </div>
+                  <div>
+                    <Label>Tags (comma-separated)</Label>
+                    <Input value={formTags} onChange={e => setFormTags(e.target.value)} placeholder="rally, demonstration, advocacy" data-testid="input-media-tags" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Sort Order</Label>
+                      <Input type="number" value={formSortOrder} onChange={e => setFormSortOrder(e.target.value)} data-testid="input-media-sort" />
+                    </div>
+                    <div className="flex items-end gap-2 pb-1">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={formFeatured} onChange={e => setFormFeatured(e.target.checked)} data-testid="checkbox-featured" />
+                        <span className="text-sm">Featured</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>
+                      {formMediaType === "video"
+                        ? "Upload Video (MP4, MOV, WebM, AVI — any size)"
+                        : "Upload Image (any size — auto-optimized)"}
+                    </Label>
+                    <Input
+                      type="file"
+                      accept={formMediaType === "video" ? "video/mp4,video/quicktime,video/webm,video/x-msvideo,.mp4,.mov,.webm,.avi" : "image/*"}
+                      onChange={e => handleFileChange(e.target.files?.[0] || null)}
+                      data-testid="input-media-file"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formMediaType === "video"
+                        ? "Videos are automatically optimized to 720p H.264 with thumbnail generation. Upload any size — the system compresses in the background."
+                        : "Photos are automatically compressed to WebP format"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Or paste {formMediaType === "video" ? "Video" : "Image"} URL {formMediaType === "video" && "(YouTube, Vimeo, or direct link)"}</Label>
+                    <Input
+                      value={formImageUrl}
+                      onChange={e => { setFormImageUrl(e.target.value); setFormFile(null); }}
+                      placeholder={formMediaType === "video" ? "https://youtube.com/watch?v=..." : "https://..."}
+                      data-testid="input-media-url"
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    disabled={!formTitle || (!formFile && !formImageUrl) || createMutation.isPending}
+                    onClick={() => createMutation.mutate()}
+                    data-testid="button-submit-media"
+                  >
+                    {createMutation.isPending ? "Uploading..." : `Upload ${formMediaType === "video" ? "Video" : "Photo"}`}
+                  </Button>
+                </>
+              )}
+
+              {uploadMode === "bulk" && (
+                <>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                    <p className="text-xs text-blue-800 dark:text-blue-200">
+                      Select multiple photos and videos at once. Each file's name becomes its title. All files share the same category, album, and tags.
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Category *</Label>
+                    <Select value={formCategory} onValueChange={setFormCategory}>
+                      <SelectTrigger data-testid="select-bulk-category">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(c => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Album</Label>
+                    <Input value={formAlbum} onChange={e => setFormAlbum(e.target.value)} placeholder="e.g. DC Rally March 2025" data-testid="input-bulk-album" />
+                  </div>
+                  <div>
+                    <Label>Description (applied to all)</Label>
+                    <Textarea value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Description for all uploads" rows={2} data-testid="input-bulk-description" />
+                  </div>
+                  <div>
+                    <Label>Tags (comma-separated, applied to all)</Label>
+                    <Input value={formTags} onChange={e => setFormTags(e.target.value)} placeholder="rally, demonstration" data-testid="input-bulk-tags" />
+                  </div>
+                  <div>
+                    <Label>Select Files (photos & videos — any size)</Label>
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*,video/mp4,video/quicktime,video/webm,video/x-msvideo,.mp4,.mov,.webm,.avi,.jpg,.jpeg,.png,.webp,.gif"
+                      onChange={e => handleBulkFileChange(e.target.files)}
+                      data-testid="input-bulk-files"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      All files are auto-optimized. Videos compress to 720p in the background. File names become titles.
+                    </p>
+                  </div>
+
+                  {bulkFiles.length > 0 && !bulkProgress.uploading && bulkProgress.completed === 0 && (
+                    <div className="border rounded-lg p-3 space-y-1">
+                      <p className="text-sm font-medium">{bulkFiles.length} file{bulkFiles.length !== 1 ? "s" : ""} selected</p>
+                      <div className="max-h-32 overflow-y-auto space-y-0.5">
+                        {bulkFiles.map((f, i) => (
+                          <p key={i} className="text-xs text-muted-foreground truncate">{f.name} ({(f.size / 1024 / 1024).toFixed(1)} MB)</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(bulkProgress.uploading || bulkProgress.completed > 0) && (
+                    <div className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">
+                          {bulkProgress.uploading ? "Uploading..." : "Upload Complete"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {bulkProgress.completed + bulkProgress.failed} / {bulkProgress.total}
+                        </p>
+                      </div>
+                      <Progress value={((bulkProgress.completed + bulkProgress.failed) / bulkProgress.total) * 100} className="h-2" />
+                      <div className="max-h-40 overflow-y-auto space-y-0.5">
+                        {bulkProgress.results.map((r, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            {r.status === "success" && <CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />}
+                            {r.status === "error" && <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />}
+                            {r.status === "pending" && <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin shrink-0" />}
+                            <span className="truncate">{r.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full"
+                    disabled={bulkFiles.length === 0 || bulkProgress.uploading}
+                    onClick={handleBulkUpload}
+                    data-testid="button-bulk-upload"
+                  >
+                    {bulkProgress.uploading ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading {bulkProgress.completed + bulkProgress.failed}/{bulkProgress.total}...</>
+                    ) : bulkProgress.completed > 0 ? (
+                      "Upload More"
+                    ) : (
+                      <><Upload className="w-4 h-4 mr-2" /> Upload {bulkFiles.length} File{bulkFiles.length !== 1 ? "s" : ""}</>
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
           </DialogContent>
         </Dialog>
