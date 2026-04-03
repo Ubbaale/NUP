@@ -27,5 +27,19 @@ The entire website supports translation into 22 languages with automatic languag
 - **Sharp**: Image compression for gallery photos (WebP output, max 2400px, 85% quality with thumbnails).
 - **FFmpeg**: Background video compression (720p H.264, CRF 26, WebP thumbnails).
 
-## Gallery Storage Architecture
-Gallery images and videos are stored as binary data (`bytea`) in PostgreSQL to persist across production deployments. The `gallery_photos` table has `image_data` and `thumbnail_data` columns (added via startup migration). Images are served via `/api/gallery/file/:id` and `/api/gallery/thumb/:id` endpoints. Upload flow: file → Sharp/FFmpeg compression → binary stored in DB → filesystem files deleted. External URL uploads are downloaded, compressed, and stored the same way. YouTube/Vimeo URLs are stored as-is (not downloaded). Listing queries exclude binary columns for performance. Video uploads store raw bytes immediately (before compression) for persistence guarantee, then background compression replaces with optimized version.
+## File Persistence Architecture
+All uploaded files across the site are persisted in PostgreSQL to survive production redeployments:
+
+### Universal File Store (`server/fileStore.ts`)
+- **Table**: `file_store (path TEXT PRIMARY KEY, data BYTEA, content_type TEXT, created_at TIMESTAMP)`
+- **Auto-persist middleware**: Global `res.on("finish")` middleware in `server/index.ts` automatically stores any multer-uploaded file (`req.file`/`req.files`) to the DB after successful responses
+- **Startup migration**: `migrateUploadsToDb()` scans `uploads/` directory and backfills any files not already in DB
+- **Serving fallback**: `/uploads/*` middleware tries disk first, then falls back to DB via `getFile()`
+- **Covers**: songs, covers, products, leaders, chapter-logos, fallen-heroes, articles, missing-persons, witness-videos, community-events, custom-designs, fundraiser-photos, documents
+
+### Gallery Storage (separate system)
+- Gallery images/videos stored as `bytea` in `gallery_photos.image_data`/`thumbnail_data` columns
+- Served via `/api/gallery/file/:id` and `/api/gallery/thumb/:id` endpoints
+- Upload flow: file → Sharp/FFmpeg compression → binary stored in DB → filesystem files deleted
+- YouTube/Vimeo URLs stored as-is (not downloaded)
+- Listing queries exclude binary columns for performance

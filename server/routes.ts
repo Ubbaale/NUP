@@ -14,6 +14,7 @@ import { compressGalleryImage, compressImageFromUrl } from "./imageCompressor";
 import { compressGalleryVideo } from "./videoCompressor";
 import crypto from "crypto";
 
+
 function stripAccessCode<T extends Record<string, any>>(obj: T): Omit<T, 'accessCode'> {
   const { accessCode, ...rest } = obj;
   return rest;

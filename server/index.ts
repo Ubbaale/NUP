@@ -97,7 +97,57 @@ app.use((req, res, next) => {
   const { pool } = await import("./db");
   await pool.query(`ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS image_data bytea`);
   await pool.query(`ALTER TABLE gallery_photos ADD COLUMN IF NOT EXISTS thumbnail_data bytea`);
-  
+  await pool.query(`CREATE TABLE IF NOT EXISTS file_store (path TEXT PRIMARY KEY, data BYTEA NOT NULL, content_type TEXT NOT NULL DEFAULT 'application/octet-stream', created_at TIMESTAMP DEFAULT NOW())`);
+
+  const { migrateUploadsToDb, getFile, storeFile: storeFileToDb } = await import("./fileStore");
+  await migrateUploadsToDb();
+
+  const pathMod = await import("path");
+  const fsMod = await import("fs");
+  app.use((req: any, res, next) => {
+    res.on("finish", async () => {
+      try {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          if (req.file) {
+            const urlPath = "/" + pathMod.relative(process.cwd(), req.file.path).replace(/\\/g, "/");
+            if (fsMod.existsSync(req.file.path)) {
+              const data = fsMod.readFileSync(req.file.path);
+              await storeFileToDb(urlPath, data);
+            }
+          }
+          if (req.files) {
+            const files = Array.isArray(req.files) ? req.files : Object.values(req.files).flat();
+            for (const file of files as any[]) {
+              const urlPath = "/" + pathMod.relative(process.cwd(), file.path).replace(/\\/g, "/");
+              if (fsMod.existsSync(file.path)) {
+                const data = fsMod.readFileSync(file.path);
+                await storeFileToDb(urlPath, data);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[file-store] Auto-persist failed:", e);
+      }
+    });
+    next();
+  });
+
+  app.use("/uploads", async (req, res, next) => {
+    const filePath = "/uploads" + req.path;
+    const fsPath = pathMod.join(process.cwd(), "uploads", req.path);
+    if (fsMod.existsSync(fsPath)) {
+      return next();
+    }
+    const file = await getFile(filePath);
+    if (file) {
+      res.set("Content-Type", file.contentType);
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      return res.send(file.data);
+    }
+    next();
+  });
+
   startNewsFetcher();
   
   await registerRoutes(httpServer, app);
