@@ -1625,6 +1625,16 @@ export async function registerRoutes(
     return rest;
   }
 
+  function rewriteGalleryUrls(photo: any) {
+    if (photo.imageUrl && photo.imageUrl.startsWith("/uploads/gallery/")) {
+      photo.imageUrl = `/api/gallery/file/${photo.id}`;
+    }
+    if (photo.thumbnailUrl && photo.thumbnailUrl.startsWith("/uploads/gallery/")) {
+      photo.thumbnailUrl = `/api/gallery/thumb/${photo.id}`;
+    }
+    return photo;
+  }
+
   app.get("/api/gallery", async (req, res) => {
     try {
       const { category, page, limit } = req.query as { category?: string; page?: string; limit?: string };
@@ -1635,13 +1645,15 @@ export async function registerRoutes(
 
       if (category && category !== "all") {
         const photos = await storage.getGalleryPhotosByCategory(category);
-        const total = photos.length;
-        const paginated = photos.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+        const rewritten = photos.map(rewriteGalleryUrls);
+        const total = rewritten.length;
+        const paginated = rewritten.slice((pageNum - 1) * limitNum, pageNum * limitNum);
         return res.json({ photos: paginated, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) });
       }
       const photos = await storage.getAllGalleryPhotos();
-      const total = photos.length;
-      const paginated = photos.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+      const rewritten = photos.map(rewriteGalleryUrls);
+      const total = rewritten.length;
+      const paginated = rewritten.slice((pageNum - 1) * limitNum, pageNum * limitNum);
       res.json({ photos: paginated, total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch gallery photos" });
@@ -1651,12 +1663,29 @@ export async function registerRoutes(
   app.get("/api/gallery/file/:id", async (req, res) => {
     try {
       const data = await storage.getGalleryImageData(req.params.id, "image");
-      if (!data) return res.status(404).json({ error: "Image not found" });
+      if (data) {
+        const photo = await storage.getGalleryPhoto(req.params.id);
+        const contentType = photo?.mediaType === "video" ? "video/mp4" : "image/webp";
+        res.set("Content-Type", contentType);
+        res.set("Cache-Control", "public, max-age=31536000, immutable");
+        return res.send(data);
+      }
       const photo = await storage.getGalleryPhoto(req.params.id);
-      const contentType = photo?.mediaType === "video" ? "video/mp4" : "image/webp";
-      res.set("Content-Type", contentType);
-      res.set("Cache-Control", "public, max-age=31536000, immutable");
-      res.send(data);
+      if (photo?.imageUrl) {
+        const { getFile } = await import("./fileStore");
+        const file = await getFile(photo.imageUrl);
+        if (file) {
+          res.set("Content-Type", file.contentType);
+          res.set("Cache-Control", "public, max-age=31536000, immutable");
+          return res.send(file.data);
+        }
+        const diskPath = path.join(process.cwd(), photo.imageUrl);
+        if (fs.existsSync(diskPath)) {
+          res.set("Cache-Control", "public, max-age=31536000, immutable");
+          return res.sendFile(diskPath);
+        }
+      }
+      return res.status(404).json({ error: "Image not found" });
     } catch {
       res.status(500).json({ error: "Failed to serve image" });
     }
@@ -1665,10 +1694,27 @@ export async function registerRoutes(
   app.get("/api/gallery/thumb/:id", async (req, res) => {
     try {
       const data = await storage.getGalleryImageData(req.params.id, "thumbnail");
-      if (!data) return res.status(404).json({ error: "Thumbnail not found" });
-      res.set("Content-Type", "image/webp");
-      res.set("Cache-Control", "public, max-age=31536000, immutable");
-      res.send(data);
+      if (data) {
+        res.set("Content-Type", "image/webp");
+        res.set("Cache-Control", "public, max-age=31536000, immutable");
+        return res.send(data);
+      }
+      const photo = await storage.getGalleryPhoto(req.params.id);
+      if (photo?.thumbnailUrl) {
+        const { getFile } = await import("./fileStore");
+        const file = await getFile(photo.thumbnailUrl);
+        if (file) {
+          res.set("Content-Type", file.contentType);
+          res.set("Cache-Control", "public, max-age=31536000, immutable");
+          return res.send(file.data);
+        }
+        const diskPath = path.join(process.cwd(), photo.thumbnailUrl);
+        if (fs.existsSync(diskPath)) {
+          res.set("Cache-Control", "public, max-age=31536000, immutable");
+          return res.sendFile(diskPath);
+        }
+      }
+      return res.status(404).json({ error: "Thumbnail not found" });
     } catch {
       res.status(500).json({ error: "Failed to serve thumbnail" });
     }

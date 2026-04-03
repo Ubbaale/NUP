@@ -25,6 +25,17 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             src={product.imageUrl}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = "none";
+              const parent = target.parentElement;
+              if (parent && !parent.querySelector(".img-fallback")) {
+                const fallback = document.createElement("div");
+                fallback.className = "img-fallback w-full h-full flex items-center justify-center";
+                fallback.innerHTML = '<div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center"><span class="text-primary font-bold text-sm">NUP</span></div>';
+                parent.appendChild(fallback);
+              }
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

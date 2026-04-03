@@ -174,10 +174,15 @@ export default function RevolutionarySongs() {
         setCurrentlyPlaying(null);
         setPlayProgress(prev => ({ ...prev, [song.id]: 0 }));
       });
+      audio.addEventListener("error", () => {
+        setCurrentlyPlaying(null);
+      });
       audioRefs.current[song.id] = audio;
     }
 
-    audioRefs.current[song.id].play();
+    audioRefs.current[song.id].play().catch(() => {
+      setCurrentlyPlaying(null);
+    });
     setCurrentlyPlaying(song.id);
     fetch(`/api/songs/${song.id}/play`, { method: "POST" }).catch(() => {});
   };
@@ -282,7 +287,21 @@ export default function RevolutionarySongs() {
                 <CardContent className="p-0">
                   <div className="aspect-[4/3] bg-muted relative group">
                     {song.coverImageUrl ? (
-                      <img src={song.coverImageUrl} alt={song.title} className="w-full h-full object-cover" />
+                      <img
+                        src={song.coverImageUrl}
+                        alt={song.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const parent = e.currentTarget.parentElement;
+                          if (parent && !parent.querySelector(".img-fallback")) {
+                            const fallback = document.createElement("div");
+                            fallback.className = "img-fallback w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5";
+                            fallback.innerHTML = '<div style="width:2.5rem;height:2.5rem;color:rgba(var(--primary),0.3)">&#9835;</div>';
+                            parent.prepend(fallback);
+                          }
+                        }}
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
                         <Music className="w-10 h-10 text-primary/30" />
