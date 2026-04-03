@@ -102,6 +102,40 @@ app.use((req, res, next) => {
   const { migrateUploadsToDb, getFile, storeFile: storeFileToDb } = await import("./fileStore");
   await migrateUploadsToDb();
 
+  // One-time cleanup: remove records whose files are permanently lost
+  try {
+    const orphanGallery = await pool.query(
+      `DELETE FROM gallery_photos WHERE image_data IS NULL AND image_url LIKE '/uploads/gallery/%' RETURNING id, title`
+    );
+    if (orphanGallery.rowCount && orphanGallery.rowCount > 0) {
+      console.log(`[cleanup] Removed ${orphanGallery.rowCount} gallery items with lost files:`,
+        orphanGallery.rows.map((r: any) => r.title).join(", "));
+    }
+
+    const orphanProducts = await pool.query(
+      `DELETE FROM products WHERE image_url LIKE '/uploads/products/%' 
+       AND NOT EXISTS (SELECT 1 FROM file_store WHERE file_store.path = products.image_url)
+       AND image_url ~ '^/uploads/products/[0-9]'
+       RETURNING id, name`
+    );
+    if (orphanProducts.rowCount && orphanProducts.rowCount > 0) {
+      console.log(`[cleanup] Removed ${orphanProducts.rowCount} products with lost files:`,
+        orphanProducts.rows.map((r: any) => r.name).join(", "));
+    }
+
+    const orphanSongs = await pool.query(
+      `DELETE FROM revolutionary_songs WHERE file_url LIKE '/uploads/songs/%'
+       AND NOT EXISTS (SELECT 1 FROM file_store WHERE file_store.path = revolutionary_songs.file_url)
+       RETURNING id, title`
+    );
+    if (orphanSongs.rowCount && orphanSongs.rowCount > 0) {
+      console.log(`[cleanup] Removed ${orphanSongs.rowCount} songs with lost files:`,
+        orphanSongs.rows.map((r: any) => r.title).join(", "));
+    }
+  } catch (e) {
+    console.error("[cleanup] Error cleaning orphan records:", e);
+  }
+
   const pathMod = await import("path");
   const fsMod = await import("fs");
   app.use((req: any, res, next) => {
