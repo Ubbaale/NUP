@@ -29,6 +29,11 @@ import bobiKabale from "@assets/Bobi-Wine-in-Kabale_1771985183076.jpeg";
 import bobiProtest from "@assets/bobi-wine-leads-protest-_1771985183077.jpg";
 import nupCanadaEngagement from "@assets/nup-canada-engagement.jpg";
 import nupCanadaOutreach from "@assets/nup-canada-outreach.jpg";
+import nupDiasporaProtest from "@assets/de951d73-ea0a-473a-9750-b0aefabdf65c_1775495129553.jpg";
+import nupCapitolRally from "@assets/4195b9ae-144a-4562-bcb9-1b18fd127e6d_1775495145185.jpg";
+import nupLeadershipTeam from "@assets/dd6652e3-bcef-4321-a16e-e66da4db3eb5_1775495155056.jpg";
+import nupConventionLadies from "@assets/5599b2f0-53a7-4cd8-9c87-bf178c61f03c_1775495171624.jpg";
+import nupFreedomRally from "@assets/17c1311e-5b39-4a5c-875b-ba79ac933d57_1775495183701.jpg";
 import nupAboutUsGroup from "@assets/nup-about-us-group.webp";
 import nupInitiatives from "@assets/nup-initiatives.jpg";
 import nupExecutiveTeam from "@assets/Executive-Team-Members-1024x683_1773023680694.jpg";
@@ -40,13 +45,17 @@ const campaignImages = [
   bobiCrowd1,
   nupCanadaEngagement,
   bobiSpeech,
-  nupCanadaOutreach,
+  nupDiasporaProtest,
   bobiRally,
   nupAboutUsGroup,
   bobiKabale,
   nupExecutiveTeam,
   bobiProtest,
   nupGetInvolved,
+  nupCapitolRally,
+  nupLeadershipTeam,
+  nupConventionLadies,
+  nupFreedomRally,
 ];
 
 export default function Home() {
