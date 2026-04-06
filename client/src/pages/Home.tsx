@@ -105,7 +105,7 @@ export default function Home() {
               alt="NUP Campaign"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
           </motion.div>
         </AnimatePresence>
         
