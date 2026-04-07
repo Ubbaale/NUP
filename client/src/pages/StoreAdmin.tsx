@@ -35,7 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Upload, Package, Star, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Pencil, Trash2, Upload, Package, Star, ArrowLeft, Image as ImageIcon, RefreshCw, Link2, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import type { Product } from "@shared/schema";
 
 function autoSlug(name: string): string {
@@ -373,6 +374,237 @@ function ProductFormDialog({
   );
 }
 
+function PrintfulPanel() {
+  const { toast } = useToast();
+
+  const { data: status, isLoading: statusLoading, refetch: refetchStatus } = useQuery<{
+    connected: boolean;
+    configured: boolean;
+    storeName?: string;
+    storeId?: number;
+    error?: string;
+  }>({
+    queryKey: ["/api/printful/status"],
+  });
+
+  const { data: pfProducts, isLoading: productsLoading, refetch: refetchProducts } = useQuery<{
+    success: boolean;
+    products?: Array<{
+      id: number;
+      name: string;
+      thumbnail: string;
+      variantCount: number;
+      variants: Array<{ id: number; name: string; retailPrice: string }>;
+    }>;
+    error?: string;
+  }>({
+    queryKey: ["/api/printful/products"],
+    enabled: status?.connected === true,
+  });
+
+  const { data: localProducts = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/printful/sync-to-store");
+      return await res.json();
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      refetchProducts();
+      if (data.imported > 0) {
+        toast({ title: `Imported ${data.imported} product(s)`, description: data.importedNames?.join(", ") });
+      } else {
+        toast({ title: "All products already synced", description: `${data.skipped} product(s) already in store` });
+      }
+    },
+    onError: (err: any) => {
+      toast({ title: "Sync failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const linkMutation = useMutation({
+    mutationFn: async (data: { productId: string; printfulSyncVariantId: string; printfulProductId: string }) => {
+      const res = await apiRequest("POST", "/api/printful/link-product", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      toast({ title: "Product linked to Printful" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Link failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const isLinked = (pfId: number) =>
+    localProducts.some((p) => p.printfulProductId === String(pfId));
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-primary" />
+              Printful Connection
+            </h2>
+            <Button variant="outline" size="sm" onClick={() => refetchStatus()} data-testid="button-refresh-status">
+              <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+            </Button>
+          </div>
+          {statusLoading ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" /> Checking connection...
+            </div>
+          ) : status?.connected ? (
+            <div className="flex items-center gap-2 text-green-600">
+              <CheckCircle2 className="w-5 h-5" />
+              <span>Connected to <strong>{status.storeName || "Printful Store"}</strong></span>
+              {status.storeId && <Badge variant="outline">ID: {status.storeId}</Badge>}
+            </div>
+          ) : status?.configured ? (
+            <div className="flex items-center gap-2 text-amber-600">
+              <XCircle className="w-5 h-5" />
+              <span>API key set but connection failed: {status.error}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <XCircle className="w-5 h-5" />
+              <span>Printful API key not configured</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {status?.connected && (
+        <>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Printful Catalog</h2>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => refetchProducts()} data-testid="button-refresh-products">
+                    <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => syncMutation.mutate()}
+                    disabled={syncMutation.isPending}
+                    data-testid="button-sync-all"
+                  >
+                    {syncMutation.isPending ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Syncing...</>
+                    ) : (
+                      <><RefreshCw className="w-4 h-4 mr-2" /> Import All to Store</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {productsLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground py-8 justify-center">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Loading Printful products...
+                </div>
+              ) : !pfProducts?.success || !pfProducts.products?.length ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {pfProducts?.error || "No products found in your Printful store. Add products in your Printful dashboard first."}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pfProducts.products.map((pf) => (
+                    <div
+                      key={pf.id}
+                      className="flex items-center gap-4 p-3 rounded-lg border"
+                      data-testid={`printful-product-${pf.id}`}
+                    >
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                        {pf.thumbnail ? (
+                          <img src={pf.thumbnail} alt={pf.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{pf.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {pf.variantCount} variant(s) ·{" "}
+                          {pf.variants[0] && `From $${pf.variants[0].retailPrice}`}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {isLinked(pf.id) ? (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Linked
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Not in store</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold mb-2">Link Existing Products</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Connect your local store products to Printful variants for automated fulfillment.
+              </p>
+              {localProducts.filter((p) => !p.printfulProductId).length === 0 ? (
+                <p className="text-muted-foreground text-sm">All products are already linked or no unlinked products exist.</p>
+              ) : (
+                <div className="space-y-3">
+                  {localProducts
+                    .filter((p) => !p.printfulProductId)
+                    .map((product) => (
+                      <div key={product.id} className="flex items-center gap-3 p-3 rounded-lg border">
+                        <div className="flex-1">
+                          <span className="font-medium">{product.name}</span>
+                          <span className="text-sm text-muted-foreground ml-2">${Number(product.price).toFixed(2)}</span>
+                        </div>
+                        {pfProducts?.products && pfProducts.products.length > 0 && (
+                          <Select
+                            onValueChange={(val) => {
+                              const [pfProdId, variantId] = val.split(":");
+                              linkMutation.mutate({
+                                productId: product.id,
+                                printfulProductId: pfProdId,
+                                printfulSyncVariantId: variantId,
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="w-[220px]" data-testid={`select-link-${product.id}`}>
+                              <SelectValue placeholder="Link to Printful..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {pfProducts.products.map((pf) => (
+                                <SelectItem key={pf.id} value={`${pf.id}:${pf.variants[0]?.id || 0}`}>
+                                  {pf.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function StoreAdmin() {
   const { toast } = useToast();
   const [createOpen, setCreateOpen] = useState(false);
@@ -442,111 +674,129 @@ export default function StoreAdmin() {
               {products.length} product{products.length !== 1 ? "s" : ""} in store
             </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)} data-testid="button-add-product">
-            <Plus className="w-4 h-4 mr-2" /> Add Product
-          </Button>
         </div>
 
-        <div className="mb-6">
-          <Input
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
-            data-testid="input-search"
-          />
-        </div>
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="products" data-testid="tab-products">Products</TabsTrigger>
+            <TabsTrigger value="printful" data-testid="tab-printful">Printful</TabsTrigger>
+          </TabsList>
 
-        {isLoading ? (
-          <div className="text-center py-12 text-muted-foreground">Loading products...</div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            {search ? "No products match your search." : "No products yet. Add your first product!"}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filtered.map((product) => (
-              <Card key={product.id} data-testid={`card-product-${product.id}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      {product.imageUrl ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="w-6 h-6 text-muted-foreground" />
+          <TabsContent value="products">
+            <div className="flex items-center justify-between mb-6">
+              <Input
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-sm"
+                data-testid="input-search"
+              />
+              <Button onClick={() => setCreateOpen(true)} data-testid="button-add-product">
+                <Plus className="w-4 h-4 mr-2" /> Add Product
+              </Button>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-12 text-muted-foreground">Loading products...</div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                {search ? "No products match your search." : "No products yet. Add your first product!"}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filtered.map((product) => (
+                  <Card key={product.id} data-testid={`card-product-${product.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                          {product.imageUrl ? (
+                            <img
+                              src={product.imageUrl}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold truncate" data-testid={`text-product-name-${product.id}`}>
-                          {product.name}
-                        </h3>
-                        <Badge variant="outline" className="text-xs">
-                          {product.category}
-                        </Badge>
-                        {product.featured && (
-                          <Badge className="text-xs">
-                            <Star className="w-3 h-3 mr-1" /> Featured
-                          </Badge>
-                        )}
-                        {!product.inStock && (
-                          <Badge variant="secondary" className="text-xs">Out of Stock</Badge>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold truncate" data-testid={`text-product-name-${product.id}`}>
+                              {product.name}
+                            </h3>
+                            <Badge variant="outline" className="text-xs">
+                              {product.category}
+                            </Badge>
+                            {product.featured && (
+                              <Badge className="text-xs">
+                                <Star className="w-3 h-3 mr-1" /> Featured
+                              </Badge>
+                            )}
+                            {product.printfulProductId && (
+                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                                Printful
+                              </Badge>
+                            )}
+                            {!product.inStock && (
+                              <Badge variant="secondary" className="text-xs">Out of Stock</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            ${Number(product.price).toFixed(2)} · {product.slug}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="hidden sm:flex items-center gap-3 mr-2">
+                            <div className="flex items-center gap-1.5">
+                              <Switch
+                                checked={product.inStock ?? true}
+                                onCheckedChange={(val) => toggleStock.mutate({ id: product.id, inStock: val })}
+                                data-testid={`switch-stock-${product.id}`}
+                              />
+                              <span className="text-xs text-muted-foreground">Stock</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Switch
+                                checked={product.featured ?? false}
+                                onCheckedChange={(val) => toggleFeatured.mutate({ id: product.id, featured: val })}
+                                data-testid={`switch-featured-${product.id}`}
+                              />
+                              <span className="text-xs text-muted-foreground">Featured</span>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setEditProduct(product)}
+                            data-testid={`button-edit-${product.id}`}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setDeleteProduct(product)}
+                            data-testid={`button-delete-${product.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        ${Number(product.price).toFixed(2)} · {product.slug}
-                      </p>
-                    </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className="hidden sm:flex items-center gap-3 mr-2">
-                        <div className="flex items-center gap-1.5">
-                          <Switch
-                            checked={product.inStock ?? true}
-                            onCheckedChange={(val) => toggleStock.mutate({ id: product.id, inStock: val })}
-                            data-testid={`switch-stock-${product.id}`}
-                          />
-                          <span className="text-xs text-muted-foreground">Stock</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Switch
-                            checked={product.featured ?? false}
-                            onCheckedChange={(val) => toggleFeatured.mutate({ id: product.id, featured: val })}
-                            data-testid={`switch-featured-${product.id}`}
-                          />
-                          <span className="text-xs text-muted-foreground">Featured</span>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setEditProduct(product)}
-                        data-testid={`button-edit-${product.id}`}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setDeleteProduct(product)}
-                        data-testid={`button-delete-${product.id}`}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+          <TabsContent value="printful">
+            <PrintfulPanel />
+          </TabsContent>
+        </Tabs>
 
         {createOpen && (
           <ProductFormDialog

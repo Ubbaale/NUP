@@ -1424,6 +1424,94 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/printful/sync-to-store", requireAdmin, async (req, res) => {
+    try {
+      const result = await printful.getSyncedProducts();
+      if (!result.success || !result.products) {
+        return res.status(500).json({ error: result.error || "Failed to fetch Printful products" });
+      }
+
+      const existingProducts = await storage.getProducts();
+      let imported = 0;
+      let skipped = 0;
+      const importedNames: string[] = [];
+
+      for (const pfProduct of result.products) {
+        const alreadyExists = existingProducts.some(
+          (p) => p.printfulProductId === String(pfProduct.id) || 
+                 p.name.toLowerCase() === pfProduct.name.toLowerCase()
+        );
+        if (alreadyExists) {
+          skipped++;
+          continue;
+        }
+
+        const firstVariant = pfProduct.variants[0];
+        const retailPrice = firstVariant?.retailPrice || "25.00";
+
+        const sizes = pfProduct.variants
+          .map((v: any) => {
+            const match = v.name.match(/\b(XS|S|M|L|XL|2XL|3XL|4XL|5XL)\b/i);
+            return match ? match[1].toUpperCase() : null;
+          })
+          .filter((s: string | null, i: number, arr: (string | null)[]) => s && arr.indexOf(s) === i);
+
+        const colors = pfProduct.variants
+          .map((v: any) => {
+            const match = v.name.match(/[-–]\s*(.+?)(?:\s*\/|$)/);
+            return match ? match[1].trim() : null;
+          })
+          .filter((c: string | null, i: number, arr: (string | null)[]) => c && arr.indexOf(c) === i);
+
+        const slug = pfProduct.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+        let category = "Merchandise";
+        const nameLower = pfProduct.name.toLowerCase();
+        if (nameLower.includes("shirt") || nameLower.includes("hoodie") || nameLower.includes("jacket") || 
+            nameLower.includes("hat") || nameLower.includes("cap") || nameLower.includes("beret") ||
+            nameLower.includes("tee") || nameLower.includes("sweatshirt")) {
+          category = "Apparel";
+        } else if (nameLower.includes("mug") || nameLower.includes("bag") || nameLower.includes("sticker") ||
+                   nameLower.includes("pin") || nameLower.includes("keychain") || nameLower.includes("phone")) {
+          category = "Accessories";
+        }
+
+        await storage.createProduct({
+          name: pfProduct.name,
+          slug,
+          description: `Imported from Printful. ${pfProduct.variantCount} variant(s) available.`,
+          price: retailPrice,
+          category,
+          imageUrl: pfProduct.thumbnail || null,
+          sizes: sizes.length > 0 ? JSON.stringify(sizes) : null,
+          colors: colors.length > 0 ? JSON.stringify(colors) : null,
+          inStock: true,
+          featured: false,
+          printfulProductId: String(pfProduct.id),
+          printfulSyncVariantId: firstVariant ? String(firstVariant.id) : null,
+          baseCost: null,
+        });
+
+        imported++;
+        importedNames.push(pfProduct.name);
+      }
+
+      res.json({
+        success: true,
+        imported,
+        skipped,
+        importedNames,
+        total: result.products.length,
+      });
+    } catch (error: any) {
+      console.error("[Printful Sync] Error:", error);
+      res.status(500).json({ error: error.message || "Failed to sync products" });
+    }
+  });
+
   app.post("/api/printful/link-product", requireAdmin, async (req, res) => {
     try {
       const { productId, printfulSyncVariantId, printfulProductId, baseCost } = req.body;
