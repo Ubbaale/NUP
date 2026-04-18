@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { AdminAuthProvider, useAdminAuth } from "@/components/AdminAuthProvider";
 import Home from "@/pages/Home";
 import Regions from "@/pages/Regions";
@@ -165,6 +166,15 @@ function Router() {
   );
 }
 
+function AnimatedMain() {
+  const [location] = useLocation();
+  return (
+    <main key={location} className="flex-1 pb-20 lg:pb-0 app-page-enter">
+      <Router />
+    </main>
+  );
+}
+
 function App() {
   return (
     <HelmetProvider>
@@ -173,13 +183,12 @@ function App() {
           <AdminAuthProvider>
             <div className="flex flex-col min-h-screen">
               <Header />
-              <main className="flex-1 pb-20 lg:pb-0">
-                <Router />
-              </main>
+              <AnimatedMain />
               <div className="hidden lg:block">
                 <Footer />
               </div>
               <MobileNav />
+              <InstallPrompt />
             </div>
             <Toaster />
           </AdminAuthProvider>

@@ -61,18 +61,76 @@
       html, body {
         overscroll-behavior-y: none;
         -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
       }
+      body {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+        touch-action: manipulation;
+      }
+      /* Prevent iOS auto-zoom on input focus (font-size must be >= 16px on mobile) */
+      @media (max-width: 1023px) {
+        input:not([type="checkbox"]):not([type="radio"]),
+        select,
+        textarea {
+          font-size: 16px !important;
+        }
+      }
+      /* Native-app feel when launched from home screen */
       @media (display-mode: standalone) {
         body {
           -webkit-user-select: none;
+          user-select: none;
+          overscroll-behavior: none;
+        }
+        input, textarea, [contenteditable], p, span, h1, h2, h3, h4, h5, h6, li, td {
+          -webkit-user-select: text;
           user-select: text;
         }
       }
+      /* Native-style page transition */
+      @keyframes app-fade-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .app-page-enter {
+        animation: app-fade-in 0.22s ease-out;
+      }
+      /* Hide scrollbars on mobile for native feel */
+      @media (max-width: 1023px) {
+        ::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+      }
+      /* Pre-paint splash to avoid white flash */
+      #initial-splash {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #b91c1c;
+        display: flex; align-items: center; justify-content: center;
+        transition: opacity 0.4s ease;
+      }
+      #initial-splash img { width: 96px; height: 96px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+      #initial-splash.hide { opacity: 0; pointer-events: none; }
     </style>
   </head>
   <body>
     <div id="google_translate_element"></div>
+    <div id="initial-splash">
+      <img src="/icon-192.png" alt="NUP Diaspora" />
+    </div>
     <div id="root"></div>
+    <script>
+      window.addEventListener("load", () => {
+        const splash = document.getElementById("initial-splash");
+        if (splash) {
+          setTimeout(() => {
+            splash.classList.add("hide");
+            setTimeout(() => splash.remove(), 450);
+          }, 350);
+        }
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ("serviceWorker" in navigator) {
