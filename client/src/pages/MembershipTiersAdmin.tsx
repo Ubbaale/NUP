@@ -123,7 +123,7 @@ export default function MembershipTiersAdmin() {
               <FormItem><FormLabel>Slug</FormLabel><FormControl><Input placeholder="gold" data-testid="input-tier-slug" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormField control={form.control} name="price" render={({ field }) => (
               <FormItem><FormLabel>Price ($)</FormLabel><FormControl><Input type="number" step="0.01" data-testid="input-tier-price" {...field} /></FormControl><FormMessage /></FormItem>
             )} />

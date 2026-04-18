@@ -151,7 +151,7 @@ export default function AuctionsAdmin() {
           <FormField control={form.control} name="imageUrl" render={({ field }) => (
             <FormItem><FormLabel>Image URL (optional)</FormLabel><FormControl><Input data-testid="input-auction-image" {...field} /></FormControl><FormMessage /></FormItem>
           )} />
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormField control={form.control} name="startingBid" render={({ field }) => (
               <FormItem><FormLabel>Starting Bid ($)</FormLabel><FormControl><Input type="number" step="0.01" data-testid="input-auction-starting-bid" {...field} /></FormControl><FormMessage /></FormItem>
             )} />

@@ -102,23 +102,25 @@ export default function StorePolicies() {
                   We ship worldwide to support our global NUP community. Delivery times vary by destination. All orders include tracking information once shipped.
                 </p>
 
-                <div className="grid gap-3">
-                  <div className="grid grid-cols-4 gap-2 text-sm font-semibold pb-2 border-b">
-                    <span>Region</span>
-                    <span>Standard Shipping</span>
-                    <span>Express Shipping</span>
-                    <span>Cost</span>
-                  </div>
-                  {DELIVERY_TIMELINES.map((item, i) => (
-                    <div key={i} className="grid grid-cols-4 gap-2 text-sm py-2 border-b border-muted" data-testid={`shipping-row-${i}`}>
-                      <span className="font-medium">{item.icon} {item.region}</span>
-                      <span className="text-muted-foreground">{item.standard}</span>
-                      <span className="text-muted-foreground">{item.express}</span>
-                      <span className="text-muted-foreground">
-                        {["United States", "Canada", "United Kingdom", "Australia"].includes(item.region) ? "$9.99" : "$19.99"}
-                      </span>
+                <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                  <div className="grid gap-3 min-w-[560px]">
+                    <div className="grid grid-cols-4 gap-2 text-sm font-semibold pb-2 border-b">
+                      <span>Region</span>
+                      <span>Standard Shipping</span>
+                      <span>Express Shipping</span>
+                      <span>Cost</span>
                     </div>
-                  ))}
+                    {DELIVERY_TIMELINES.map((item, i) => (
+                      <div key={i} className="grid grid-cols-4 gap-2 text-sm py-2 border-b border-muted" data-testid={`shipping-row-${i}`}>
+                        <span className="font-medium">{item.icon} {item.region}</span>
+                        <span className="text-muted-foreground">{item.standard}</span>
+                        <span className="text-muted-foreground">{item.express}</span>
+                        <span className="text-muted-foreground">
+                          {["United States", "Canada", "United Kingdom", "Australia"].includes(item.region) ? "$9.99" : "$19.99"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4 mt-4">

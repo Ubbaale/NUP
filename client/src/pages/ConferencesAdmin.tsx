@@ -353,7 +353,7 @@ function ConferenceForm({ form, onSubmit, isPending, label }: {
                 <FormItem><FormLabel>Slug</FormLabel><FormControl><Input data-testid="input-conf-slug" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField control={form.control} name="year" render={({ field }) => (
                 <FormItem><FormLabel>Year</FormLabel><FormControl><Input type="number" data-testid="input-conf-year" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
