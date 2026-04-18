@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import type { Region } from "@shared/schema";
+import type { Region, Chapter } from "@shared/schema";
 import { motion } from "framer-motion";
 import {
   ComposableMap,
@@ -9,6 +9,7 @@ import {
   ZoomableGroup,
 } from "react-simple-maps";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface WorldMapProps {
   regions: Region[];
@@ -31,6 +32,15 @@ const ugandaCoordinates: [number, number] = [32.2903, 1.3733];
 
 export function WorldMap({ regions }: WorldMapProps) {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+  const [hoveredChapter, setHoveredChapter] = useState<Chapter | null>(null);
+
+  const { data: chapters = [] } = useQuery<Chapter[]>({
+    queryKey: ["/api/chapters"],
+  });
+
+  const mappedChapters = chapters.filter(
+    (c) => c.latitude && c.longitude && !isNaN(Number(c.latitude)) && !isNaN(Number(c.longitude))
+  );
 
   return (
     <div className="relative w-full aspect-[2/1] bg-gradient-to-b from-sky-100 to-sky-200 dark:from-slate-800 dark:to-slate-900 rounded-lg overflow-hidden border shadow-inner">
@@ -111,6 +121,30 @@ export function WorldMap({ regions }: WorldMapProps) {
               </Marker>
             );
           })}
+
+          {mappedChapters.map((chapter) => (
+            <Marker
+              key={chapter.id}
+              coordinates={[Number(chapter.longitude), Number(chapter.latitude)]}
+              onMouseEnter={() => setHoveredChapter(chapter)}
+              onMouseLeave={() => setHoveredChapter(null)}
+            >
+              <Link href={`/chapters/${chapter.slug}`}>
+                <g
+                  className="cursor-pointer"
+                  data-testid={`map-chapter-${chapter.slug}`}
+                >
+                  <circle
+                    r={4}
+                    fill="#fbbf24"
+                    stroke="#fff"
+                    strokeWidth={1.5}
+                    className="drop-shadow-md hover:r-6 transition-all"
+                  />
+                </g>
+              </Link>
+            </Marker>
+          ))}
 
           <Marker
             coordinates={ugandaCoordinates}
@@ -200,11 +234,31 @@ export function WorldMap({ regions }: WorldMapProps) {
         <p className="text-sm font-medium">Click a region to explore chapters</p>
       </div>
 
-      <div className="absolute top-4 right-4 bg-card/95 backdrop-blur px-3 py-2 rounded-lg border shadow-lg">
+      {hoveredChapter && (
+        <motion.div
+          className="absolute pointer-events-none z-20"
+          style={{ left: "50%", top: "10%", transform: "translateX(-50%)" }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="px-4 py-2 bg-card border-2 border-amber-500 rounded-lg shadow-xl">
+            <p className="font-semibold text-foreground">{hoveredChapter.name}</p>
+            <p className="text-xs text-muted-foreground">{hoveredChapter.city}, {hoveredChapter.country}</p>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="absolute top-4 right-4 bg-card/95 backdrop-blur px-3 py-2 rounded-lg border shadow-lg space-y-1">
         <div className="flex items-center gap-2 text-sm">
           <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
-          <span className="font-medium">{regions.length} Active Regions</span>
+          <span className="font-medium">{regions.length} Regions</span>
         </div>
+        {mappedChapters.length > 0 && (
+          <div className="flex items-center gap-2 text-sm">
+            <div className="w-2.5 h-2.5 bg-amber-400 rounded-full border border-white" />
+            <span className="font-medium">{mappedChapters.length} Chapters</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -680,6 +680,44 @@ export async function registerRoutes(
   });
 
   // Chapter Admin CRUD
+  app.post("/api/chapters/backfill-locations", requireAdmin, async (req, res) => {
+    try {
+      const { enrichChapterLocation } = await import("./locationService");
+      const allChapters = await storage.getAllChapters();
+      let enriched = 0;
+      let skipped = 0;
+      const failed: string[] = [];
+
+      for (const chapter of allChapters) {
+        if (chapter.latitude && chapter.longitude && chapter.landmarkUrl) {
+          skipped++;
+          continue;
+        }
+        try {
+          const data = await enrichChapterLocation(chapter.city, chapter.country);
+          const update: any = {};
+          if (data.latitude && !chapter.latitude) update.latitude = data.latitude;
+          if (data.longitude && !chapter.longitude) update.longitude = data.longitude;
+          if (data.landmarkUrl && !chapter.landmarkUrl) update.landmarkUrl = data.landmarkUrl;
+          if (Object.keys(update).length > 0) {
+            await storage.updateChapter(chapter.id, update);
+            enriched++;
+          } else {
+            failed.push(chapter.name);
+          }
+          // Rate limit Nominatim: 1 request per second
+          await new Promise((r) => setTimeout(r, 1100));
+        } catch (e) {
+          failed.push(chapter.name);
+        }
+      }
+
+      res.json({ enriched, skipped, failed, total: allChapters.length });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Backfill failed" });
+    }
+  });
+
   app.post("/api/chapters", requireAdmin, async (req, res) => {
     try {
       const parsed = insertChapterSchema.parse(req.body);
@@ -687,6 +725,21 @@ export async function registerRoutes(
       if (existing) {
         return res.status(400).json({ error: "A chapter with this slug already exists" });
       }
+
+      // Auto-enrich location data (lat/lng + landmark photo)
+      if (parsed.city && parsed.country) {
+        try {
+          const { enrichChapterLocation } = await import("./locationService");
+          const enriched = await enrichChapterLocation(parsed.city, parsed.country);
+          if (enriched.latitude && !parsed.latitude) parsed.latitude = enriched.latitude;
+          if (enriched.longitude && !parsed.longitude) parsed.longitude = enriched.longitude;
+          if (enriched.landmarkUrl && !parsed.landmarkUrl) parsed.landmarkUrl = enriched.landmarkUrl;
+          if (enriched.landmarkUrl && !parsed.imageUrl) parsed.imageUrl = enriched.landmarkUrl;
+        } catch (e) {
+          console.warn("[chapter create] enrichment failed:", e);
+        }
+      }
+
       const chapter = await storage.createChapter(parsed);
       res.status(201).json(chapter);
     } catch (error: any) {
@@ -707,6 +760,24 @@ export async function registerRoutes(
           return res.status(400).json({ error: "A chapter with this slug already exists" });
         }
       }
+
+      // Re-enrich if city/country changed and lat/lng/landmark not explicitly set
+      const cityChanged = allowed.city && allowed.city !== existing.city;
+      const countryChanged = allowed.country && allowed.country !== existing.country;
+      if (cityChanged || countryChanged) {
+        try {
+          const { enrichChapterLocation } = await import("./locationService");
+          const city = allowed.city || existing.city;
+          const country = allowed.country || existing.country;
+          const enriched = await enrichChapterLocation(city, country);
+          if (enriched.latitude && !allowed.latitude) allowed.latitude = enriched.latitude;
+          if (enriched.longitude && !allowed.longitude) allowed.longitude = enriched.longitude;
+          if (enriched.landmarkUrl && !allowed.landmarkUrl) allowed.landmarkUrl = enriched.landmarkUrl;
+        } catch (e) {
+          console.warn("[chapter update] enrichment failed:", e);
+        }
+      }
+
       const chapter = await storage.updateChapter(req.params.id, allowed);
       res.json(chapter);
     } catch (error: any) {

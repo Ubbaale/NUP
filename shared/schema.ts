@@ -100,6 +100,9 @@ export const chapters = pgTable("chapters", {
   youtubeUrl: text("youtube_url"),
   memberCount: integer("member_count"),
   foundedDate: text("founded_date"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  landmarkUrl: text("landmark_url"),
 });
 
 export const insertChapterSchema = createInsertSchema(chapters).omit({ id: true });
