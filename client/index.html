@@ -121,15 +121,34 @@
     </div>
     <div id="root"></div>
     <script>
-      window.addEventListener("load", () => {
-        const splash = document.getElementById("initial-splash");
-        if (splash) {
-          setTimeout(() => {
-            splash.classList.add("hide");
-            setTimeout(() => splash.remove(), 450);
-          }, 350);
+      (function () {
+        var hidden = false;
+        function hideSplash() {
+          if (hidden) return;
+          hidden = true;
+          var splash = document.getElementById("initial-splash");
+          if (!splash) return;
+          splash.classList.add("hide");
+          setTimeout(function () { splash && splash.remove(); }, 450);
         }
-      });
+        // Hide as soon as React mounts something into #root
+        var root = document.getElementById("root");
+        if (root && "MutationObserver" in window) {
+          var obs = new MutationObserver(function () {
+            if (root.childNodes.length > 0) {
+              obs.disconnect();
+              hideSplash();
+            }
+          });
+          obs.observe(root, { childList: true });
+        }
+        // Hard fallbacks so it never gets stuck
+        setTimeout(hideSplash, 1500);
+        document.addEventListener("DOMContentLoaded", function () {
+          setTimeout(hideSplash, 600);
+        });
+        window.addEventListener("load", hideSplash);
+      })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
