@@ -383,7 +383,7 @@ export default function Home() {
                     <div className="flex items-start gap-3">
                       <Hotel className="w-5 h-5 text-white/70 mt-0.5" />
                       <div>
-                        <p className="font-semibold">Hotel from $179/night</p>
+                        <p className="font-semibold">Hotel from $199/night</p>
                         <p className="text-sm text-white/70">Breakfast included</p>
                       </div>
                     </div>
