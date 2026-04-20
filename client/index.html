@@ -153,8 +153,29 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        var __reloadedOnce = false;
+        function __reloadOnce() {
+          if (__reloadedOnce) return;
+          __reloadedOnce = true;
+          try { sessionStorage.setItem("__sw_reloaded", "1"); } catch (e) {}
+          window.location.reload();
+        }
+        navigator.serviceWorker.addEventListener("message", function (e) {
+          if (e && e.data && e.data.type === "SW_UPDATED") {
+            try {
+              if (sessionStorage.getItem("__sw_reloaded") === "1") return;
+            } catch (e2) {}
+            __reloadOnce();
+          }
+        });
+        navigator.serviceWorker.addEventListener("controllerchange", function () {
+          try {
+            if (sessionStorage.getItem("__sw_reloaded") === "1") return;
+          } catch (e) {}
+          __reloadOnce();
+        });
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/sw.js").catch(function () {});
         });
       }
     </script>

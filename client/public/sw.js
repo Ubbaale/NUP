@@ -1,4 +1,4 @@
-const CACHE_NAME = "nup-diaspora-v4";
+const CACHE_NAME = "nup-diaspora-v5";
 
 const PRECACHE_URLS = [
   "/manifest.json",
@@ -17,15 +17,18 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+      await self.clients.claim();
+      const clientsList = await self.clients.matchAll({ type: "window" });
+      for (const client of clientsList) {
+        client.postMessage({ type: "SW_UPDATED", cache: CACHE_NAME });
+      }
+    })()
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
