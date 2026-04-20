@@ -333,7 +333,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
                 <div className="space-y-3">
                   {meta.earlyBirdPrice && (
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Early Bird</span>
+                      <span className="font-medium">Full Registration</span>
                       <Badge variant="default" className="text-lg px-3">${meta.earlyBirdPrice}</Badge>
                     </div>
                   )}
