@@ -13,7 +13,7 @@ import {
   Flag, Music, BookOpen, Heart, Star, CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
-import chairmanPhoto from "@assets/PHOTO-2026-03-25-08-35-16_1774632940028.jpg";
+import chairmanPhoto from "@assets/image_1776696949491.png";
 import type { Conference } from "@shared/schema";
 import laBrightDayImg from "@assets/la-bright-day.png";
 import laOceanImg from "@assets/la-ocean.png";
