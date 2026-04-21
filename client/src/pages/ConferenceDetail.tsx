@@ -17,8 +17,6 @@ import chairmanPhoto from "@assets/image_1776696949491.png";
 import laConventionLogo from "@assets/ImageLA_1776729605630.jpeg";
 import youthFashionImg from "@assets/3492b74a-cbd8-4975-88c0-971b967907fe_1776811277202.JPG";
 import diasporaCoupleImg from "@assets/2cd87b26-2a9f-4b2f-a43d-c1adab8eb4fa_1776811509997.JPG";
-import diasporaBallroomImg from "@assets/4ce7d9a2-deac-4194-81b5-29925d234e93_1776811509998.JPG";
-import diasporaHeadTableImg from "@assets/612982b1-acc3-4057-8786-066ab81630c4_1776811509998.JPG";
 import diasporaGalaImg from "@assets/25529877-358d-4b34-a001-660b5f2693e7_1776811509999.JPG";
 import type { Conference } from "@shared/schema";
 import laBrightDayImg from "@assets/la-bright-day.png";
@@ -64,8 +62,6 @@ import dannyKDavisImg from "@assets/danny-k-davis-speaker.jpg";
 
 const HERO_SLIDES = [
   { src: diasporaGalaImg, alt: "NUP Diaspora gala — guests at elegantly set tables in red and white", position: "center 30%" },
-  { src: diasporaHeadTableImg, alt: "Hon. Bobi Wine and dignitaries at the head table during the NUP Diaspora gala", position: "center 35%" },
-  { src: diasporaBallroomImg, alt: "NUP Diaspora ballroom celebration with members in red berets", position: "center 35%" },
   { src: diasporaCoupleImg, alt: "Hon. Bobi Wine and Hon. Barbie Itungo with NUP Diaspora leadership", position: "center 25%" },
   { src: nupEventPhotoImg, alt: "NUP Diaspora community gathering" },
   { src: laSkylineDayImg, alt: "Los Angeles skyline on a bright sunny day" },
