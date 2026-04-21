@@ -12,11 +12,17 @@ vite.config.ts.*
 *.key
 
 # Replit / agent internals
+.replit
 .local
 .cache
 .upm
 .config
 .agents
+
+# Note: attached_assets/ is intentionally NOT ignored.
+# The application imports images from it via the `@assets/...` Vite
+# alias (see client/src/pages/*.tsx), so the build requires those
+# files to be present in the repo.
 
 # Build & runtime
 .vite
