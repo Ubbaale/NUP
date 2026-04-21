@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import chairmanPhoto from "@assets/image_1776696949491.png";
+import laConventionLogo from "@assets/ImageLA_1776729605630.jpeg";
 import type { Conference } from "@shared/schema";
 import laBrightDayImg from "@assets/la-bright-day.png";
 import laOceanImg from "@assets/la-ocean.png";
@@ -248,7 +249,8 @@ function Convention2026Page({ conference }: { conference: Conference }) {
               }`}
             />
           ))}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
         </div>
         <div className="container mx-auto px-4 relative z-10 text-center">
           <Link href="/conferences">
@@ -256,7 +258,15 @@ function Convention2026Page({ conference }: { conference: Conference }) {
               <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
           </Link>
-          <h2 className="text-xl md:text-2xl font-medium text-white/90 mb-3 tracking-wide" data-testid="text-conference-theme">
+          <div className="flex justify-center mb-4">
+            <img
+              src={laConventionLogo}
+              alt="NUP Los Angeles 2026 Convention Logo"
+              className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full bg-white/95 p-2 shadow-2xl ring-4 ring-white/40"
+              data-testid="img-convention-logo"
+            />
+          </div>
+          <h2 className="text-xl md:text-2xl font-medium text-white mb-3 tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" data-testid="text-conference-theme">
             {conference.theme || "NUP Diaspora Convention"} &nbsp; {conference.city} {conference.year}
           </h2>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-white drop-shadow-lg" data-testid="text-conference-title">
@@ -696,7 +706,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           </div>
         </section>
 
-        <section className="text-center py-12 bg-gradient-to-br from-red-900 via-red-800 to-red-950 text-white rounded-2xl px-8 mb-16">
+        <section className="text-center py-12 bg-gradient-to-br from-red-800 via-red-900 to-blue-900 text-white rounded-2xl px-8 mb-16">
           <h2 className="text-3xl font-bold mb-4">Join Us in {conference.city}</h2>
           <p className="text-white/80 max-w-2xl mx-auto mb-8 text-lg">
             Be part of this historic gathering. Register today and help build a New Uganda together.
@@ -940,11 +950,12 @@ function PastConventionPage({ conference, schedule, speakersList, highlights, ve
                 }`}
               />
             ))}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
           </>
         ) : (
           <>
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-red-950 to-gray-900" />
+            <div className="absolute inset-0 bg-gradient-to-br from-red-800 via-red-900 to-blue-900" />
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
           </>
         )}
