@@ -224,12 +224,45 @@ function Convention2026Page({ conference }: { conference: Conference }) {
   const meta = parseMetadata(conference.metadata);
   const scheduleData = meta.schedule || SCHEDULE_DATA;
 
+  const heroSlides = (meta.heroImages && meta.heroImages.length > 0)
+    ? meta.heroImages.map((src: string, i: number) => ({ src, alt: `${conference.title} image ${i + 1}` }))
+    : HERO_SLIDES;
+  const logoSrc = meta.logoUrl || laConventionLogo;
+  const chairmanSrc = meta.chairmanPhotoUrl || chairmanPhoto;
+  const speakers = (meta.speakersDetail && meta.speakersDetail.length > 0)
+    ? meta.speakersDetail.map((s: any) => ({
+        name: s.name || "",
+        role: s.role || "",
+        desc: s.desc || "",
+        photo: s.photoUrl || null,
+      }))
+    : SPEAKERS;
+  const boatImages = (meta.boatCruiseImages && meta.boatCruiseImages.length > 0)
+    ? meta.boatCruiseImages
+    : [nupBoatCruise1Img, nupBoatCruise2Img];
+  const boatVideo = meta.boatCruiseVideoUrl || "/videos/ocean-cruise.mp4";
+  const travelItems = (meta.travelInfoItems && meta.travelInfoItems.length > 0)
+    ? meta.travelInfoItems
+    : [
+        "Closest Airport: Los Angeles International Airport (LAX)",
+        "Complimentary airport shuttle every 30 minutes",
+        "Register early for visa application processing",
+        "Take registration acknowledgment to visa appointment",
+      ];
+  const chairmanName = meta.conventionChairman || "Joseph William Ssenkumba";
+  const chairmanMessageParas = (meta.chairmanMessage && meta.chairmanMessage.trim())
+    ? meta.chairmanMessage.split(/\n\s*\n/)
+    : [
+        "It is my honor to welcome you to the National Unity Platform (NUP) Diaspora 2026 Convention in Los Angeles. This gathering is a vital step in our shared journey to advocate for freedom, democracy, and the rule of law in Uganda. I encourage you to engage actively in our discussions, celebrate our achievements, and help build the strategies that will advance our mission.",
+        "Let this convention inspire and unite us as we work toward a freer, fairer, and more prosperous Uganda.",
+      ];
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroSlides.length]);
 
   const goToSlide = useCallback((index: number) => {
     setCurrentSlide(index);
@@ -239,7 +272,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
     <div className="min-h-screen">
       <div className="relative h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          {HERO_SLIDES.map((slide, i) => (
+          {heroSlides.map((slide: { src: string; alt: string }, i: number) => (
             <img
               key={i}
               src={slide.src}
@@ -260,8 +293,8 @@ function Convention2026Page({ conference }: { conference: Conference }) {
           </Link>
           <div className="flex justify-center mb-4">
             <img
-              src={laConventionLogo}
-              alt="NUP Los Angeles 2026 Convention Logo"
+              src={logoSrc}
+              alt={`${conference.title} Logo`}
               className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full bg-white/95 p-2 shadow-2xl ring-4 ring-white/40"
               data-testid="img-convention-logo"
             />
@@ -279,8 +312,8 @@ function Convention2026Page({ conference }: { conference: Conference }) {
             <CountdownTimer targetDate={new Date(conference.startDate)} />
           </div>
 
-          <div className="flex items-center justify-center gap-2 mb-8" data-testid="slide-indicators">
-            {HERO_SLIDES.map((_, i) => (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-8 max-w-md mx-auto" data-testid="slide-indicators">
+            {heroSlides.map((_: any, i: number) => (
               <button
                 key={i}
                 onClick={() => goToSlide(i)}
@@ -327,7 +360,7 @@ function Convention2026Page({ conference }: { conference: Conference }) {
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
           <div className="lg:col-span-2">
-            <h2 className="text-3xl font-bold mb-4">A Call to Unity and Purpose</h2>
+            <h2 className="text-3xl font-bold mb-4">{meta.descriptionHeading || "A Call to Unity and Purpose"}</h2>
             {conference.description && conference.description.split("\n\n").map((para, i) => (
               <p key={i} className="text-muted-foreground leading-relaxed mb-6">{para}</p>
             ))}
@@ -437,8 +470,8 @@ function Convention2026Page({ conference }: { conference: Conference }) {
 
         {meta.hotelRate1 && (
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-2 text-center">Hotel & Accommodation</h2>
-          <p className="text-center text-muted-foreground mb-8">Special rates negotiated for convention delegates</p>
+          <h2 className="text-3xl font-bold mb-2 text-center">{meta.hotelHeading || "Hotel & Accommodation"}</h2>
+          <p className="text-center text-muted-foreground mb-8">{meta.hotelSubtitle || "Special rates negotiated for convention delegates"}</p>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {meta.hotelRate1 && (
             <Card className="border-primary/20">
@@ -506,10 +539,10 @@ function Convention2026Page({ conference }: { conference: Conference }) {
         )}
 
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-2 text-center">Featured Speakers</h2>
-          <p className="text-center text-muted-foreground mb-8">Voices of Freedom and Justice</p>
+          <h2 className="text-3xl font-bold mb-2 text-center">{meta.speakersHeading || "Featured Speakers"}</h2>
+          <p className="text-center text-muted-foreground mb-8">{meta.speakersSubtitle || "Voices of Freedom and Justice"}</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SPEAKERS.map((speaker, i) => (
+            {speakers.map((speaker: any, i: number) => (
               <Card key={i} className="text-center overflow-hidden" data-testid={`card-speaker-${i}`}>
                 <CardContent className="p-6">
                   {speaker.photo ? (
@@ -531,8 +564,8 @@ function Convention2026Page({ conference }: { conference: Conference }) {
         </section>
 
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-2 text-center">Boat Cruise Experience</h2>
-          <p className="text-center text-muted-foreground mb-8">An unforgettable evening on the Southern California coastline</p>
+          <h2 className="text-3xl font-bold mb-2 text-center">{meta.boatCruiseHeading || "Boat Cruise Experience"}</h2>
+          <p className="text-center text-muted-foreground mb-8">{meta.boatCruiseSubtitle || "An unforgettable evening on the Southern California coastline"}</p>
 
           <div className="relative max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-2xl">
             <video
@@ -541,32 +574,31 @@ function Convention2026Page({ conference }: { conference: Conference }) {
               muted
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
-              poster={nupBoatCruise1Img}
+              poster={boatImages[0]}
             >
-              <source src="/videos/ocean-cruise.mp4" type="video/mp4" />
+              <source src={boatVideo} type="video/mp4" />
             </video>
             <div className="absolute inset-0 bg-gradient-to-b from-blue-900/40 via-blue-900/60 to-blue-950/90" />
 
             <div className="relative z-10 p-8 md:p-12">
-              <div className="grid md:grid-cols-2 gap-4 mb-8">
-                <div className="rounded-xl overflow-hidden shadow-lg border border-white/20">
-                  <img src={nupBoatCruise1Img} alt="City Cruises boat for NUP convention" className="w-full h-48 object-cover" loading="lazy" />
-                </div>
-                <div className="rounded-xl overflow-hidden shadow-lg border border-white/20">
-                  <img src={nupBoatCruise2Img} alt="NUP Diaspora boat cruise experience" className="w-full h-48 object-cover" loading="lazy" />
-                </div>
+              <div className={`grid ${boatImages.length > 1 ? "md:grid-cols-2" : "md:grid-cols-1"} gap-4 mb-8`}>
+                {boatImages.map((src: string, i: number) => (
+                  <div key={i} className="rounded-xl overflow-hidden shadow-lg border border-white/20">
+                    <img src={src} alt={`Boat cruise ${i + 1}`} className="w-full h-48 object-cover" loading="lazy" />
+                  </div>
+                ))}
               </div>
 
               <div className="text-white">
                 <div className="flex items-center gap-4 mb-4">
                   <Ship className="w-12 h-12" />
                   <div>
-                    <h3 className="text-2xl md:text-3xl font-bold">Heroes Celebration on Waters</h3>
-                    <p className="text-white/80">Saturday, August 15th · 7:00 PM – 11:00 PM</p>
+                    <h3 className="text-2xl md:text-3xl font-bold">{meta.boatCruiseTitle || "Heroes Celebration on Waters"}</h3>
+                    <p className="text-white/80">{meta.boatCruiseTime || "Saturday, August 15th · 7:00 PM – 11:00 PM"}</p>
                   </div>
                 </div>
                 <p className="text-white/90 mb-6 text-lg max-w-2xl">
-                  Join fellow Ugandans and friends of Uganda aboard a luxury City Cruises vessel departing from the scenic Marina del Rey. Enjoy breathtaking ocean views, live entertainment, music, dinner, and conversations with NUP leaders and convention guests.
+                  {meta.boatCruiseDescription || "Join fellow Ugandans and friends of Uganda aboard a luxury City Cruises vessel departing from the scenic Marina del Rey. Enjoy breathtaking ocean views, live entertainment, music, dinner, and conversations with NUP leaders and convention guests."}
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
                   <Badge className="bg-white/20 text-white border-white/30 text-xl px-5 py-2">${meta.boatCruisePrice || "220"}</Badge>
@@ -585,8 +617,8 @@ function Convention2026Page({ conference }: { conference: Conference }) {
 
         {scheduleData.length > 0 && (
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-2 text-center">Event Schedule</h2>
-          <p className="text-center text-muted-foreground mb-8">{scheduleData.length} days of leadership, advocacy, and celebration</p>
+          <h2 className="text-3xl font-bold mb-2 text-center">{meta.scheduleHeading || "Event Schedule"}</h2>
+          <p className="text-center text-muted-foreground mb-8">{meta.scheduleSubtitle || `${scheduleData.length} days of leadership, advocacy, and celebration`}</p>
           <Tabs defaultValue="day-0" className="max-w-4xl mx-auto">
             <TabsList className={`grid w-full mb-6`} style={{ gridTemplateColumns: `repeat(${scheduleData.length}, 1fr)` }}>
               {scheduleData.map((day: any, i: number) => (
@@ -628,33 +660,32 @@ function Convention2026Page({ conference }: { conference: Conference }) {
         )}
 
         <section className="mb-16" data-testid="section-chairman-welcome">
-          <h2 className="text-3xl font-bold mb-2 text-center">A Message from the Convention Chairman</h2>
-          <p className="text-center text-muted-foreground mb-8">Welcome to the NUP Diaspora Convention 2026</p>
+          <h2 className="text-3xl font-bold mb-2 text-center">{meta.chairmanHeading || "A Message from the Convention Chairman"}</h2>
+          <p className="text-center text-muted-foreground mb-8">{meta.chairmanSubtitle || `Welcome to the ${conference.title}`}</p>
           <div className="max-w-4xl mx-auto">
             <Card className="overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-[300px_1fr]">
                 <div className="relative">
                   <img
-                    src={chairmanPhoto}
-                    alt="Joseph William Ssenkumba — Convention Chairman"
+                    src={chairmanSrc}
+                    alt={`${chairmanName} — Convention Chairman`}
                     className="w-full h-full object-cover object-top min-h-[350px]"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                    <h3 className="text-white font-bold text-lg">Joseph William Ssenkumba</h3>
+                    <h3 className="text-white font-bold text-lg">{chairmanName}</h3>
                     <p className="text-white/80 text-sm">Convention Chairman</p>
                   </div>
                 </div>
                 <CardContent className="p-6 md:p-8 flex flex-col justify-center">
-                  <p className="text-lg italic text-muted-foreground mb-4">"Dear Delegates, Guests, and Friends,"</p>
-                  <p className="text-base leading-relaxed mb-4">
-                    It is my honor to welcome you to the National Unity Platform (NUP) Diaspora 2026 Convention in Los Angeles. This gathering is a vital step in our shared journey to advocate for freedom, democracy, and the rule of law in Uganda. I encourage you to engage actively in our discussions, celebrate our achievements, and help build the strategies that will advance our mission.
-                  </p>
-                  <p className="text-base leading-relaxed mb-6">
-                    Let this convention inspire and unite us as we work toward a freer, fairer, and more prosperous Uganda.
-                  </p>
+                  <p className="text-lg italic text-muted-foreground mb-4">"{meta.chairmanQuote || "Dear Delegates, Guests, and Friends,"}"</p>
+                  {chairmanMessageParas.map((para: string, i: number) => (
+                    <p key={i} className={`text-base leading-relaxed ${i === chairmanMessageParas.length - 1 ? "mb-6" : "mb-4"}`}>
+                      {para}
+                    </p>
+                  ))}
                   <div className="border-t pt-4">
-                    <p className="font-medium text-sm text-muted-foreground">With unity,</p>
-                    <p className="font-bold text-lg" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>Joseph William Ssenkumba</p>
+                    <p className="font-medium text-sm text-muted-foreground">{meta.chairmanSignoff || "With unity,"}</p>
+                    <p className="font-bold text-lg" style={{ fontFamily: "'Segoe Script', 'Comic Sans MS', cursive" }}>{chairmanName}</p>
                     <p className="text-sm text-red-600 dark:text-red-400 font-semibold">Convention Chairman</p>
                   </div>
                 </CardContent>
@@ -664,20 +695,19 @@ function Convention2026Page({ conference }: { conference: Conference }) {
         </section>
 
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-2 text-center">International Delegates</h2>
-          <p className="text-center text-muted-foreground mb-8">Information for delegates traveling from Uganda and beyond</p>
+          <h2 className="text-3xl font-bold mb-2 text-center">{meta.delegatesHeading || "International Delegates"}</h2>
+          <p className="text-center text-muted-foreground mb-8">{meta.delegatesSubtitle || "Information for delegates traveling from Uganda and beyond"}</p>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Plane className="w-6 h-6 text-primary" />
-                  <h3 className="font-bold">Travel Information</h3>
+                  <h3 className="font-bold">{meta.travelInfoTitle || "Travel Information"}</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /> Closest Airport: Los Angeles International Airport (LAX)</li>
-                  <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /> Complimentary airport shuttle every 30 minutes</li>
-                  <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /> Register early for visa application processing</li>
-                  <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /> Take registration acknowledgment to visa appointment</li>
+                  {travelItems.map((item: string, i: number) => (
+                    <li key={i} className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /> {item}</li>
+                  ))}
                 </ul>
               </CardContent>
             </Card>
@@ -685,10 +715,10 @@ function Convention2026Page({ conference }: { conference: Conference }) {
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <DollarSign className="w-6 h-6 text-primary" />
-                  <h3 className="font-bold">Alternative Payment</h3>
+                  <h3 className="font-bold">{meta.altPaymentTitle || "Alternative Payment"}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  For international delegates unable to pay online, use Western Union or MoneyGram:
+                  {meta.altPaymentDescription || "For international delegates unable to pay online, use Western Union or MoneyGram:"}
                 </p>
                 <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-1">
                   <p className="font-medium">{meta.altPaymentName || "Contact organizers"}</p>
@@ -707,9 +737,9 @@ function Convention2026Page({ conference }: { conference: Conference }) {
         </section>
 
         <section className="text-center py-12 bg-gradient-to-br from-red-800 via-red-900 to-blue-900 text-white rounded-2xl px-8 mb-16">
-          <h2 className="text-3xl font-bold mb-4">Join Us in {conference.city}</h2>
+          <h2 className="text-3xl font-bold mb-4">{meta.ctaHeading || `Join Us in ${conference.city}`}</h2>
           <p className="text-white/80 max-w-2xl mx-auto mb-8 text-lg">
-            Be part of this historic gathering. Register today and help build a New Uganda together.
+            {meta.ctaDescription || "Be part of this historic gathering. Register today and help build a New Uganda together."}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             {conference.registrationUrl && (

@@ -39,6 +39,13 @@ interface ScheduleDay {
   events: ScheduleEvent[];
 }
 
+interface SpeakerDetail {
+  name: string;
+  role?: string;
+  desc?: string;
+  photoUrl?: string;
+}
+
 interface ConventionMetadata {
   earlyBirdPrice?: string;
   installmentPrice?: string;
@@ -62,6 +69,41 @@ interface ConventionMetadata {
   altPaymentPhone?: string;
   altPaymentEmail?: string;
   schedule?: ScheduleDay[];
+
+  // Images
+  logoUrl?: string;
+  chairmanPhotoUrl?: string;
+  heroImages?: string[];
+  boatCruiseImages?: string[];
+  boatCruiseVideoUrl?: string;
+  speakersDetail?: SpeakerDetail[];
+
+  // Section headings & copy (all optional — fall back to defaults on the page)
+  descriptionHeading?: string;
+  hotelHeading?: string;
+  hotelSubtitle?: string;
+  speakersHeading?: string;
+  speakersSubtitle?: string;
+  boatCruiseHeading?: string;
+  boatCruiseSubtitle?: string;
+  boatCruiseTitle?: string;
+  boatCruiseTime?: string;
+  boatCruiseDescription?: string;
+  scheduleHeading?: string;
+  scheduleSubtitle?: string;
+  chairmanHeading?: string;
+  chairmanSubtitle?: string;
+  chairmanQuote?: string;
+  chairmanMessage?: string;
+  chairmanSignoff?: string;
+  delegatesHeading?: string;
+  delegatesSubtitle?: string;
+  travelInfoTitle?: string;
+  travelInfoItems?: string[];
+  altPaymentTitle?: string;
+  altPaymentDescription?: string;
+  ctaHeading?: string;
+  ctaDescription?: string;
 }
 
 const conferenceFormSchema = z.object({
@@ -101,6 +143,41 @@ const conferenceFormSchema = z.object({
   altPaymentPhone: z.string().optional(),
   altPaymentEmail: z.string().optional(),
   scheduleJson: z.string().optional(),
+
+  // Images
+  logoUrl: z.string().optional(),
+  chairmanPhotoUrl: z.string().optional(),
+  heroImagesText: z.string().optional(),
+  boatCruiseImagesText: z.string().optional(),
+  boatCruiseVideoUrl: z.string().optional(),
+  speakersDetailJson: z.string().optional(),
+
+  // Section copy
+  descriptionHeading: z.string().optional(),
+  hotelHeading: z.string().optional(),
+  hotelSubtitle: z.string().optional(),
+  speakersHeading: z.string().optional(),
+  speakersSubtitle: z.string().optional(),
+  boatCruiseHeading: z.string().optional(),
+  boatCruiseSubtitle: z.string().optional(),
+  boatCruiseTitle: z.string().optional(),
+  boatCruiseTime: z.string().optional(),
+  boatCruiseDescription: z.string().optional(),
+  scheduleHeading: z.string().optional(),
+  scheduleSubtitle: z.string().optional(),
+  chairmanHeading: z.string().optional(),
+  chairmanSubtitle: z.string().optional(),
+  chairmanQuote: z.string().optional(),
+  chairmanMessage: z.string().optional(),
+  chairmanSignoff: z.string().optional(),
+  delegatesHeading: z.string().optional(),
+  delegatesSubtitle: z.string().optional(),
+  travelInfoTitle: z.string().optional(),
+  travelInfoItemsText: z.string().optional(),
+  altPaymentTitle: z.string().optional(),
+  altPaymentDescription: z.string().optional(),
+  ctaHeading: z.string().optional(),
+  ctaDescription: z.string().optional(),
 });
 
 type ConferenceFormData = z.infer<typeof conferenceFormSchema>;
@@ -149,6 +226,39 @@ function getDefaults(c?: Conference): ConferenceFormData {
     altPaymentPhone: meta.altPaymentPhone || "",
     altPaymentEmail: meta.altPaymentEmail || "",
     scheduleJson: meta.schedule ? JSON.stringify(meta.schedule, null, 2) : "",
+
+    logoUrl: meta.logoUrl || "",
+    chairmanPhotoUrl: meta.chairmanPhotoUrl || "",
+    heroImagesText: meta.heroImages?.join("\n") || "",
+    boatCruiseImagesText: meta.boatCruiseImages?.join("\n") || "",
+    boatCruiseVideoUrl: meta.boatCruiseVideoUrl || "",
+    speakersDetailJson: meta.speakersDetail ? JSON.stringify(meta.speakersDetail, null, 2) : "",
+
+    descriptionHeading: meta.descriptionHeading || "",
+    hotelHeading: meta.hotelHeading || "",
+    hotelSubtitle: meta.hotelSubtitle || "",
+    speakersHeading: meta.speakersHeading || "",
+    speakersSubtitle: meta.speakersSubtitle || "",
+    boatCruiseHeading: meta.boatCruiseHeading || "",
+    boatCruiseSubtitle: meta.boatCruiseSubtitle || "",
+    boatCruiseTitle: meta.boatCruiseTitle || "",
+    boatCruiseTime: meta.boatCruiseTime || "",
+    boatCruiseDescription: meta.boatCruiseDescription || "",
+    scheduleHeading: meta.scheduleHeading || "",
+    scheduleSubtitle: meta.scheduleSubtitle || "",
+    chairmanHeading: meta.chairmanHeading || "",
+    chairmanSubtitle: meta.chairmanSubtitle || "",
+    chairmanQuote: meta.chairmanQuote || "",
+    chairmanMessage: meta.chairmanMessage || "",
+    chairmanSignoff: meta.chairmanSignoff || "",
+    delegatesHeading: meta.delegatesHeading || "",
+    delegatesSubtitle: meta.delegatesSubtitle || "",
+    travelInfoTitle: meta.travelInfoTitle || "",
+    travelInfoItemsText: meta.travelInfoItems?.join("\n") || "",
+    altPaymentTitle: meta.altPaymentTitle || "",
+    altPaymentDescription: meta.altPaymentDescription || "",
+    ctaHeading: meta.ctaHeading || "",
+    ctaDescription: meta.ctaDescription || "",
   };
 }
 
@@ -178,6 +288,50 @@ function buildPayload(data: ConferenceFormData) {
   if (data.scheduleJson) {
     try { metadata.schedule = JSON.parse(data.scheduleJson); } catch {}
   }
+
+  if (data.logoUrl) metadata.logoUrl = data.logoUrl;
+  if (data.chairmanPhotoUrl) metadata.chairmanPhotoUrl = data.chairmanPhotoUrl;
+  if (data.heroImagesText) {
+    const arr = data.heroImagesText.split("\n").map(s => s.trim()).filter(Boolean);
+    if (arr.length > 0) metadata.heroImages = arr;
+  }
+  if (data.boatCruiseImagesText) {
+    const arr = data.boatCruiseImagesText.split("\n").map(s => s.trim()).filter(Boolean);
+    if (arr.length > 0) metadata.boatCruiseImages = arr;
+  }
+  if (data.boatCruiseVideoUrl) metadata.boatCruiseVideoUrl = data.boatCruiseVideoUrl;
+  if (data.speakersDetailJson) {
+    try { metadata.speakersDetail = JSON.parse(data.speakersDetailJson); } catch {}
+  }
+
+  if (data.descriptionHeading) metadata.descriptionHeading = data.descriptionHeading;
+  if (data.hotelHeading) metadata.hotelHeading = data.hotelHeading;
+  if (data.hotelSubtitle) metadata.hotelSubtitle = data.hotelSubtitle;
+  if (data.speakersHeading) metadata.speakersHeading = data.speakersHeading;
+  if (data.speakersSubtitle) metadata.speakersSubtitle = data.speakersSubtitle;
+  if (data.boatCruiseHeading) metadata.boatCruiseHeading = data.boatCruiseHeading;
+  if (data.boatCruiseSubtitle) metadata.boatCruiseSubtitle = data.boatCruiseSubtitle;
+  if (data.boatCruiseTitle) metadata.boatCruiseTitle = data.boatCruiseTitle;
+  if (data.boatCruiseTime) metadata.boatCruiseTime = data.boatCruiseTime;
+  if (data.boatCruiseDescription) metadata.boatCruiseDescription = data.boatCruiseDescription;
+  if (data.scheduleHeading) metadata.scheduleHeading = data.scheduleHeading;
+  if (data.scheduleSubtitle) metadata.scheduleSubtitle = data.scheduleSubtitle;
+  if (data.chairmanHeading) metadata.chairmanHeading = data.chairmanHeading;
+  if (data.chairmanSubtitle) metadata.chairmanSubtitle = data.chairmanSubtitle;
+  if (data.chairmanQuote) metadata.chairmanQuote = data.chairmanQuote;
+  if (data.chairmanMessage) metadata.chairmanMessage = data.chairmanMessage;
+  if (data.chairmanSignoff) metadata.chairmanSignoff = data.chairmanSignoff;
+  if (data.delegatesHeading) metadata.delegatesHeading = data.delegatesHeading;
+  if (data.delegatesSubtitle) metadata.delegatesSubtitle = data.delegatesSubtitle;
+  if (data.travelInfoTitle) metadata.travelInfoTitle = data.travelInfoTitle;
+  if (data.travelInfoItemsText) {
+    const arr = data.travelInfoItemsText.split("\n").map(s => s.trim()).filter(Boolean);
+    if (arr.length > 0) metadata.travelInfoItems = arr;
+  }
+  if (data.altPaymentTitle) metadata.altPaymentTitle = data.altPaymentTitle;
+  if (data.altPaymentDescription) metadata.altPaymentDescription = data.altPaymentDescription;
+  if (data.ctaHeading) metadata.ctaHeading = data.ctaHeading;
+  if (data.ctaDescription) metadata.ctaDescription = data.ctaDescription;
 
   return {
     title: data.title,
@@ -558,6 +712,187 @@ function ConferenceForm({ form, onSubmit, isPending, label }: {
               </p>
             </FormItem>
           )} />
+        </div>
+
+        <Separator />
+
+        <div>
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <CalendarDays className="w-4 h-4" /> Images & Media
+          </h3>
+          <div className="space-y-4">
+            <FormField control={form.control} name="logoUrl" render={({ field }) => (
+              <FormItem><FormLabel>Convention Logo URL</FormLabel><FormControl><Input placeholder="https://... (round logo shown above the title)" data-testid="input-conf-logo-url" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="chairmanPhotoUrl" render={({ field }) => (
+              <FormItem><FormLabel>Chairman Photo URL</FormLabel><FormControl><Input placeholder="https://..." data-testid="input-conf-chairman-photo" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="heroImagesText" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hero Slideshow Image URLs</FormLabel>
+                <FormControl><Textarea rows={6} placeholder={"One URL per line — these rotate at the top of the page.\nhttps://...\nhttps://..."} className="font-mono text-xs" data-testid="input-conf-hero-images" {...field} /></FormControl>
+                <FormMessage />
+                <p className="text-xs text-muted-foreground mt-1">Paste one URL per line. Leave blank to keep the current built-in slideshow.</p>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="boatCruiseImagesText" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Boat Cruise Image URLs</FormLabel>
+                <FormControl><Textarea rows={3} placeholder={"One URL per line\nhttps://...\nhttps://..."} className="font-mono text-xs" data-testid="input-conf-cruise-images" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="boatCruiseVideoUrl" render={({ field }) => (
+              <FormItem><FormLabel>Boat Cruise Background Video URL (mp4)</FormLabel><FormControl><Input placeholder="/videos/ocean-cruise.mp4" data-testid="input-conf-cruise-video" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="speakersDetailJson" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Speakers (with photos & bios)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={10}
+                    placeholder={`[\n  {\n    "name": "President Robert Kyagulanyi",\n    "role": "Keynote Speaker",\n    "desc": "Leader of NUP",\n    "photoUrl": "https://..."\n  }\n]`}
+                    className="font-mono text-xs"
+                    data-testid="input-conf-speakers-detail"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+                <p className="text-xs text-muted-foreground mt-1">JSON array. Each speaker: name, role, desc, photoUrl. If filled, this replaces the simple Speakers list above.</p>
+              </FormItem>
+            )} />
+          </div>
+        </div>
+
+        <Separator />
+
+        <div>
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Edit className="w-4 h-4" /> Page Headings & Copy
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">All fields below are optional. Leave blank to keep the default wording shown on the live page.</p>
+          <div className="space-y-4">
+            <FormField control={form.control} name="descriptionHeading" render={({ field }) => (
+              <FormItem><FormLabel>Description Section Heading</FormLabel><FormControl><Input placeholder="A Call to Unity and Purpose" data-testid="input-conf-desc-heading" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="hotelHeading" render={({ field }) => (
+                <FormItem><FormLabel>Hotel Section Heading</FormLabel><FormControl><Input placeholder="Hotel & Accommodation" data-testid="input-conf-hotel-heading" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="hotelSubtitle" render={({ field }) => (
+                <FormItem><FormLabel>Hotel Subtitle</FormLabel><FormControl><Input placeholder="Special rates negotiated for convention delegates" data-testid="input-conf-hotel-subtitle" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="speakersHeading" render={({ field }) => (
+                <FormItem><FormLabel>Speakers Section Heading</FormLabel><FormControl><Input placeholder="Featured Speakers" data-testid="input-conf-speakers-heading" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="speakersSubtitle" render={({ field }) => (
+                <FormItem><FormLabel>Speakers Subtitle</FormLabel><FormControl><Input placeholder="Voices of Freedom and Justice" data-testid="input-conf-speakers-subtitle" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="boatCruiseHeading" render={({ field }) => (
+                <FormItem><FormLabel>Boat Cruise Section Heading</FormLabel><FormControl><Input placeholder="Boat Cruise Experience" data-testid="input-conf-cruise-heading" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="boatCruiseSubtitle" render={({ field }) => (
+                <FormItem><FormLabel>Boat Cruise Subtitle</FormLabel><FormControl><Input placeholder="An unforgettable evening on the coastline" data-testid="input-conf-cruise-subtitle" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="boatCruiseTitle" render={({ field }) => (
+                <FormItem><FormLabel>Boat Cruise Card Title</FormLabel><FormControl><Input placeholder="Heroes Celebration on Waters" data-testid="input-conf-cruise-title" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="boatCruiseTime" render={({ field }) => (
+                <FormItem><FormLabel>Boat Cruise Time Line</FormLabel><FormControl><Input placeholder="Saturday, August 15th · 7:00 PM – 11:00 PM" data-testid="input-conf-cruise-time" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+
+            <FormField control={form.control} name="boatCruiseDescription" render={({ field }) => (
+              <FormItem><FormLabel>Boat Cruise Description</FormLabel><FormControl><Textarea rows={3} placeholder="Join fellow Ugandans and friends of Uganda aboard a luxury City Cruises vessel..." data-testid="input-conf-cruise-desc" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="scheduleHeading" render={({ field }) => (
+                <FormItem><FormLabel>Schedule Section Heading</FormLabel><FormControl><Input placeholder="Event Schedule" data-testid="input-conf-sched-heading" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="scheduleSubtitle" render={({ field }) => (
+                <FormItem><FormLabel>Schedule Subtitle</FormLabel><FormControl><Input placeholder="4 days of leadership, advocacy, and celebration" data-testid="input-conf-sched-subtitle" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+
+            <Separator />
+
+            <h4 className="font-semibold text-sm">Chairman's Welcome Message</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="chairmanHeading" render={({ field }) => (
+                <FormItem><FormLabel>Section Heading</FormLabel><FormControl><Input placeholder="A Message from the Convention Chairman" data-testid="input-conf-chair-heading" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="chairmanSubtitle" render={({ field }) => (
+                <FormItem><FormLabel>Subtitle</FormLabel><FormControl><Input placeholder="Welcome to the NUP Diaspora Convention 2026" data-testid="input-conf-chair-subtitle" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+            <FormField control={form.control} name="chairmanQuote" render={({ field }) => (
+              <FormItem><FormLabel>Opening Greeting (italic)</FormLabel><FormControl><Input placeholder="Dear Delegates, Guests, and Friends," data-testid="input-conf-chair-quote" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="chairmanMessage" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Welcome Message Body</FormLabel>
+                <FormControl><Textarea rows={6} placeholder="It is my honor to welcome you to..." data-testid="input-conf-chair-message" {...field} /></FormControl>
+                <FormMessage />
+                <p className="text-xs text-muted-foreground mt-1">Separate paragraphs with a blank line.</p>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="chairmanSignoff" render={({ field }) => (
+              <FormItem><FormLabel>Sign-off</FormLabel><FormControl><Input placeholder="With unity," data-testid="input-conf-chair-signoff" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+
+            <Separator />
+
+            <h4 className="font-semibold text-sm">International Delegates</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="delegatesHeading" render={({ field }) => (
+                <FormItem><FormLabel>Section Heading</FormLabel><FormControl><Input placeholder="International Delegates" data-testid="input-conf-deleg-heading" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="delegatesSubtitle" render={({ field }) => (
+                <FormItem><FormLabel>Subtitle</FormLabel><FormControl><Input placeholder="Information for delegates traveling from Uganda and beyond" data-testid="input-conf-deleg-subtitle" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+            <FormField control={form.control} name="travelInfoTitle" render={({ field }) => (
+              <FormItem><FormLabel>Travel Info Card Title</FormLabel><FormControl><Input placeholder="Travel Information" data-testid="input-conf-travel-title" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+            <FormField control={form.control} name="travelInfoItemsText" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Travel Info Bullet Points</FormLabel>
+                <FormControl><Textarea rows={4} placeholder={"One bullet per line\nClosest Airport: LAX\nComplimentary airport shuttle every 30 minutes"} data-testid="input-conf-travel-items" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="altPaymentTitle" render={({ field }) => (
+                <FormItem><FormLabel>Alt. Payment Card Title</FormLabel><FormControl><Input placeholder="Alternative Payment" data-testid="input-conf-altpay-title" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="altPaymentDescription" render={({ field }) => (
+                <FormItem><FormLabel>Alt. Payment Description</FormLabel><FormControl><Input placeholder="For international delegates unable to pay online, use Western Union or MoneyGram:" data-testid="input-conf-altpay-desc" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+
+            <Separator />
+
+            <h4 className="font-semibold text-sm">Bottom Call-to-Action</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="ctaHeading" render={({ field }) => (
+                <FormItem><FormLabel>CTA Heading</FormLabel><FormControl><Input placeholder="Join Us in Los Angeles (defaults to Join Us in {city})" data-testid="input-conf-cta-heading" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="ctaDescription" render={({ field }) => (
+                <FormItem><FormLabel>CTA Description</FormLabel><FormControl><Input placeholder="Be part of this historic gathering. Register today and help build a New Uganda together." data-testid="input-conf-cta-desc" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+          </div>
         </div>
 
         <Button type="submit" disabled={isPending} className="w-full" data-testid="button-conf-submit">{isPending ? "Saving..." : label}</Button>
