@@ -4,3 +4,25 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Environment & secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Replit / agent internals
+.local
+.cache
+.upm
+.config
+.agents
+
+# Build & runtime
+.vite
+build
+
+# OS / editor
+.idea
+.vscode
+*.log
