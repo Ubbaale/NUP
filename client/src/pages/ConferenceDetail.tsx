@@ -15,6 +15,7 @@ import {
 import { format } from "date-fns";
 import chairmanPhoto from "@assets/image_1776696949491.png";
 import laConventionLogo from "@assets/ImageLA_1776729605630.jpeg";
+import youthFashionImg from "@assets/3492b74a-cbd8-4975-88c0-971b967907fe_1776811277202.JPG";
 import type { Conference } from "@shared/schema";
 import laBrightDayImg from "@assets/la-bright-day.png";
 import laOceanImg from "@assets/la-ocean.png";
@@ -364,6 +365,17 @@ function Convention2026Page({ conference }: { conference: Conference }) {
             {conference.description && conference.description.split("\n\n").map((para, i) => (
               <p key={i} className="text-muted-foreground leading-relaxed mb-6">{para}</p>
             ))}
+            <figure className="mt-8 rounded-xl overflow-hidden shadow-lg" data-testid="img-call-to-unity">
+              <img
+                src={youthFashionImg}
+                alt="NUP Diaspora youth performers on stage in red uniforms with leadership at the podium"
+                className="w-full h-auto object-cover"
+                loading="lazy"
+              />
+              <figcaption className="text-xs text-muted-foreground italic text-center mt-2 px-2">
+                NUP Diaspora youth take the stage — voices of the next generation rising for a New Uganda.
+              </figcaption>
+            </figure>
           </div>
 
           <div className="space-y-4">
