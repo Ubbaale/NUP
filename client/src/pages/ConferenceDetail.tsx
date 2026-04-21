@@ -63,10 +63,10 @@ import timSzczepanskiImg from "@assets/tim-szczepanski-speaker.jpg";
 import dannyKDavisImg from "@assets/danny-k-davis-speaker.jpg";
 
 const HERO_SLIDES = [
-  { src: diasporaGalaImg, alt: "NUP Diaspora gala — guests at elegantly set tables in red and white" },
-  { src: diasporaHeadTableImg, alt: "Hon. Bobi Wine and dignitaries at the head table during the NUP Diaspora gala" },
-  { src: diasporaBallroomImg, alt: "NUP Diaspora ballroom celebration with members in red berets" },
-  { src: diasporaCoupleImg, alt: "Hon. Bobi Wine and Hon. Barbie Itungo with NUP Diaspora leadership" },
+  { src: diasporaGalaImg, alt: "NUP Diaspora gala — guests at elegantly set tables in red and white", position: "center 30%" },
+  { src: diasporaHeadTableImg, alt: "Hon. Bobi Wine and dignitaries at the head table during the NUP Diaspora gala", position: "center 35%" },
+  { src: diasporaBallroomImg, alt: "NUP Diaspora ballroom celebration with members in red berets", position: "center 35%" },
+  { src: diasporaCoupleImg, alt: "Hon. Bobi Wine and Hon. Barbie Itungo with NUP Diaspora leadership", position: "center 25%" },
   { src: nupEventPhotoImg, alt: "NUP Diaspora community gathering" },
   { src: laSkylineDayImg, alt: "Los Angeles skyline on a bright sunny day" },
   { src: nupInitiativesImg, alt: "NUP Diaspora engagement and initiatives" },
@@ -281,11 +281,12 @@ function Convention2026Page({ conference }: { conference: Conference }) {
     <div className="min-h-screen">
       <div className="relative h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          {heroSlides.map((slide: { src: string; alt: string }, i: number) => (
+          {heroSlides.map((slide: { src: string; alt: string; position?: string }, i: number) => (
             <img
               key={i}
               src={slide.src}
               alt={slide.alt}
+              style={{ objectPosition: slide.position || "center" }}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-in-out ${
                 i === currentSlide ? "opacity-100" : "opacity-0"
               }`}
