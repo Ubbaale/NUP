@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Calendar, MapPin, User, Mail, Phone, Trash2, Eye, EyeOff, ExternalLink, AlertTriangle, Users } from "lucide-react";
+import { useState } from "react";
+import { Calendar, MapPin, User, Mail, Phone, Trash2, Pencil, Eye, EyeOff, ExternalLink, AlertTriangle, Users } from "lucide-react";
 import type { CommunityEvent } from "@shared/schema";
+import { EditEntryDialog } from "@/components/EditEntryDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +23,7 @@ import {
 
 export default function CommunityEventsAdmin() {
   const { toast } = useToast();
+  const [editTarget, setEditTarget] = useState<CommunityEvent | null>(null);
 
   const { data: events, isLoading } = useQuery<CommunityEvent[]>({
     queryKey: ["/api/admin/community-events"],
@@ -120,6 +123,14 @@ export default function CommunityEventsAdmin() {
                             <><Eye className="w-3.5 h-3.5 mr-1" /> Show</>
                           )}
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditTarget(event)}
+                          data-testid={`button-edit-community-event-${event.id}`}
+                        >
+                          <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="destructive" size="sm" data-testid={`button-delete-community-event-${event.id}`}>
@@ -170,6 +181,35 @@ export default function CommunityEventsAdmin() {
           <h3 className="font-semibold mb-2">No Community Events</h3>
           <p className="text-sm text-muted-foreground">Community-submitted events will appear here for moderation.</p>
         </Card>
+      )}
+
+      {editTarget && (
+        <EditEntryDialog
+          open={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          title={`Edit "${editTarget.title}"`}
+          endpoint={`/api/admin/community-events/${editTarget.id}`}
+          invalidateKeys={[["/api/admin/community-events"], ["/api/community-events"]]}
+          initial={editTarget as any}
+          fields={[
+            { name: "title", label: "Title" },
+            { name: "description", label: "Description", type: "textarea", rows: 4 },
+            { name: "eventDate", label: "Event Date", placeholder: "YYYY-MM-DD" },
+            { name: "eventTime", label: "Event Time", placeholder: "e.g. 7:00 PM" },
+            { name: "location", label: "Location" },
+            { name: "city", label: "City" },
+            { name: "country", label: "Country" },
+            { name: "imageUrl", label: "Flyer / Image URL", type: "url" },
+            { name: "ticketUrl", label: "Ticket URL", type: "url" },
+            { name: "organizerName", label: "Organizer Name" },
+            { name: "organizerEmail", label: "Organizer Email", type: "email" },
+            { name: "organizerPhone", label: "Organizer Phone" },
+            { name: "status", label: "Status", type: "select", options: [
+              { value: "active", label: "Active (visible)" },
+              { value: "hidden", label: "Hidden" },
+            ]},
+          ]}
+        />
       )}
     </div>
   );

@@ -7,10 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  CheckCircle, XCircle, Trash2, Clock, Star, StarOff,
+  CheckCircle, XCircle, Trash2, Pencil, Clock, Star, StarOff,
   PenLine, Calendar, Mail, User, ChevronDown, ChevronUp, BookOpen, Eye
 } from "lucide-react";
 import type { PublicArticle } from "@shared/schema";
+import { EditEntryDialog } from "@/components/EditEntryDialog";
 
 const categoryLabels: Record<string, string> = {
   general: "General",
@@ -29,6 +30,7 @@ export default function PublicArticlesAdmin() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const [editTarget, setEditTarget] = useState<PublicArticle | null>(null);
 
   const { data: articles, isLoading } = useQuery<PublicArticle[]>({
     queryKey: ["/api/admin/public-articles"],
@@ -183,6 +185,14 @@ export default function PublicArticlesAdmin() {
                         </Button>
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => setEditTarget(article)}
+                          data-testid={`button-edit-article-${article.id}`}
+                        >
+                          <Pencil className="w-4 h-4 mr-1" /> Edit
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="destructive"
                           onClick={() => {
                             if (confirm("Permanently delete this article?")) {
@@ -271,6 +281,33 @@ export default function PublicArticlesAdmin() {
             </Card>
           ))}
         </div>
+      )}
+
+      {editTarget && (
+        <EditEntryDialog
+          open={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          title={`Edit "${editTarget.title}"`}
+          endpoint={`/api/admin/public-articles/${editTarget.id}`}
+          invalidateKeys={[["/api/admin/public-articles"], ["/api/public-articles"]]}
+          initial={editTarget as any}
+          fields={[
+            { name: "title", label: "Title" },
+            { name: "excerpt", label: "Excerpt", type: "textarea", rows: 2 },
+            { name: "content", label: "Content", type: "textarea", rows: 10 },
+            { name: "coverImageUrl", label: "Cover Image URL", type: "url" },
+            { name: "category", label: "Category", type: "select", options: Object.entries(categoryLabels).map(([v, l]) => ({ value: v, label: l })) },
+            { name: "authorName", label: "Author Name" },
+            { name: "authorEmail", label: "Author Email", type: "email" },
+            { name: "authorBio", label: "Author Bio", type: "textarea", rows: 3 },
+            { name: "isFeatured", label: "Featured", type: "switch" },
+            { name: "status", label: "Status", type: "select", options: [
+              { value: "pending", label: "Pending" },
+              { value: "approved", label: "Approved" },
+              { value: "rejected", label: "Rejected" },
+            ]},
+          ]}
+        />
       )}
     </div>
   );

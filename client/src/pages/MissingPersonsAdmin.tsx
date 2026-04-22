@@ -11,11 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  Plus, Trash2, UserX, Calendar,
+  Plus, Pencil, Trash2, UserX, Calendar,
   CheckCircle, XCircle, Clock, User, Mail, Phone,
   ChevronDown, ChevronUp, MapPin, AlertTriangle, Lock
 } from "lucide-react";
 import type { MissingPerson } from "@shared/schema";
+import { EditEntryDialog } from "@/components/EditEntryDialog";
 
 export default function MissingPersonsAdmin() {
   const { toast } = useToast();
@@ -23,6 +24,7 @@ export default function MissingPersonsAdmin() {
   const [filter, setFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const [editTarget, setEditTarget] = useState<MissingPerson | null>(null);
 
   const { data: persons, isLoading } = useQuery<MissingPerson[]>({
     queryKey: ["/api/admin/missing-persons"],
@@ -203,6 +205,14 @@ export default function MissingPersonsAdmin() {
                         )}
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => setEditTarget(person)}
+                          data-testid={`button-edit-mp-${person.id}`}
+                        >
+                          <Pencil className="w-4 h-4 mr-1" /> Edit
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="destructive"
                           onClick={() => {
                             if (confirm(`Remove ${person.fullName}?`)) deleteMutation.mutate(person.id);
@@ -342,6 +352,40 @@ export default function MissingPersonsAdmin() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {editTarget && (
+        <EditEntryDialog
+          open={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          title={`Edit ${editTarget.fullName}`}
+          endpoint={`/api/missing-persons/${editTarget.id}`}
+          invalidateKeys={[["/api/admin/missing-persons"], ["/api/missing-persons"]]}
+          initial={editTarget as any}
+          fields={[
+            { name: "fullName", label: "Full Name" },
+            { name: "photoUrl", label: "Photo URL", type: "url" },
+            { name: "age", label: "Age" },
+            { name: "gender", label: "Gender" },
+            { name: "category", label: "Category", type: "select", options: [
+              { value: "missing", label: "Missing" },
+              { value: "prisoner", label: "Prisoner" },
+            ]},
+            { name: "location", label: "Location" },
+            { name: "lastSeenLocation", label: "Last Seen Location" },
+            { name: "dateMissing", label: "Date Missing", placeholder: "YYYY-MM-DD" },
+            { name: "description", label: "Description", type: "textarea", rows: 5 },
+            { name: "submitterName", label: "Submitter Name" },
+            { name: "submitterEmail", label: "Submitter Email", type: "email" },
+            { name: "submitterPhone", label: "Submitter Phone" },
+            { name: "submitterRelationship", label: "Submitter Relationship" },
+            { name: "status", label: "Status", type: "select", options: [
+              { value: "pending", label: "Pending" },
+              { value: "approved", label: "Approved" },
+              { value: "rejected", label: "Rejected" },
+            ]},
+          ]}
+        />
+      )}
     </div>
   );
 }

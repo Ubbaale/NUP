@@ -16,6 +16,7 @@ import {
   ChevronDown, ChevronUp, Eye
 } from "lucide-react";
 import type { FallenHero } from "@shared/schema";
+import { EditEntryDialog } from "@/components/EditEntryDialog";
 
 export default function FallenHeroesAdmin() {
   const { toast } = useToast();
@@ -24,6 +25,7 @@ export default function FallenHeroesAdmin() {
   const [filter, setFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const [editTarget, setEditTarget] = useState<FallenHero | null>(null);
 
   const { data: heroes, isLoading } = useQuery<FallenHero[]>({
     queryKey: ["/api/admin/fallen-heroes"],
@@ -194,6 +196,14 @@ export default function FallenHeroesAdmin() {
                         )}
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => setEditTarget(hero)}
+                          data-testid={`button-edit-hero-${hero.id}`}
+                        >
+                          <Pencil className="w-4 h-4 mr-1" /> Edit
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="destructive"
                           onClick={() => {
                             if (confirm(`Permanently remove ${hero.fullName} from the memorial?`)) {
@@ -322,6 +332,33 @@ export default function FallenHeroesAdmin() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {editTarget && (
+        <EditEntryDialog
+          open={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          title={`Edit ${editTarget.fullName}`}
+          endpoint={`/api/fallen-heroes/${editTarget.id}`}
+          invalidateKeys={[["/api/admin/fallen-heroes"], ["/api/fallen-heroes"]]}
+          initial={editTarget as any}
+          fields={[
+            { name: "fullName", label: "Full Name" },
+            { name: "photoUrl", label: "Photo URL", type: "url" },
+            { name: "dateOfBirth", label: "Date of Birth", placeholder: "YYYY-MM-DD" },
+            { name: "dateOfDeath", label: "Date of Death", placeholder: "YYYY-MM-DD" },
+            { name: "location", label: "Location" },
+            { name: "causeOfDeath", label: "Cause / Circumstances" },
+            { name: "biography", label: "Biography", type: "textarea", rows: 5 },
+            { name: "sortOrder", label: "Sort Order", type: "number" },
+            { name: "featured", label: "Featured", type: "switch" },
+            { name: "status", label: "Status", type: "select", options: [
+              { value: "pending", label: "Pending" },
+              { value: "approved", label: "Approved" },
+              { value: "rejected", label: "Rejected" },
+            ]},
+          ]}
+        />
+      )}
     </div>
   );
 }

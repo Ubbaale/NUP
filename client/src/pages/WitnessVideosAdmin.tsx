@@ -7,16 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
-  Eye, CheckCircle, XCircle, Trash2, Clock, AlertTriangle,
+  Eye, CheckCircle, XCircle, Trash2, Pencil, Clock, AlertTriangle,
   Video, MapPin, Calendar, Mail, Phone, User, ChevronDown, ChevronUp
 } from "lucide-react";
 import type { WitnessVideo } from "@shared/schema";
+import { EditEntryDialog } from "@/components/EditEntryDialog";
 
 export default function WitnessVideosAdmin() {
   const { toast } = useToast();
   const [filter, setFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState<Record<string, string>>({});
+  const [editTarget, setEditTarget] = useState<WitnessVideo | null>(null);
 
   const { data: videos, isLoading } = useQuery<WitnessVideo[]>({
     queryKey: ["/api/admin/witness-videos"],
@@ -158,6 +160,14 @@ export default function WitnessVideosAdmin() {
                         )}
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => setEditTarget(video)}
+                          data-testid={`button-edit-video-${video.id}`}
+                        >
+                          <Pencil className="w-4 h-4 mr-1" /> Edit
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="destructive"
                           onClick={() => {
                             if (confirm("Permanently delete this video and its file?")) {
@@ -234,6 +244,33 @@ export default function WitnessVideosAdmin() {
             </Card>
           ))}
         </div>
+      )}
+
+      {editTarget && (
+        <EditEntryDialog
+          open={!!editTarget}
+          onClose={() => setEditTarget(null)}
+          title={`Edit ${editTarget.title}`}
+          endpoint={`/api/admin/witness-videos/${editTarget.id}`}
+          invalidateKeys={[["/api/admin/witness-videos"], ["/api/witness-videos"]]}
+          initial={editTarget as any}
+          fields={[
+            { name: "title", label: "Title" },
+            { name: "description", label: "Description", type: "textarea", rows: 4 },
+            { name: "videoUrl", label: "Video URL", type: "url" },
+            { name: "thumbnailUrl", label: "Thumbnail URL", type: "url" },
+            { name: "location", label: "Location" },
+            { name: "incidentDate", label: "Incident Date", placeholder: "YYYY-MM-DD" },
+            { name: "submitterName", label: "Submitter Name" },
+            { name: "submitterEmail", label: "Submitter Email", type: "email" },
+            { name: "submitterPhone", label: "Submitter Phone" },
+            { name: "status", label: "Status", type: "select", options: [
+              { value: "pending", label: "Pending" },
+              { value: "approved", label: "Approved" },
+              { value: "rejected", label: "Rejected" },
+            ]},
+          ]}
+        />
       )}
     </div>
   );

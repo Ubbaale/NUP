@@ -2486,7 +2486,12 @@ export async function registerRoutes(
 
   app.patch("/api/admin/witness-videos/:id", requireAdmin, async (req, res) => {
     try {
-      const allowedFields: Record<string, boolean> = { status: true, adminNotes: true };
+      const allowedFields: Record<string, boolean> = {
+        status: true, adminNotes: true,
+        title: true, description: true, videoUrl: true, thumbnailUrl: true,
+        location: true, incidentDate: true,
+        submitterName: true, submitterEmail: true, submitterPhone: true,
+      };
       const allowedStatuses = ["pending", "approved", "rejected"];
       const updates: Record<string, any> = {};
       for (const key of Object.keys(req.body)) {
@@ -2599,7 +2604,11 @@ export async function registerRoutes(
 
   app.patch("/api/admin/public-articles/:id", requireAdmin, async (req, res) => {
     try {
-      const allowedFields: Record<string, boolean> = { status: true, adminNotes: true, isFeatured: true };
+      const allowedFields: Record<string, boolean> = {
+        status: true, adminNotes: true, isFeatured: true,
+        title: true, content: true, excerpt: true, coverImageUrl: true,
+        category: true, authorName: true, authorEmail: true, authorBio: true,
+      };
       const allowedStatuses = ["pending", "approved", "rejected"];
       const updates: Record<string, any> = {};
       for (const key of Object.keys(req.body)) {
@@ -2900,7 +2909,11 @@ export async function registerRoutes(
 
   app.patch("/api/missing-persons/:id", requireAdmin, async (req, res) => {
     try {
-      const allowed = ["status", "adminNotes", "fullName", "age", "gender", "location", "category", "dateMissing", "lastSeenLocation", "description"];
+      const allowed = [
+        "status", "adminNotes", "fullName", "age", "gender", "location", "category",
+        "dateMissing", "lastSeenLocation", "description", "photoUrl",
+        "submitterName", "submitterEmail", "submitterPhone", "submitterRelationship",
+      ];
       const updates: any = {};
       for (const key of allowed) {
         if (req.body[key] !== undefined) updates[key] = req.body[key];
