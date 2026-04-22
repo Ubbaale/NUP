@@ -87,13 +87,37 @@ export default function UsersAdmin() {
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="button-create-user">
-              <UserPlus className="w-4 h-4 mr-2" /> Add user
+            <Button
+              size="lg"
+              className="text-base font-bold px-6 py-6 shadow-lg text-white border-0 bg-[length:200%_200%] animate-[gradient-pulse_3s_ease_infinite] bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 hover:opacity-95"
+              data-testid="button-create-user"
+            >
+              <UserPlus className="w-5 h-5 mr-2" /> Create New Admin User
             </Button>
           </DialogTrigger>
           <CreateUserDialog onClose={() => setCreateOpen(false)} />
         </Dialog>
       </div>
+
+      <Card className="border-2 border-dashed border-red-300 dark:border-red-800 bg-red-50/50 dark:bg-red-950/20">
+        <CardContent className="p-5 flex items-center gap-4 flex-wrap">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+            <UserPlus className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-[220px]">
+            <p className="font-semibold">Add a new admin to your team</p>
+            <p className="text-sm text-muted-foreground">Give someone Editor access to help manage content, or another Super Admin as a backup.</p>
+          </div>
+          <Button
+            size="lg"
+            onClick={() => setCreateOpen(true)}
+            className="text-base font-bold px-6 shadow-md text-white border-0 bg-[length:200%_200%] animate-[gradient-pulse_3s_ease_infinite] bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 hover:opacity-95"
+            data-testid="button-create-user-cta"
+          >
+            <UserPlus className="w-5 h-5 mr-2" /> Create New Admin User
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -110,7 +134,18 @@ export default function UsersAdmin() {
                 <UserRow key={u.id} user={u} isSelf={u.id === currentUser?.id} toast={toast} />
               ))}
               {users.length === 0 && (
-                <div className="p-6 text-center text-muted-foreground">No users yet.</div>
+                <div className="p-10 text-center">
+                  <UserPlus className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-4">No additional users yet — click the button above to add one.</p>
+                  <Button
+                    size="lg"
+                    onClick={() => setCreateOpen(true)}
+                    className="text-base font-bold px-6 shadow-md text-white border-0 bg-[length:200%_200%] animate-[gradient-pulse_3s_ease_infinite] bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 hover:opacity-95"
+                    data-testid="button-create-user-empty"
+                  >
+                    <UserPlus className="w-5 h-5 mr-2" /> Create New Admin User
+                  </Button>
+                </div>
               )}
             </div>
           )}
