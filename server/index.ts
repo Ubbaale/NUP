@@ -6,6 +6,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { seedDatabase } from "./seed";
 import { startNewsFetcher } from "./newsFetcher";
+import { bootstrapSuperAdmin, auditLogMiddleware } from "./adminAuth";
 import crypto from "crypto";
 
 const app = express();
@@ -20,6 +21,9 @@ declare module "http" {
 declare module "express-session" {
   interface SessionData {
     isAdmin?: boolean;
+    adminUserId?: string;
+    adminUsername?: string;
+    adminRole?: "super_admin" | "editor" | "viewer";
   }
 }
 
@@ -199,7 +203,13 @@ app.use((req, res, next) => {
   });
 
   startNewsFetcher();
-  
+
+  // Bootstrap initial super admin from env vars if no admin users exist yet
+  await bootstrapSuperAdmin();
+
+  // Audit log: record every successful mutating admin action
+  app.use(auditLogMiddleware);
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {

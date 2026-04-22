@@ -782,3 +782,39 @@ export const missingPersons = pgTable("missing_persons", {
 export const insertMissingPersonSchema = createInsertSchema(missingPersons).omit({ id: true, createdAt: true, status: true, adminNotes: true });
 export type InsertMissingPerson = z.infer<typeof insertMissingPersonSchema>;
 export type MissingPerson = typeof missingPersons.$inferSelect;
+
+// Admin Users (replaces single shared password)
+export const adminUsers = pgTable("admin_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: varchar("username").notNull().unique(),
+  email: text("email"),
+  passwordHash: text("password_hash").notNull(),
+  fullName: text("full_name"),
+  role: text("role").notNull().default("editor"),
+  isActive: boolean("is_active").notNull().default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAdminUserSchema = createInsertSchema(adminUsers).omit({ id: true, createdAt: true, lastLoginAt: true, passwordHash: true }).extend({
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+
+// Audit Log — records every change made through the admin
+export const auditLog = pgTable("audit_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id"),
+  username: text("username"),
+  role: text("role"),
+  method: text("method").notNull(),
+  path: text("path").notNull(),
+  statusCode: integer("status_code"),
+  bodyPreview: text("body_preview"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type AuditLogEntry = typeof auditLog.$inferSelect;

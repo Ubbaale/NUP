@@ -72,6 +72,8 @@ import PublicArticles from "@/pages/PublicArticles";
 import PublicArticlesAdmin from "@/pages/PublicArticlesAdmin";
 import MissingPersons from "@/pages/MissingPersons";
 import MissingPersonsAdmin from "@/pages/MissingPersonsAdmin";
+import UsersAdmin from "@/pages/UsersAdmin";
+import AuditLogAdmin from "@/pages/AuditLogAdmin";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -161,6 +163,8 @@ function Router() {
       <Route path="/admin/documentaries">{() => <AdminRoute component={DocumentariesAdmin} />}</Route>
       <Route path="/admin/witness-videos">{() => <AdminRoute component={WitnessVideosAdmin} />}</Route>
       <Route path="/admin/public-articles">{() => <AdminRoute component={PublicArticlesAdmin} />}</Route>
+      <Route path="/admin/users">{() => <AdminRoute component={UsersAdmin} />}</Route>
+      <Route path="/admin/audit-log">{() => <AdminRoute component={AuditLogAdmin} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

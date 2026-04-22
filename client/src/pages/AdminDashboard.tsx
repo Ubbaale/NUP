@@ -36,6 +36,8 @@ import {
   Shield,
   AlertCircle,
   Video,
+  ScrollText,
+  UserCog,
   type LucideIcon,
 } from "lucide-react";
 
@@ -272,7 +274,7 @@ type DashboardStats = {
 };
 
 export default function AdminDashboard() {
-  const { logout } = useAdminAuth();
+  const { logout, user, hasRole } = useAdminAuth();
 
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/admin/dashboard-stats"],
@@ -294,7 +296,9 @@ export default function AdminDashboard() {
                 Admin Dashboard
               </h1>
               <p className="text-sm text-muted-foreground">
-                Manage all aspects of the NUP Diaspora platform
+                {user ? (
+                  <>Signed in as <span className="font-semibold">{user.username}</span> · <span className="capitalize">{user.role.replace("_", " ")}</span></>
+                ) : "Manage all aspects of the NUP Diaspora platform"}
               </p>
             </div>
           </div>
@@ -356,6 +360,50 @@ export default function AdminDashboard() {
             </Card>
           </div>
         ) : null}
+
+        {hasRole("super_admin") && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <Shield className="w-5 h-5 text-red-600" />
+              <div>
+                <h2 className="text-lg font-bold">Administration</h2>
+                <p className="text-xs text-muted-foreground">Super admin tools — manage admin users and review activity</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link href="/admin/users">
+                <Card className="hover-elevate cursor-pointer h-full" data-testid="card-admin-users">
+                  <CardContent className="p-5 flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-100 dark:bg-red-900/30">
+                      <UserCog className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm mb-1">Admin Users</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Add or remove admins, change passwords, and assign roles (Super Admin, Editor, Viewer).
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/admin/audit-log">
+                <Card className="hover-elevate cursor-pointer h-full" data-testid="card-admin-audit-log">
+                  <CardContent className="p-5 flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-100 dark:bg-amber-900/30">
+                      <ScrollText className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm mb-1">Audit Log</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        See every change made through the admin — who did what, when, and from where.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-10">
           {sectionGroups.map((group) => (

@@ -397,41 +397,215 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  // ===== ADMIN AUTH =====
-  app.post("/api/admin/login", (req, res) => {
-    const { username, password } = req.body;
-    const adminUser = process.env.ADMIN_USERNAME;
-    const adminPass = process.env.ADMIN_PASSWORD;
-    if (!adminUser || !adminPass) {
-      return res.status(500).json({ error: "Admin credentials not configured" });
-    }
-    if (username === adminUser && password === adminPass) {
-      req.session.regenerate((err) => {
+  // ===== ADMIN AUTH (DB-backed users with roles) =====
+  const {
+    findUserByUsername, findUserById, listUsers, createUser, updateUser,
+    deleteUser, recordLogin, countSuperAdmins, verifyPassword, requireAdmin,
+    requireRole, listAuditEntries, recordManualAuditEntry, ROLES,
+  } = await import("./adminAuth");
+  const { insertAdminUserSchema } = await import("@shared/schema");
+
+  function getClientIp(req: any): string | null {
+    const fwd = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim();
+    return fwd || req.ip || req.socket?.remoteAddress || null;
+  }
+
+  function sanitizeUser(u: any) {
+    if (!u) return null;
+    const { passwordHash, ...rest } = u;
+    return rest;
+  }
+
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { username, password } = req.body || {};
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password required" });
+      }
+      const user = await findUserByUsername(String(username));
+      const ok = user && user.isActive && (await verifyPassword(String(password), user.passwordHash));
+      if (!user || !ok) {
+        await recordManualAuditEntry({
+          username: String(username),
+          method: "POST",
+          path: "/api/admin/login",
+          statusCode: 401,
+          bodyPreview: JSON.stringify({ result: "failed_login" }),
+          ipAddress: getClientIp(req),
+          userAgent: req.headers["user-agent"] ? String(req.headers["user-agent"]).slice(0, 300) : null,
+        });
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      req.session.regenerate(async (err) => {
         if (err) return res.status(500).json({ error: "Session error" });
         req.session.isAdmin = true;
-        req.session.save(() => {
-          return res.json({ success: true });
+        req.session.adminUserId = user.id;
+        req.session.adminUsername = user.username;
+        req.session.adminRole = user.role as any;
+        req.session.save(async () => {
+          await recordLogin(user.id);
+          await recordManualAuditEntry({
+            userId: user.id,
+            username: user.username,
+            role: user.role,
+            method: "POST",
+            path: "/api/admin/login",
+            statusCode: 200,
+            bodyPreview: JSON.stringify({ result: "success" }),
+            ipAddress: getClientIp(req),
+            userAgent: req.headers["user-agent"] ? String(req.headers["user-agent"]).slice(0, 300) : null,
+          });
+          res.json({ success: true, user: sanitizeUser(user) });
         });
       });
-      return;
+    } catch (e) {
+      console.error("Login error:", e);
+      res.status(500).json({ error: "Login failed" });
     }
-    return res.status(401).json({ error: "Invalid credentials" });
   });
 
-  app.post("/api/admin/logout", (req, res) => {
-    req.session.destroy(() => {
+  app.post("/api/admin/logout", async (req: any, res) => {
+    const userId = req.session?.adminUserId;
+    const username = req.session?.adminUsername;
+    const role = req.session?.adminRole;
+    req.session.destroy(async () => {
+      if (userId) {
+        await recordManualAuditEntry({
+          userId, username, role,
+          method: "POST",
+          path: "/api/admin/logout",
+          statusCode: 200,
+          ipAddress: getClientIp(req),
+          userAgent: req.headers["user-agent"] ? String(req.headers["user-agent"]).slice(0, 300) : null,
+        });
+      }
       res.json({ success: true });
     });
   });
 
   app.get("/api/admin/check", (req, res) => {
-    res.json({ authenticated: !!req.session.isAdmin });
+    res.json({
+      authenticated: !!req.session?.adminUserId,
+      role: req.session?.adminRole || null,
+      username: req.session?.adminUsername || null,
+    });
   });
 
-  function requireAdmin(req: any, res: any, next: any) {
-    if (req.session && req.session.isAdmin) return next();
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+  app.get("/api/admin/me", requireAdmin, async (req: any, res) => {
+    const u = await findUserById(req.session.adminUserId);
+    if (!u) return res.status(404).json({ error: "User not found" });
+    res.json(sanitizeUser(u));
+  });
+
+  // Change own password (any logged-in admin)
+  app.post("/api/admin/me/password", requireAdmin, async (req: any, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body || {};
+      if (!currentPassword || !newPassword || String(newPassword).length < 8) {
+        return res.status(400).json({ error: "New password must be at least 8 characters" });
+      }
+      const u = await findUserById(req.session.adminUserId);
+      if (!u) return res.status(404).json({ error: "User not found" });
+      const ok = await verifyPassword(String(currentPassword), u.passwordHash);
+      if (!ok) return res.status(401).json({ error: "Current password is incorrect" });
+      await updateUser(u.id, { password: String(newPassword) });
+      res.json({ success: true });
+    } catch (e) {
+      console.error("Password change error:", e);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
+  // ===== USER MANAGEMENT (super_admin only) =====
+  app.get("/api/admin/users", requireRole("super_admin"), async (_req, res) => {
+    const users = await listUsers();
+    res.json(users.map(sanitizeUser));
+  });
+
+  app.post("/api/admin/users", requireRole("super_admin"), async (req, res) => {
+    try {
+      const parsed = insertAdminUserSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
+      }
+      const data = parsed.data;
+      if (!ROLES.includes(data.role as any)) {
+        return res.status(400).json({ error: "Invalid role" });
+      }
+      const existing = await findUserByUsername(data.username);
+      if (existing) return res.status(409).json({ error: "Username already taken" });
+      const created = await createUser({
+        username: data.username,
+        password: data.password,
+        role: data.role as any,
+        email: data.email ?? null,
+        fullName: data.fullName ?? null,
+        isActive: data.isActive ?? true,
+      });
+      res.json(sanitizeUser(created));
+    } catch (e) {
+      console.error("Create user error:", e);
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", requireRole("super_admin"), async (req: any, res) => {
+    try {
+      const id = req.params.id;
+      const target = await findUserById(id);
+      if (!target) return res.status(404).json({ error: "User not found" });
+      const { role, email, fullName, isActive, password } = req.body || {};
+      if (role !== undefined && !ROLES.includes(role)) {
+        return res.status(400).json({ error: "Invalid role" });
+      }
+      // Prevent removing the last active super_admin
+      if (target.role === "super_admin" && (role && role !== "super_admin" || isActive === false)) {
+        const supers = await countSuperAdmins();
+        if (supers <= 1) {
+          return res.status(400).json({ error: "Cannot demote or disable the last active super admin" });
+        }
+      }
+      if (password !== undefined && String(password).length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters" });
+      }
+      const updated = await updateUser(id, { role, email, fullName, isActive, password });
+      res.json(sanitizeUser(updated));
+    } catch (e) {
+      console.error("Update user error:", e);
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", requireRole("super_admin"), async (req: any, res) => {
+    try {
+      const id = req.params.id;
+      if (id === req.session.adminUserId) {
+        return res.status(400).json({ error: "You cannot delete your own account" });
+      }
+      const target = await findUserById(id);
+      if (!target) return res.status(404).json({ error: "User not found" });
+      if (target.role === "super_admin") {
+        const supers = await countSuperAdmins();
+        if (supers <= 1) {
+          return res.status(400).json({ error: "Cannot delete the last active super admin" });
+        }
+      }
+      await deleteUser(id);
+      res.json({ success: true });
+    } catch (e) {
+      console.error("Delete user error:", e);
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
+  // ===== AUDIT LOG (super_admin only) =====
+  app.get("/api/admin/audit-log", requireRole("super_admin"), async (req, res) => {
+    const limit = parseInt(String(req.query.limit || "100"), 10);
+    const offset = parseInt(String(req.query.offset || "0"), 10);
+    const userId = req.query.userId ? String(req.query.userId) : undefined;
+    const entries = await listAuditEntries({ limit, offset, userId });
+    res.json(entries);
+  });
 
   // ===== ADMIN DASHBOARD STATS =====
   app.get("/api/admin/dashboard-stats", requireAdmin, async (req, res) => {
