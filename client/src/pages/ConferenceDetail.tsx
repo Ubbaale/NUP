@@ -385,47 +385,55 @@ function Convention2026Page({ conference }: { conference: Conference }) {
 
           <div className="space-y-4">
             <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-6">
-                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <CardContent className="p-6 font-bold">
+                <h3 className="font-extrabold text-lg mb-4 flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-primary" />
                   Registration Fees
                 </h3>
                 <div className="space-y-3">
                   {meta.earlyBirdPrice && (
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Full Registration</span>
-                      <Badge variant="default" className="text-lg px-3">${meta.earlyBirdPrice}</Badge>
+                      <span className="font-bold">Full Registration</span>
+                      <Badge variant="default" className="text-lg px-3 font-bold">${meta.earlyBirdPrice}</Badge>
                     </div>
                   )}
                   {meta.installmentPrice && (
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Partial Payment</span>
-                      <Badge variant="outline" className="text-lg px-3">2 × ${meta.installmentPrice}</Badge>
+                      <span className="font-bold">Partial Payment</span>
+                      <Badge variant="outline" className="text-lg px-3 font-bold">2 × ${meta.installmentPrice}</Badge>
                     </div>
                   )}
                   {meta.boatCruisePrice && (
                     <>
                       <Separator />
                       <div className="flex justify-between items-center">
-                        <span className="font-medium">Boat Cruise</span>
-                        <Badge variant="secondary" className="text-lg px-3">${meta.boatCruisePrice}</Badge>
+                        <span className="font-bold">Boat Cruise</span>
+                        <Badge variant="secondary" className="text-lg px-3 font-bold">${meta.boatCruisePrice}</Badge>
                       </div>
                     </>
                   )}
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs font-bold text-muted-foreground mt-2">
                     Registration fees are non-refundable. Swaps accommodated if pre-approved.
                   </p>
                 </div>
                 <div className="mt-4 space-y-2">
                   {conference.registrationUrl && (
-                    <Button className="w-full" size="sm" asChild>
+                    <Button
+                      className="w-full font-extrabold text-white shadow-lg ring-2 ring-yellow-300 ring-offset-2 ring-offset-background bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 bg-[length:200%_200%] animate-[gradient-pulse_3s_ease_infinite] hover:scale-105 hover:shadow-2xl transition-transform"
+                      size="sm"
+                      asChild
+                    >
                       <a href={conference.registrationUrl} target="_blank" rel="noopener noreferrer">
                         Pay Full Registration <ExternalLink className="w-3 h-3 ml-1" />
                       </a>
                     </Button>
                   )}
                   {meta.installmentUrl && (
-                    <Button className="w-full" variant="outline" size="sm" asChild>
+                    <Button
+                      className="w-full font-extrabold text-white shadow-lg ring-2 ring-pink-300 ring-offset-2 ring-offset-background bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-[length:200%_200%] animate-[gradient-pulse_3s_ease_infinite] hover:scale-105 hover:shadow-2xl transition-transform"
+                      size="sm"
+                      asChild
+                    >
                       <a href={meta.installmentUrl} target="_blank" rel="noopener noreferrer">
                         Pay in 2 Installments <ExternalLink className="w-3 h-3 ml-1" />
                       </a>
