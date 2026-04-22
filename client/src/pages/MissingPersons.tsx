@@ -304,7 +304,12 @@ export default function MissingPersons() {
                   : "Help us document the missing and detained. Your report could help bring someone home."}
               </p>
               {!searchTerm && filterCategory === "all" && (
-                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-6" onClick={() => setShowSubmitForm(true)} data-testid="button-report-missing-empty">
+                <Button
+                  size="lg"
+                  className="font-extrabold text-white text-lg px-8 py-6 shadow-lg ring-2 ring-red-300 ring-offset-2 ring-offset-background bg-gradient-to-r from-red-700 via-red-500 to-orange-500 bg-[length:200%_200%] animate-[gradient-pulse_3s_ease_infinite] hover:scale-105 hover:shadow-2xl transition-transform"
+                  onClick={() => setShowSubmitForm(true)}
+                  data-testid="button-report-missing-empty"
+                >
                   <UserX className="w-5 h-5 mr-2" /> Report a Missing Person
                 </Button>
               )}
@@ -317,7 +322,12 @@ export default function MissingPersons() {
             <p className="text-muted-foreground mb-6">
               Every report matters. Help us keep the pressure on by reporting missing persons and political prisoners.
             </p>
-            <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-6" onClick={() => setShowSubmitForm(true)} data-testid="button-report-missing-bottom">
+            <Button
+              size="lg"
+              className="font-extrabold text-white text-lg px-8 py-6 shadow-lg ring-2 ring-red-300 ring-offset-2 ring-offset-background bg-gradient-to-r from-red-700 via-red-500 to-orange-500 bg-[length:200%_200%] animate-[gradient-pulse_3s_ease_infinite] hover:scale-105 hover:shadow-2xl transition-transform"
+              onClick={() => setShowSubmitForm(true)}
+              data-testid="button-report-missing-bottom"
+            >
               <UserX className="w-5 h-5 mr-2" /> Report a Missing Person or Prisoner
             </Button>
           </div>
