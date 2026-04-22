@@ -317,8 +317,8 @@ export default function MissingPersons() {
             <p className="text-muted-foreground mb-6">
               Every report matters. Help us keep the pressure on by reporting missing persons and political prisoners.
             </p>
-            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => setShowSubmitForm(true)} data-testid="button-report-missing-bottom">
-              <UserX className="w-4 h-4 mr-2" /> Report a Missing Person or Prisoner
+            <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-6" onClick={() => setShowSubmitForm(true)} data-testid="button-report-missing-bottom">
+              <UserX className="w-5 h-5 mr-2" /> Report a Missing Person or Prisoner
             </Button>
           </div>
         </div>
