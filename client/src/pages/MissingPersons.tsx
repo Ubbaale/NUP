@@ -304,8 +304,8 @@ export default function MissingPersons() {
                   : "Help us document the missing and detained. Your report could help bring someone home."}
               </p>
               {!searchTerm && filterCategory === "all" && (
-                <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => setShowSubmitForm(true)} data-testid="button-report-missing-empty">
-                  <UserX className="w-4 h-4 mr-2" /> Report a Missing Person
+                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white text-lg px-8 py-6" onClick={() => setShowSubmitForm(true)} data-testid="button-report-missing-empty">
+                  <UserX className="w-5 h-5 mr-2" /> Report a Missing Person
                 </Button>
               )}
             </div>
