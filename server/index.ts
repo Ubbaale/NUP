@@ -136,6 +136,22 @@ app.use((req, res, next) => {
     console.error("[cleanup] Error cleaning orphan records:", e);
   }
 
+  // One-time price update for convention-2026 Full Registration ($280 -> $300)
+  try {
+    const priceUpdate = await pool.query(
+      `UPDATE conferences
+         SET metadata = jsonb_set(metadata::jsonb, '{earlyBirdPrice}', '"300"'::jsonb)
+       WHERE slug = 'convention-2026'
+         AND (metadata::jsonb)->>'earlyBirdPrice' = '280'
+       RETURNING slug`
+    );
+    if (priceUpdate.rowCount && priceUpdate.rowCount > 0) {
+      console.log(`[migration] Updated convention-2026 Full Registration price to $300`);
+    }
+  } catch (e) {
+    console.error("[migration] Error updating convention-2026 price:", e);
+  }
+
   const pathMod = await import("path");
   const fsMod = await import("fs");
   app.use((req: any, res, next) => {
