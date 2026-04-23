@@ -146,7 +146,7 @@ export default function Home() {
                     data-testid="button-convention-2026-hero"
                   >
                     <Calendar className="w-5 h-5 mr-2" />
-                    Convention 2026
+                    LA Convention 2026
                   </Button>
                 </Link>
               </div>
