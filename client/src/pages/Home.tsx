@@ -139,6 +139,16 @@ export default function Home() {
                     Support the Cause
                   </Button>
                 </Link>
+                <Link href="/conferences/convention-2026">
+                  <Button
+                    size="lg"
+                    className="bg-red-600 hover:bg-red-700 text-white border-0 font-bold shadow-lg shadow-red-500/50 animate-pulse-glow ring-2 ring-red-400/60"
+                    data-testid="button-convention-2026-hero"
+                  >
+                    <Calendar className="w-5 h-5 mr-2" />
+                    Convention 2026
+                  </Button>
+                </Link>
               </div>
             </motion.div>
           </div>
